@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Калькулятор Доски</title>
+  <style>
+    body { font-family: -apple-system, sans-serif; background: #121212; color: #fff; margin: 0; padding: 15px; }
+    .panel { background: #1e1e1e; padding: 15px; border-radius: 12px; margin-bottom: 15px; position: sticky; top: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+    
+    .inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+    input { width: 100%; box-sizing: border-box; padding: 12px; background: #2c2c2c; color: white; border: none; border-radius: 8px; font-size: 16px; outline: none; }
+    
+    .stats { font-size: 18px; line-height: 1.5; }
+    .highlight { color: #4CAF50; font-weight: bold; font-size: 22px; }
+    .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding-bottom: 20px; }
+    
+    button.size-btn { background: #333; color: white; border: none; padding: 20px 0; font-size: 24px; font-weight: bold; border-radius: 10px; cursor: pointer; transition: 0.1s; }
+    button.size-btn:active { background: #4CAF50; transform: scale(0.95); }
+    
+    .action-btn { width: 100%; padding: 12px; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; margin-top: 10px; cursor: pointer; }
+    .undo { background: #d32f2f; }
+    
+    .btn-row { display: flex; gap: 10px; margin-top: 10px; }
+    .list-btn { background: #f57c00; margin-top: 0; }
+    .export-btn { background: #1976d2; margin-top: 0; }
+    .reset-btn { background: #555; margin-top: 10px; }
+    
+    #list-modal { display: none; background: #2c2c2c; padding: 15px; border-radius: 8px; margin-top: 15px; max-height: 250px; overflow-y: auto; font-size: 14px; }
+    .list-item { border-bottom: 1px solid #444; padding: 8px 0; }
+    .list-item:last-child { border-bottom: none; }
+    .item-price { color: #4CAF50; font-weight: bold; }
+  </style>
+</head>
+<body>
+
+  <div class="panel">
+    <div class="inputs">
+      <!-- Убраны атрибуты value -->
+      <input type="text" id="wood-type" placeholder="Порода">
+      <input type="number" id="price" placeholder="Цена за куб">
+      <input type="number" id="len" placeholder="Длина (м)">
+      <input type="number" id="thick" placeholder="Толщина (мм)">
+    </div>
+    
+    <div class="stats">
+      Объем: <span class="highlight" id="vol">0.000</span> м³<br>
+      Сумма: <span class="highlight" id="sum">0</span><br>
+      Досок: <span class="highlight" id="count">0</span> шт
+    </div>
+    
+    <button class="action-btn undo" onclick="undo()">Отменить последнее нажатие</button>
+    
+    <div class="btn-row">
+      <button class="action-btn list-btn" onclick="toggleList()">Список</button>
+      <button class="action-btn export-btn" onclick="exportCSV()">В Excel</button>
+    </div>
+    
+    <button class="action-btn reset-btn" onclick="resetAll()">Сбросить всё (Новый замер)</button>
+    
+    <div id="list-modal"></div>
+  </div>
+
+  <div class="grid" id="buttons"></div>
+
+  <script>
+    let totalVol = 0;
+    let history = []; 
+
+    const grid = document.getElementById('buttons');
+    for(let i = 15; i <= 50; i++) {
+      let btn = document.createElement('button');
+      btn.className = 'size-btn';
+      btn.innerText = i;
+      btn.onclick = () => addBoard(i);
+      grid.appendChild(btn);
+    }
+
+    function addBoard(widthCm) {
+      const wood = document.getElementById('wood-type').value || "Не указана";
+      const cubePrice = parseFloat(document.getElementById('price').value) || 0;
+      const l = parseFloat(document.getElementById('len').value) || 0;
+      const t = (parseFloat(document.getElementById('thick').value) || 0) / 1000;
+      const w = widthCm / 100;
+      
+      // Защита от случайного нажатия при пустых полях
+      if (l === 0 || t === 0) {
+        alert("Сначала укажите длину и толщину доски!");
+        return;
+      }
+      
+      const boardVol = l * t * w;
+      const boardPrice = boardVol * cubePrice; 
+      
+      history.push({
+        wood: wood,
+        width: widthCm,
+        length: l,
+        thick: parseFloat(document.getElementById('thick').value) || 0,
+        vol: boardVol,
+        price: boardPrice
+      });
+      
+      totalVol += boardVol;
+      updateUI();
+      renderList();
+      
+      if(navigator.vibrate) navigator.vibrate(40);
+    }
+
+    function undo() {
+      if(history.length > 0) {
+        const lastBoard = history.pop(); 
+        totalVol -= lastBoard.vol;
+        updateUI();
+        renderList();
+      }
+    }
+
+    function resetAll() {
+      if(confirm("Внимание! Вы уверены, что хотите удалить все замеры и начать заново?")) {
+        totalVol = 0;
+        history = [];
+        updateUI();
+        renderList();
+        
+        // Очищаем поля ввода
+        document.getElementById('wood-type').value = "";
+        document.getElementById('price').value = "";
+        document.getElementById('len').value = "";
+        document.getElementById('thick').value = "";
+        
+        document.getElementById('list-modal').style.display = 'none';
+      }
+    }
+
+    function updateUI() {
+      document.getElementById('vol').innerText = totalVol.toFixed(3);
+      
+      const totalSum = history.reduce((sum, board) => sum + board.price, 0);
+      document.getElementById('sum').innerText = Math.round(totalSum).toLocaleString('ru-RU');
+      
+      document.getElementById('count').innerText = history.length;
+    }
+
+    function toggleList() {
+      const modal = document.getElementById('list-modal');
+      modal.style.display = modal.style.display === 'block' ? 'none' : 'block';
+    }
+
+    function renderList() {
+      const modal = document.getElementById('list-modal');
+      modal.innerHTML = [...history].reverse().map((b, i) => 
+        `<div class="list-item">
+          Доска ${history.length - i} (${b.wood}): ${b.length}м × ${b.thick}мм × ${b.width}см = <b>${b.vol.toFixed(3)} м³</b> 
+          <span class="item-price">(${Math.round(b.price)} грн)</span>
+        </div>`
+      ).join('');
+    }
+
+    function exportCSV() {
+      if(history.length === 0) {
+        alert("Список пуст! Сначала добавьте доски.");
+        return;
+      }
+      
+      let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
+      csvContent += "Номер;Порода;Длина (м);Толщина (мм);Ширина (см);Объем (м3);Цена\n";
+      
+      history.forEach((b, i) => {
+        let volString = b.vol.toFixed(3).replace('.', ',');
+        let priceString = Math.round(b.price).toString();
+        
+        csvContent += `${i + 1};${b.wood};${b.length};${b.thick};${b.width};${volString};${priceString}\n`;
+      });
+      
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      
+      const date = new Date().toISOString().slice(0, 10);
+      let woodName = history[0].wood ? history[0].wood.replace(/\s+/g, '_') : 'Без_названия'; 
+      
+      link.setAttribute("download", `Zamer_${woodName}_${date}.csv`);
+      
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  </script>
+
+</body>
+</html>
