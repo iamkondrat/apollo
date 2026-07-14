@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
+  <title>Калькулятор Доски Аполло</title>
+  
+  <!-- === ADDED: Company Logo as Touch Icon === -->
+  <!-- Replace these relative links with your actual file names and paths -->
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+  <!-- Small favicon for browser tabs -->
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+  
+  <!-- === ADDED: PWA Manifest for Android install banner === -->
+  <link rel="manifest" href="site.webmanifest">
+  <!-- ========================================== -->
+
+  <style>
+    body { font-family: -apple-system, sans-serif; background: #121212; color: #fff; margin: 0; padding: 0; touch-action: manipulation; }
+    
+    /* Компактная закрепленная шапка */
+    .sticky-header { background: #1e1e1e; padding: 10px 15px; position: sticky; top: 0; z-index: 100; box-shadow: 0 4px 10px rgba(0,0,0,0.5); border-bottom: 2px solid #333; }
+    .stats-row { display: flex; justify-content: space-between; font-size: 16px; font-weight: bold; margin-bottom: 10px; }
+    .stats-row span { color: #4CAF50; font-size: 18px; }
+    
+    .header-btns { display: flex; gap: 10px; }
+    .header-btns button { flex: 1; padding: 10px; border: none; border-radius: 8px; font-size: 15px; font-weight: bold; cursor: pointer; color: white; }
+    .btn-undo { background: #d32f2f; }
+    .btn-menu { background: #1976d2; }
+    
+    /* Скрываемое меню настроек */
+    #settings-menu { background: #222; padding: 15px; border-bottom: 2px solid #333; display: block; }
+    .inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+    input { width: 100%; box-sizing: border-box; padding: 12px; background: #333; color: white; border: 1px solid #444; border-radius: 8px; font-size: 16px; outline: none; }
+    input:focus { border-color: #4CAF50; }
+    
+    .action-btn { width: 100%; padding: 12px; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; margin-top: 10px; cursor: pointer; }
+    .btn-row { display: flex; gap: 10px; margin-top: 10px; }
+    .list-btn { background: #f57c00; margin-top: 0; }
+    .export-btn { background: #4CAF50; margin-top: 0; color: #000; }
+    .reset-btn { background: #555; margin-top: 10px; }
+    
+    /* Сетка кнопок */
+    .grid-container { padding: 15px; }
+    .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+    button.size-btn { background: #2c2c2c; color: white; border: none; padding: 18px 0; font-size: 22px; font-weight: bold; border-radius: 10px; cursor: pointer; transition: all 0.1s; box-shadow: 0 4px 0 #111; }
+    
+    /* Визуальный отклик при нажатии */
+    button.size-btn:active, .flash { background: #4CAF50 !important; color: black !important; transform: translateY(4px); box-shadow: 0 0 0 #111 !important; }
+    
+    #list-modal { display: none; background: #2c2c2c; padding: 15px; border-radius: 8px; margin-top: 15px; max-height: 250px; overflow-y: auto; font-size: 14px; }
+    .list-item { border-bottom: 1px solid #444; padding: 8px 0; }
+    .list-item:last-child { border-bottom: none; }
+    .item-price { color: #4CAF50; font-weight: bold; }
+  </style>
+</head>
+<body>
+
+  <!-- Шапка, которая всегда на экране -->
+  <div class="sticky-header">
+    <div class="stats-row">
+      <div><span id="vol">0.000</span> м³</div>
+      <div><span id="sum">0</span> грн</div>
+      <div><span id="count">0</span> шт</div>
+    </div>
+    <div class="header-btns">
+      <button class="btn-undo" onclick="undo()">↩ Отменить</button>
+      <button class="btn-menu" id="menu-toggle-btn" onclick="toggleMenu()">⚙️ Скрыть настройки</button>
+    </div>
+  </div>
+
+  <!-- Меню, которое можно свернуть -->
+  <div id="settings-menu">
+    <div class="inputs">
+      <input type="text" id="wood-type" placeholder="Порода">
+      <input type="number" id="price" placeholder="Цена за куб">
+      <input type="number" id="len" placeholder="Длина (м)">
+      <input type="number" id="thick" placeholder="Толщина (мм)">
+    </div>
+    
+    <div class="btn-row">
+      <button class="action-btn list-btn" onclick="toggleList()">📋 Список</button>
+      <button class="action-btn export-btn" onclick="exportCSV()">📥 В Excel</button>
+    </div>
+    <button class="action-btn reset-btn" onclick="resetAll()">🗑 Сбросить всё (Новый замер)</button>
+    
+    <div id="list-modal"></div>
+  </div>
+
+  <!-- Кнопки ширин -->
+  <div class="grid-container">
+    <div class="grid" id="buttons"></div>
+  </div>
+
+  <script>
+    let totalVol = 0;
+    let history = []; 
+    
+    // --- ADDED: Data Persistence Functions ---
+    // Load stored data from localStorage
+    function loadStoredData() {
+      const storedHistory = localStorage.getItem('apollo_board_history');
+      const storedVol = localStorage.getItem('apollo_total_vol');
+
+      if (storedHistory) {
+        history = JSON.parse(storedHistory);
+        console.log("Loaded stored history");
+      }
+      if (storedVol) {
+        totalVol = parseFloat(storedVol);
+        console.log("Loaded stored total volume");
+      }
+      // Ensure the UI reflects loaded data
+      updateUI();
+      renderList();
+    }
+
+    // Save current data to localStorage
+    function saveStoredData() {
+      localStorage.setItem('apollo_board_history', JSON.stringify(history));
+      localStorage.setItem('apollo_total_vol', totalVol.toString());
+      console.log("Data saved to localStorage");
+    }
+    // ==========================================
+
+    // Настройка звука (Web Audio API)
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    let audioCtx;
+
+    function playClickSound() {
+      if (!audioCtx) audioCtx = new AudioContext();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      
+      const osc = audioCtx.createOscillator();
+      const gainNode = audioCtx.createGain();
+      
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime + 0.1);
+      
+      gainNode.gain.setValueAtTime(1, audioCtx.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+      
+      osc.connect(gainNode);
+      gainNode.connect(audioCtx.destination);
+      
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.1);
+    }
+
+    // Генерация кнопок
+    const grid = document.getElementById('buttons');
+    for(let i = 15; i <= 50; i++) {
+      let btn = document.createElement('button');
+      btn.className = 'size-btn';
+      btn.innerText = i;
+      btn.onclick = function() { addBoard(i, this); };
+      grid.appendChild(btn);
+    }
+
+    // --- MODIFIED: Load data on startup ---
+    loadStoredData();
+    // ==========================================
+
+    function toggleMenu() {
+      const menu = document.getElementById('settings-menu');
+      const btn = document.getElementById('menu-toggle-btn');
+      if (menu.style.display === 'none') {
+        menu.style.display = 'block';
+        btn.innerText = '⚙️ Скрыть настройки';
+      } else {
+        menu.style.display = 'none';
+        btn.innerText = '⚙️ Открыть настройки';
+      }
+    }
+
+    // --- MODIFIED: Add saveStoredData() after modifications ---
+    function addBoard(widthCm, btnElement) {
+      const wood = document.getElementById('wood-type').value || "Не указана";
+      const cubePrice = parseFloat(document.getElementById('price').value) || 0;
+      const l = parseFloat(document.getElementById('len').value) || 0;
+      const t = (parseFloat(document.getElementById('thick').value) || 0) / 1000;
+      const w = widthCm / 100;
+      
+      if (l === 0 || t === 0) {
+        alert("Сначала откройте настройки и укажите длину и толщину доски!");
+        if(document.getElementById('settings-menu').style.display === 'none') toggleMenu();
+        return;
+      }
+      
+      const boardVol = l * t * w;
+      const boardPrice = boardVol * cubePrice; 
+      
+      history.push({
+        wood: wood, width: widthCm, length: l, thick: parseFloat(document.getElementById('thick').value) || 0, vol: boardVol, price: boardPrice
+      });
+      
+      totalVol += boardVol;
+      updateUI();
+      renderList();
+      saveStoredData(); // Save new state
+      
+      // Визуальный и звуковой отклик
+      playClickSound();
+      btnElement.classList.add('flash');
+      setTimeout(() => btnElement.classList.remove('flash'), 150);
+      
+      if(navigator.vibrate) navigator.vibrate(40); // Оставляем для Android
+    }
+
+    function undo() {
+      if(history.length > 0) {
+        const lastBoard = history.pop(); 
+        totalVol -= lastBoard.vol;
+        updateUI();
+        renderList();
+        saveStoredData(); // Save new state after undo
+      }
+    }
+
+    function resetAll() {
+      if(confirm("Вы уверены, что хотите удалить все замеры?")) {
+        totalVol = 0;
+        history = [];
+
+        // --- MODIFIED: Clear localStorage on reset ---
+        localStorage.removeItem('apollo_board_history');
+        localStorage.removeItem('apollo_total_vol');
+        // ============================================
+
+        updateUI();
+        renderList();
+        
+        document.getElementById('wood-type').value = "";
+        document.getElementById('price').value = "";
+        document.getElementById('len').value = "";
+        document.getElementById('thick').value = "";
+        document.getElementById('list-modal').style.display = 'none';
+      }
+    }
+    // ==========================================
+
+    function updateUI() {
+      document.getElementById('vol').innerText = totalVol.toFixed(3);
+      const totalSum = history.reduce((sum, board) => sum + board.price, 0);
+      document.getElementById('sum').innerText = Math.round(totalSum).toLocaleString('ru-RU');
+      document.getElementById('count').innerText = history.length;
+    }
+
+    function toggleList() {
+      const modal = document.getElementById('list-modal');
+      modal.style.display = modal.style.display === 'block' ? 'none' : 'block';
+    }
+
+    function renderList() {
+      const modal = document.getElementById('list-modal');
+      modal.innerHTML = [...history].reverse().map((b, i) => 
+        `<div class="list-item">Доска ${history.length - i} (${b.wood}): ${b.length}м × ${b.thick}мм × ${b.width}см = <b>${b.vol.toFixed(3)} м³</b> <span class="item-price">(${Math.round(b.price)} грн)</span></div>`
+      ).join('');
+    }
+
+    function exportCSV() {
+      if(history.length === 0) { alert("Список пуст!"); return; }
+      
+      let csvContent = "data:text/csv;charset=utf-8,\uFEFFНомер;Порода;Длина (м);Толщина (мм);Ширина (см);Объем (м3);Цена\n";
+      history.forEach((b, i) => {
+        let volString = b.vol.toFixed(3).replace('.', ',');
+        csvContent += `${i + 1};${b.wood};${b.length};${b.thick};${b.width};${volString};${Math.round(b.price)}\n`;
+      });
+      
+      const link = document.createElement("a");
+      link.setAttribute("href", encodeURI(csvContent));
+      let woodName = history[0].wood ? history[0].wood.replace(/\s+/g, '_') : 'Без_названия'; 
+      link.setAttribute("download", `Zamer_${woodName}_${new Date().toISOString().slice(0, 10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  </script>
+</body>
+</html>
