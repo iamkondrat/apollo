@@ -237,24 +237,27 @@
       const csvContent = formatCSVData();
       const wood = history[0].wood;
       
-      const backendUrl = "https://script.google.com/macros/s/AKfycbx8Ll5Y8OQPTPSiMQkhw0kD-hrZSFzhD2aRxpWfujatYa__wTjp02GVTAFQZKEXIfg/exec"; // URL вашего GAS бэкенда
+      const backendUrl = "https://script.google.com/macros/s/AKfycbx8LI5Y8OQPTPSlMQkhw0kD-hrZSFzhD2aRxpWfujatYa__wTjp02GVTAFQZKEXlfg/exec";
 
       try {
-        const response = await fetch(backendUrl, {
+        await fetch(backendUrl, {
           method: 'POST',
+          mode: 'no-cors', // <--- МАГІЧНА КОМАНДА ДЛЯ ОБХОДУ БЛОКУВАННЯ APPLE
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify({
             data: csvContent,
             woodName: wood,
-            buyerName: buyer, // Pass buyer name to backend for file naming
+            buyerName: buyer,
             action: 'syncFileSync'
           })
         });
 
-        if (response.ok) { alert("Успішно надіслано Директору!"); } 
-        else { alert("Ошибка при синхронизации (GAS Бэкенд не настроен)."); }
+        // Оскільки ми використовуємо no-cors, браузер відправляє дані "наосліп" 
+        // і не чекає відповіді сервера. Якщо помилки мережі немає - вважаємо, що все ок.
+        alert("Запит відправлено! Перевірте лог-таблицю та папку Директора."); 
+        
       } catch (error) {
-        alert("Ошибка сети или GAS Бэкенд не настроен! Автоматическая синхронизация невозможна (Теоретическая схема).\n\nТеоретический адрес GAS: " + backendUrl);
+        alert("Помилка відправки! Перевірте інтернет-з'єднання.");
       }
     }
 
