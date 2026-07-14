@@ -1,56 +1,63 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="uk">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
-  <title>Калькулятор Доски Аполло</title>
+  <title>Калькулятор Дошки Аполло</title>
   
-  <!-- === ADDED: Company Logo as Touch Icon === -->
-  <!-- Replace these relative links with your actual file names and paths -->
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
   <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
   <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
-  <!-- Small favicon for browser tabs -->
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
-  
-  <!-- === ADDED: PWA Manifest for Android install banner === -->
   <link rel="manifest" href="site.webmanifest">
-  <!-- ========================================== -->
 
   <style>
     body { font-family: -apple-system, sans-serif; background: #121212; color: #fff; margin: 0; padding: 0; touch-action: manipulation; }
     
-    /* Компактная закрепленная шапка */
     .sticky-header { background: #1e1e1e; padding: 10px 15px; position: sticky; top: 0; z-index: 100; box-shadow: 0 4px 10px rgba(0,0,0,0.5); border-bottom: 2px solid #333; }
     .stats-row { display: flex; justify-content: space-between; font-size: 16px; font-weight: bold; margin-bottom: 10px; }
     .stats-row span { color: #4CAF50; font-size: 18px; }
     
     .header-btns { display: flex; gap: 10px; }
-    .header-btns button { flex: 1; padding: 10px; border: none; border-radius: 8px; font-size: 15px; font-weight: bold; cursor: pointer; color: white; }
+    .header-btns button { flex: 1; padding: 10px; border: none; border-radius: 8px; font-size: 15px; font-weight: bold; cursor: pointer; color: white; transition: background 0.1s; }
     .btn-undo { background: #d32f2f; }
+    .btn-undo:active { background: #b71c1c; }
     .btn-menu { background: #1976d2; }
+    .btn-menu:active { background: #1565c0; }
     
-    /* Скрываемое меню настроек */
     #settings-menu { background: #222; padding: 15px; border-bottom: 2px solid #333; display: block; }
     .inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
     input { width: 100%; box-sizing: border-box; padding: 12px; background: #333; color: white; border: 1px solid #444; border-radius: 8px; font-size: 16px; outline: none; }
     input:focus { border-color: #4CAF50; }
     
-    .action-btn { width: 100%; padding: 12px; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; margin-top: 10px; cursor: pointer; }
+    .action-btn { width: 100%; padding: 12px; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; margin-top: 10px; cursor: pointer; transition: background 0.1s; }
     .btn-row { display: flex; gap: 10px; margin-top: 10px; }
     .list-btn { background: #f57c00; margin-top: 0; }
-    .export-btn { background: #4CAF50; margin-top: 0; color: #000; }
+    .list-btn:active { background: #e65100; }
+    
+    /* --- NEW/MODIFIED: Combined direct send button and download button --- */
+    .export-btn { background: #1976d2; margin-top: 0; color: white; flex: 2; /* Шире кнопки списка */ }
+    .export-btn:active { background: #1565c0; }
+    
     .reset-btn { background: #555; margin-top: 10px; }
+    .reset-btn:active { background: #444; }
     
-    /* Сетка кнопок */
-    .grid-container { padding: 15px; }
-    .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
-    button.size-btn { background: #2c2c2c; color: white; border: none; padding: 18px 0; font-size: 22px; font-weight: bold; border-radius: 10px; cursor: pointer; transition: all 0.1s; box-shadow: 0 4px 0 #111; }
-    
-    /* Визуальный отклик при нажатии */
-    button.size-btn:active, .flash { background: #4CAF50 !important; color: black !important; transform: translateY(4px); box-shadow: 0 0 0 #111 !important; }
-    
+    .width-input-area { padding: 15px; background: #1a1a1a; border-bottom: 1px solid #333; display: flex; align-items: center; gap: 10px; }
+    .width-display { flex: 1; padding: 15px; background: #2c2c2c; color: white; border: 1px solid #444; border-radius: 8px; font-size: 20px; font-weight: bold; outline: none; text-align: center; cursor: default; }
+    .width-display::placeholder { color: #888; font-size: 16px; font-weight: normal; }
+    .btn-add-board { padding: 15px 25px; background: #4CAF50; color: black; border: none; border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer; transition: background 0.1s; }
+    .btn-add-board:active { background: #388e3c; transform: translateY(2px); }
+
+    .numpad-container { padding: 15px; }
+    .numpad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    button.num-btn { background: #333; color: white; border: none; padding: 25px 0; font-size: 28px; font-weight: bold; border-radius: 10px; cursor: pointer; transition: all 0.1s; box-shadow: 0 4px 0 #111; }
+    button.num-btn:active, .flash { background: #4CAF50 !important; color: black !important; transform: translateY(4px); box-shadow: 0 0 0 #111 !important; }
+    button.clear-btn { background: #d32f2f; color: white; }
+    button.clear-btn:active { background: #b71c1c; }
+    button.backspace-btn { background: #555; color: white; font-size: 22px; }
+    button.backspace-btn:active { background: #444; }
+
     #list-modal { display: none; background: #2c2c2c; padding: 15px; border-radius: 8px; margin-top: 15px; max-height: 250px; overflow-y: auto; font-size: 14px; }
     .list-item { border-bottom: 1px solid #444; padding: 8px 0; }
     .list-item:last-child { border-bottom: none; }
@@ -59,7 +66,6 @@
 </head>
 <body>
 
-  <!-- Шапка, которая всегда на экране -->
   <div class="sticky-header">
     <div class="stats-row">
       <div><span id="vol">0.000</span> м³</div>
@@ -67,218 +73,286 @@
       <div><span id="count">0</span> шт</div>
     </div>
     <div class="header-btns">
-      <button class="btn-undo" onclick="undo()">↩ Отменить</button>
+      <button class="btn-undo" onclick="undo()">↩ Скасувати</button>
       <button class="btn-menu" id="menu-toggle-btn" onclick="toggleMenu()">⚙️ Скрыть настройки</button>
     </div>
   </div>
 
-  <!-- Меню, которое можно свернуть -->
   <div id="settings-menu">
     <div class="inputs">
+      <!-- --- NEW: Buyer Name Input Field --- -->
+      <input type="text" id="buyer-name" placeholder="Ім'я покупця">
       <input type="text" id="wood-type" placeholder="Порода">
-      <input type="number" id="price" placeholder="Цена за куб">
+      <input type="number" id="price" placeholder="Ціна за куб">
       <input type="number" id="len" placeholder="Длина (м)">
       <input type="number" id="thick" placeholder="Толщина (мм)">
     </div>
-    
     <div class="btn-row">
-      <button class="action-btn list-btn" onclick="toggleList()">📋 Список</button>
-      <button class="action-btn export-btn" onclick="exportCSV()">📥 В Excel</button>
+      <button class="action-btn list-btn" onclick="toggleList()">📋 Список дощок</button>
+      <!-- --- MODIFIED: Direct send button now handles download too --- -->
+      <button class="action-btn export-btn" onclick="sendData()">📥 Надіслати (Директор + Планшет)</button>
     </div>
     <button class="action-btn reset-btn" onclick="resetAll()">🗑 Сбросить всё (Новый замер)</button>
-    
     <div id="list-modal"></div>
   </div>
 
-  <!-- Кнопки ширин -->
-  <div class="grid-container">
-    <div class="grid" id="buttons"></div>
+  <div class="width-input-area">
+    <input type="text" id="width-display" class="width-display" placeholder="Ширина (см)" readonly>
+    <button id="add-board-btn" class="btn-add-board" onclick="confirmAddBoard()">ОК</button>
+  </div>
+
+  <div class="numpad-container">
+    <div class="numpad">
+      <button class="num-btn" onclick="pressKey('1')">1</button>
+      <button class="num-btn" onclick="pressKey('2')">2</button>
+      <button class="num-btn" onclick="pressKey('3')">3</button>
+      <button class="num-btn" onclick="pressKey('4')">4</button>
+      <button class="num-btn" onclick="pressKey('5')">5</button>
+      <button class="num-btn" onclick="pressKey('6')">6</button>
+      <button class="num-btn" onclick="pressKey('7')">7</button>
+      <button class="num-btn" onclick="pressKey('8')">8</button>
+      <button class="num-btn" onclick="pressKey('9')">9</button>
+      <button class="num-btn clear-btn" onclick="clearWidthInput()">C</button>
+      <button class="num-btn" onclick="pressKey('0')">0</button>
+      <button class="num-btn backspace-btn" onclick="pressBackspace()">⌫</button>
+    </div>
   </div>
 
   <script>
     let totalVol = 0;
     let history = []; 
-    
-    // --- ADDED: Data Persistence Functions ---
-    // Load stored data from localStorage
-    function loadStoredData() {
-      const storedHistory = localStorage.getItem('apollo_board_history');
-      const storedVol = localStorage.getItem('apollo_total_vol');
+    let currentWidthInput = ""; 
 
-      if (storedHistory) {
-        history = JSON.parse(storedHistory);
-        console.log("Loaded stored history");
-      }
-      if (storedVol) {
-        totalVol = parseFloat(storedVol);
-        console.log("Loaded stored total volume");
-      }
-      // Ensure the UI reflects loaded data
-      updateUI();
-      renderList();
-    }
-
-    // Save current data to localStorage
-    function saveStoredData() {
-      localStorage.setItem('apollo_board_history', JSON.stringify(history));
-      localStorage.setItem('apollo_total_vol', totalVol.toString());
-      console.log("Data saved to localStorage");
-    }
-    // ==========================================
-
-    // Настройка звука (Web Audio API)
+    // Настройка звука
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     let audioCtx;
-
     function playClickSound() {
       if (!audioCtx) audioCtx = new AudioContext();
       if (audioCtx.state === 'suspended') audioCtx.resume();
-      
       const osc = audioCtx.createOscillator();
       const gainNode = audioCtx.createGain();
-      
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(800, audioCtx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime + 0.1);
-      
-      gainNode.gain.setValueAtTime(1, audioCtx.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
-      
-      osc.connect(gainNode);
-      gainNode.connect(audioCtx.destination);
-      
-      osc.start();
-      osc.stop(audioCtx.currentTime + 0.1);
+      osc.type = 'sine'; osc.frequency.setValueAtTime(800, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime + 0.1);
+      gainNode.gain.setValueAtTime(1, audioCtx.currentTime); gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+      osc.connect(gainNode); gainNode.connect(audioCtx.destination);
+      osc.start(); osc.stop(audioCtx.currentTime + 0.1);
     }
 
-    // Генерация кнопок
-    const grid = document.getElementById('buttons');
-    for(let i = 15; i <= 50; i++) {
-      let btn = document.createElement('button');
-      btn.className = 'size-btn';
-      btn.innerText = i;
-      btn.onclick = function() { addBoard(i, this); };
-      grid.appendChild(btn);
+    function loadStoredData() {
+      const storedBuyer = localStorage.getItem('apollo_buyer_name');
+      const storedHistory = localStorage.getItem('apollo_board_history');
+      const storedVol = localStorage.getItem('apollo_total_vol');
+      if (storedBuyer) document.getElementById('buyer-name').value = storedBuyer;
+      if (storedHistory) history = JSON.parse(storedHistory);
+      if (storedVol) totalVol = parseFloat(storedVol);
+      updateUI();
+      renderList();
+    }
+    loadStoredData(); 
+    
+    function saveStoredData() {
+      localStorage.setItem('apollo_buyer_name', document.getElementById('buyer-name').value);
+      localStorage.setItem('apollo_board_history', JSON.stringify(history));
+      localStorage.setItem('apollo_total_vol', totalVol.toString());
     }
 
-    // --- MODIFIED: Load data on startup ---
-    loadStoredData();
-    // ==========================================
+    // Numpad Logic
+    function updateWidthDisplay() { document.getElementById('width-display').value = currentWidthInput; }
+    function pressKey(key) { if (currentWidthInput.length < 2) { currentWidthInput += key; updateWidthDisplay(); playClickSound(); } }
+    function clearWidthInput() { currentWidthInput = ""; updateWidthDisplay(); playClickSound(); }
+    function pressBackspace() { currentWidthInput = currentWidthInput.slice(0, -1); updateWidthDisplay(); playClickSound(); }
 
     function toggleMenu() {
       const menu = document.getElementById('settings-menu');
       const btn = document.getElementById('menu-toggle-btn');
-      if (menu.style.display === 'none') {
-        menu.style.display = 'block';
-        btn.innerText = '⚙️ Скрыть настройки';
-      } else {
-        menu.style.display = 'none';
-        btn.innerText = '⚙️ Открыть настройки';
-      }
+      if (menu.style.display === 'none') { menu.style.display = 'block'; btn.innerText = '⚙️ Скрыть настройки'; } 
+      else { menu.style.display = 'none'; btn.innerText = '⚙️ Открыть настройки'; }
     }
 
-    // --- MODIFIED: Add saveStoredData() after modifications ---
-    function addBoard(widthCm, btnElement) {
+    function confirmAddBoard() {
+      const buyer = document.getElementById('buyer-name').value;
+      if (buyer === "") { alert("Будь ласка, вкажіть ім'я покупця!"); if(document.getElementById('settings-menu').style.display === 'none') toggleMenu(); return; }
+      if (currentWidthInput === "") { alert("Пожалуйста, введите ширину!"); return; }
+      const width = parseInt(currentWidthInput);
+      if (isNaN(width) || width < 1 || width > 99) { alert("Пожалуйста, введите корректную двухзначную ширину (1-99 см)!"); clearWidthInput(); return; }
+      addBoardFromWidth(width);
+      clearWidthInput();
+    }
+
+    function addBoardFromWidth(widthCm) {
+      const buyer = document.getElementById('buyer-name').value;
       const wood = document.getElementById('wood-type').value || "Не указана";
       const cubePrice = parseFloat(document.getElementById('price').value) || 0;
       const l = parseFloat(document.getElementById('len').value) || 0;
       const t = (parseFloat(document.getElementById('thick').value) || 0) / 1000;
       const w = widthCm / 100;
       
-      if (l === 0 || t === 0) {
-        alert("Сначала откройте настройки и укажите длину и толщину доски!");
-        if(document.getElementById('settings-menu').style.display === 'none') toggleMenu();
-        return;
-      }
+      if (buyer === "") { alert("Будь ласка, вкажіть ім'я покупця!"); if(document.getElementById('settings-menu').style.display === 'none') toggleMenu(); return; }
+      if (l === 0 || t === 0) { alert("Сначала откройте настройки и укажите длину и толщину доски!"); if(document.getElementById('settings-menu').style.display === 'none') toggleMenu(); return; }
       
       const boardVol = l * t * w;
       const boardPrice = boardVol * cubePrice; 
       
-      history.push({
-        wood: wood, width: widthCm, length: l, thick: parseFloat(document.getElementById('thick').value) || 0, vol: boardVol, price: boardPrice
-      });
-      
+      history.push({ buyer: buyer, wood: wood, width: widthCm, length: l, thick: parseFloat(document.getElementById('thick').value) || 0, vol: boardVol, price: boardPrice });
       totalVol += boardVol;
-      updateUI();
-      renderList();
-      saveStoredData(); // Save new state
-      
-      // Визуальный и звуковой отклик
-      playClickSound();
-      btnElement.classList.add('flash');
-      setTimeout(() => btnElement.classList.remove('flash'), 150);
-      
-      if(navigator.vibrate) navigator.vibrate(40); // Оставляем для Android
+      updateUI(); renderList(); saveStoredData(); playClickSound(); if(navigator.vibrate) navigator.vibrate(40);
     }
 
-    function undo() {
-      if(history.length > 0) {
-        const lastBoard = history.pop(); 
-        totalVol -= lastBoard.vol;
-        updateUI();
-        renderList();
-        saveStoredData(); // Save new state after undo
-      }
-    }
+    function undo() { if(history.length > 0) { const lastBoard = history.pop(); totalVol -= lastBoard.vol; updateUI(); renderList(); saveStoredData(); } }
 
     function resetAll() {
-      if(confirm("Вы уверены, что хотите удалить все замеры?")) {
-        totalVol = 0;
-        history = [];
-
-        // --- MODIFIED: Clear localStorage on reset ---
-        localStorage.removeItem('apollo_board_history');
-        localStorage.removeItem('apollo_total_vol');
-        // ============================================
-
-        updateUI();
-        renderList();
-        
-        document.getElementById('wood-type').value = "";
-        document.getElementById('price').value = "";
-        document.getElementById('len').value = "";
-        document.getElementById('thick').value = "";
-        document.getElementById('list-modal').style.display = 'none';
+      if(confirm("Увага! Ви впевнені, що хочете видалити всі заміри та почати заново?")) {
+        totalVol = 0; history = [];
+        localStorage.removeItem('apollo_board_history'); localStorage.removeItem('apollo_total_vol');
+        updateUI(); renderList();
+        document.getElementById('buyer-name').value = ""; document.getElementById('wood-type').value = ""; document.getElementById('price').value = ""; document.getElementById('len').value = ""; document.getElementById('thick').value = ""; document.getElementById('list-modal').style.display = 'none'; clearWidthInput();
       }
     }
-    // ==========================================
 
     function updateUI() {
       document.getElementById('vol').innerText = totalVol.toFixed(3);
       const totalSum = history.reduce((sum, board) => sum + board.price, 0);
-      document.getElementById('sum').innerText = Math.round(totalSum).toLocaleString('ru-RU');
+      document.getElementById('sum').innerText = Math.round(totalSum).toLocaleString('uk-UA');
       document.getElementById('count').innerText = history.length;
     }
 
-    function toggleList() {
-      const modal = document.getElementById('list-modal');
-      modal.style.display = modal.style.display === 'block' ? 'none' : 'block';
-    }
+    function toggleList() { const modal = document.getElementById('list-modal'); modal.style.display = modal.style.display === 'block' ? 'none' : 'block'; }
+    function renderList() { const modal = document.getElementById('list-modal'); modal.innerHTML = [...history].reverse().map((b, i) => `<div class="list-item">Доска ${history.length - i} (${b.wood}): ${b.length}м × ${b.thick}мм × ${b.width}см = <b>${b.vol.toFixed(3)} м³</b> <span class="item-price">(${Math.round(b.price)} грн)</span></div>`).join(''); }
 
-    function renderList() {
-      const modal = document.getElementById('list-modal');
-      modal.innerHTML = [...history].reverse().map((b, i) => 
-        `<div class="list-item">Доска ${history.length - i} (${b.wood}): ${b.length}м × ${b.thick}мм × ${b.width}см = <b>${b.vol.toFixed(3)} м³</b> <span class="item-price">(${Math.round(b.price)} грн)</span></div>`
-      ).join('');
-    }
+    // --- NEW: Combined send function calls theoretical GAS send and direct download ---
+    async function sendData() {
+      if(history.length === 0) { alert("Список порожній! Спочатку додайте дошки."); return; }
+      const buyer = document.getElementById('buyer-name').value;
+      if (buyer === "") { alert("Будь ласка, вкажіть ім'я покупця перед надсиланням!"); if(document.getElementById('settings-menu').style.display === 'none') toggleMenu(); return; }
 
-    function exportCSV() {
-      if(history.length === 0) { alert("Список пуст!"); return; }
+      // 1. Theoretical GAS send
+      await theoryAutoSend();
+
+      // 2. Immediate direct download to tablet
+      downloadCSV();
+    }
+    // ==========================================
+
+    async function theoryAutoSend() {
+      const buyer = document.getElementById('buyer-name').value;
+      const csvContent = formatCSVData();
+      const wood = history[0].wood;
       
-      let csvContent = "data:text/csv;charset=utf-8,\uFEFFНомер;Порода;Длина (м);Толщина (мм);Ширина (см);Объем (м3);Цена\n";
-      history.forEach((b, i) => {
-        let volString = b.vol.toFixed(3).replace('.', ',');
-        csvContent += `${i + 1};${b.wood};${b.length};${b.thick};${b.width};${volString};${Math.round(b.price)}\n`;
-      });
+      const backendUrl = "ЗАМЕНИТЬ_НА_АДРЕС_ВАШЕГО_GAS_БЭКЕНДА"; // URL вашего GAS бэкенда
+
+      try {
+        const response = await fetch(backendUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            data: csvContent,
+            woodName: wood,
+            buyerName: buyer, // Pass buyer name to backend for file naming
+            action: 'syncFileSync'
+          })
+        });
+
+        if (response.ok) { alert("Успішно надіслано Директору!"); } 
+        else { alert("Ошибка при синхронизации (GAS Бэкенд не настроен)."); }
+      } catch (error) {
+        alert("Ошибка сети или GAS Бэкенд не настроен! Автоматическая синхронизация невозможна (Теоретическая схема).\n\nТеоретический адрес GAS: " + backendUrl);
+      }
+    }
+
+    // --- NEW/MODIFIED: Direct download to tablet with unique name and formatting ---
+    function downloadCSV() {
+      const buyer = document.getElementById('buyer-name').value;
+      const csvContent = formatCSVData();
+      
+      const date = new Date().toISOString().slice(0, 10);
+      const time = new Date().toTimeString().slice(0, 8).replace(/:/g, '-');
+      const buyerSafe = buyer.replace(/\s+/g, '_'); // Safe for filename
+      
+      // Filename format: Zamer_YYYY-MM-DD_BuyerName_HH-MM-SS.csv
+      const fileName = `Zamer_${date}_${buyerSafe}_${time}.csv`;
       
       const link = document.createElement("a");
       link.setAttribute("href", encodeURI(csvContent));
-      let woodName = history[0].wood ? history[0].wood.replace(/\s+/g, '_') : 'Без_названия'; 
-      link.setAttribute("download", `Zamer_${woodName}_${new Date().toISOString().slice(0, 10)}.csv`);
+      link.setAttribute("download", fileName);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
     }
+    // ==========================================
+
+    // --- NEW: Helper function to sort history by wood type ---
+    function getSortedHistory() {
+      return [...history].sort((a, b) => {
+        if (a.wood < b.wood) return -1;
+        if (a.wood > b.wood) return 1;
+        return 0;
+      });
+    }
+    // ==========================================
+
+    // --- NEW: Format CSV data with unique grouping and totals ---
+    function formatCSVData() {
+      const buyer = document.getElementById('buyer-name').value || "Без покупця";
+      const sortedHistory = getSortedHistory();
+      const date = new Date().toISOString().slice(0, 10);
+      const time = new Date().toTimeString().slice(0, 8);
+      
+      // 1. CSV Content with unique date, buyer, and timestamp header
+      let csvContent = `data:text/csv;charset=utf-8,\uFEFFПокупець: ${buyer}\nДата: ${date};Час: ${time}\n\n`;
+      
+      let grandVolTotal = 0;
+      let grandSumTotal = 0;
+      let woodCount = 0;
+      
+      // 2. Process groups by wood type
+      const groupedData = {};
+      sortedHistory.forEach(board => {
+        if (!groupedData[board.wood]) groupedData[board.wood] = [];
+        groupedData[board.wood].push(board);
+      });
+      
+      // Sort keys to ensure consistent order
+      const sortedWoods = Object.keys(groupedData).sort();
+      
+      sortedWoods.forEach(wood => {
+        const boards = groupedData[wood];
+        let woodVolTotal = 0;
+        let woodSumTotal = 0;
+        
+        // Wood Type Header (Укр.)
+        csvContent += `Порода: ${wood}\n`;
+        // Table Header (Укр.)
+        csvContent += "Номер;Довжина (м);Товщина (мм);Ширина (см);Об'єм (м3);Ціна\n";
+        
+        woodCount = 0;
+        boards.forEach((b, i) => {
+          woodCount++;
+          let volString = b.vol.toFixed(3).replace('.', ',');
+          let priceString = Math.round(b.price).toString();
+          
+          // Add board row (Номер: woodCount)
+          csvContent += `${woodCount};${b.length};${b.thick};${b.width};${volString};${priceString}\n`;
+          
+          woodVolTotal += b.vol;
+          woodSumTotal += b.price;
+        });
+        
+        // Wood totals row (Укр.)
+        let woodVolString = woodVolTotal.toFixed(3).replace('.', ',');
+        let woodSumString = Math.round(woodSumTotal).toString();
+        csvContent += `Всього порода: ${wood};;;;${woodVolString};${woodSumString}\n\n`;
+        
+        grandVolTotal += woodVolTotal;
+        grandSumTotal += woodSumTotal;
+      });
+      
+      // 3. Overall grand totals row at the very bottom (Укр.)
+      let grandVolString = grandVolTotal.toFixed(3).replace('.', ',');
+      let grandSumString = Math.round(grandSumTotal).toLocaleString('uk-UA');
+      csvContent += `ЗАГАЛОМ:;;;;${grandVolString};${grandSumString}\n`;
+      
+      return csvContent;
+    }
+    // ==========================================
   </script>
 </body>
 </html>
