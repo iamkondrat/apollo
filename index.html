@@ -293,27 +293,26 @@
     // ==========================================
 
     // --- NEW: Format CSV data with unique grouping and totals ---
+    // --- NEW: Format CSV data with unique grouping and totals ---
     function formatCSVData() {
       const buyer = document.getElementById('buyer-name').value || "Без покупця";
       const sortedHistory = getSortedHistory();
       const date = new Date().toISOString().slice(0, 10);
       const time = new Date().toTimeString().slice(0, 8);
       
-      // 1. CSV Content with unique date, buyer, and timestamp header
-      let csvContent = `data:text/csv;charset=utf-8,\uFEFFПокупець: ${buyer}\nДата: ${date};Час: ${time}\n\n`;
+      // Используем запятые для колонок, чтобы iPad читал таблицу ровно
+      let csvContent = `data:text/csv;charset=utf-8,\uFEFFПокупець: ${buyer}\nДата: ${date},Час: ${time}\n\n`;
       
       let grandVolTotal = 0;
       let grandSumTotal = 0;
       let woodCount = 0;
       
-      // 2. Process groups by wood type
       const groupedData = {};
       sortedHistory.forEach(board => {
         if (!groupedData[board.wood]) groupedData[board.wood] = [];
         groupedData[board.wood].push(board);
       });
       
-      // Sort keys to ensure consistent order
       const sortedWoods = Object.keys(groupedData).sort();
       
       sortedWoods.forEach(wood => {
@@ -321,37 +320,35 @@
         let woodVolTotal = 0;
         let woodSumTotal = 0;
         
-        // Wood Type Header (Укр.)
         csvContent += `Порода: ${wood}\n`;
-        // Table Header (Укр.)
-        csvContent += "Номер;Довжина (м);Товщина (мм);Ширина (см);Об'єм (м3);Ціна\n";
+        // Разделители заменены на запятые
+        csvContent += "Номер,Довжина (м),Товщина (мм),Ширина (см),Об'єм (м3),Ціна\n";
         
         woodCount = 0;
         boards.forEach((b, i) => {
           woodCount++;
-          let volString = b.vol.toFixed(3).replace('.', ',');
+          // Оставляем точку в дробях, чтобы iPad не разрывал число на две колонки
+          let volString = b.vol.toFixed(3); 
           let priceString = Math.round(b.price).toString();
           
-          // Add board row (Номер: woodCount)
-          csvContent += `${woodCount};${b.length};${b.thick};${b.width};${volString};${priceString}\n`;
+          csvContent += `${woodCount},${b.length},${b.thick},${b.width},${volString},${priceString}\n`;
           
           woodVolTotal += b.vol;
           woodSumTotal += b.price;
         });
         
-        // Wood totals row (Укр.)
-        let woodVolString = woodVolTotal.toFixed(3).replace('.', ',');
+        let woodVolString = woodVolTotal.toFixed(3);
         let woodSumString = Math.round(woodSumTotal).toString();
-        csvContent += `Всього порода: ${wood};;;;${woodVolString};${woodSumString}\n\n`;
+        csvContent += `Всього порода: ${wood},,,,${woodVolString},${woodSumString}\n\n`;
         
         grandVolTotal += woodVolTotal;
         grandSumTotal += woodSumTotal;
       });
       
-      // 3. Overall grand totals row at the very bottom (Укр.)
-      let grandVolString = grandVolTotal.toFixed(3).replace('.', ',');
-      let grandSumString = Math.round(grandSumTotal).toLocaleString('uk-UA');
-      csvContent += `ЗАГАЛОМ:;;;;${grandVolString};${grandSumString}\n`;
+      let grandVolString = grandVolTotal.toFixed(3);
+      // Убрано .toLocaleString('uk-UA'), чтобы пробелы в тысячах (11 508) не ломали математику Excel
+      let grandSumString = Math.round(grandSumTotal).toString(); 
+      csvContent += `ЗАГАЛОМ:,,,,${grandVolString},${grandSumString}\n`;
       
       return csvContent;
     }
