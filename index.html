@@ -229,7 +229,12 @@
     }
 
     function toggleList() { const modal = document.getElementById('list-modal'); modal.style.display = modal.style.display === 'block' ? 'none' : 'block'; }
-    function renderList() { const modal = document.getElementById('list-modal'); modal.innerHTML = [...history].reverse().map((b, i) => `<div class="list-item">Дошка ${history.length - i} (${b.wood}): ${b.length}м × ${b.thick}мм × ${b.width}см = <b>${b.vol.toFixed(3)} м³</b> <span class="item-price">(${Math.round(b.price)} грн)</span></div>`).join(''); }
+    function renderList() { 
+      const modal = document.getElementById('list-modal'); 
+      modal.innerHTML = [...history].reverse().map((b, i) => 
+        `<div class="list-item">Дошка ${history.length - i} (${b.wood}): ${b.length}м × ${b.thick}мм × ${b.width}см = <b>${b.vol.toFixed(3)} м³</b> <br><span class="item-price">(${Math.round(b.price)} грн / по ${Math.round(b.cubePrice || 0)} грн за куб)</span></div>`
+      ).join(''); 
+    }
 
     // --- NEW: Combined send function calls theoretical GAS send and direct download ---
     async function sendData() {
