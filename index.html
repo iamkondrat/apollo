@@ -192,24 +192,28 @@
 
     function addBoardFromWidth(widthCm) {
       const buyer = document.getElementById('buyer-name').value;
-      const wood = document.getElementById('wood-type').value || "Не вказана";
+      // Прибрали "|| 'Не вказана'", щоб чітко бачити, коли нічого не обрано
+      const wood = document.getElementById('wood-type').value; 
       const cubePrice = parseFloat(document.getElementById('price').value) || 0;
       const l = parseFloat(document.getElementById('len').value) || 0;
       const t = (parseFloat(document.getElementById('thick').value) || 0) / 1000;
       const w = widthCm / 100;
       
       if (buyer === "") { alert("Будь ласка, вкажіть покупця!"); if(document.getElementById('settings-menu').style.display === 'none') toggleMenu(); return; }
+      
+      // ДОДАНО: Жорстка перевірка на вибір породи
+      if (wood === "") { alert("Будь ласка, оберіть породу дерева!"); if(document.getElementById('settings-menu').style.display === 'none') toggleMenu(); return; }
+      
       if (l === 0 || t === 0) { alert("Спочатку відкрийте налаштування та вкажіть довжину та товщину дошки!"); if(document.getElementById('settings-menu').style.display === 'none') toggleMenu(); return; }
       
       const boardVol = l * t * w;
       const boardPrice = boardVol * cubePrice; 
       
-      // ДОДАНО: збереження ціни за куб (cubePrice) в історію
       history.push({ buyer: buyer, wood: wood, width: widthCm, length: l, thick: parseFloat(document.getElementById('thick').value) || 0, vol: boardVol, cubePrice: cubePrice, price: boardPrice });
       totalVol += boardVol;
       updateUI(); renderList(); saveStoredData(); playClickSound(); if(navigator.vibrate) navigator.vibrate(40);
     }
-
+    
     function undo() { if(history.length > 0) { const lastBoard = history.pop(); totalVol -= lastBoard.vol; updateUI(); renderList(); saveStoredData(); } }
 
     function resetAll() {
