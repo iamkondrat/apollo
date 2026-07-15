@@ -95,9 +95,9 @@
         <option value="Горіх">Горіх</option>
         <option value="Берест">Берест</option>
       </select>
-      <input type="number" id="price" placeholder="Ціна за куб (грн)">
-      <input type="number" id="len" placeholder="Довжина (м)">
-      <input type="number" id="thick" placeholder="Товщина (мм)">
+      <input type="text" inputmode="decimal" id="price" placeholder="Ціна за куб (грн)">
+      <input type="text" inputmode="decimal" id="len" placeholder="Довжина (м)">
+      <input type="text" inputmode="decimal" id="thick" placeholder="Товщина (мм)">
     </div>
     <div class="btn-row">
       <button class="action-btn list-btn" onclick="toggleList()">📋 Список дошок</button>
@@ -190,26 +190,33 @@
       clearWidthInput();
     }
 
+    function getSafeNumber(id) {
+      let val = document.getElementById(id).value;
+      if (!val) return 0;
+      // Видаляємо всі літери/пробіли і міняємо кому на крапку
+      val = val.replace(/[^\d.,]/g, '').replace(',', '.');
+      return parseFloat(val) || 0;
+    }
+
     function addBoardFromWidth(widthCm) {
       const buyer = document.getElementById('buyer-name').value;
       const wood = document.getElementById('wood-type').value; 
-      const cubePrice = parseFloat(document.getElementById('price').value) || 0;
-      const l = parseFloat(document.getElementById('len').value) || 0;
-      const t = (parseFloat(document.getElementById('thick').value) || 0) / 1000;
+      
+      // Використовуємо нашу нову безпечну функцію для зчитування чисел
+      const cubePrice = getSafeNumber('price');
+      const l = getSafeNumber('len');
+      const t = getSafeNumber('thick') / 1000;
       const w = widthCm / 100;
       
       if (buyer === "") { alert("Будь ласка, вкажіть покупця!"); if(document.getElementById('settings-menu').style.display === 'none') toggleMenu(); return; }
       if (wood === "") { alert("Будь ласка, оберіть породу дерева!"); if(document.getElementById('settings-menu').style.display === 'none') toggleMenu(); return; }
-      
-      // ДОДАНО: Жорстка перевірка на введення ціни
       if (cubePrice === 0) { alert("Будь ласка, вкажіть ціну за куб!"); if(document.getElementById('settings-menu').style.display === 'none') toggleMenu(); return; }
-      
       if (l === 0 || t === 0) { alert("Спочатку відкрийте налаштування та вкажіть довжину та товщину дошки!"); if(document.getElementById('settings-menu').style.display === 'none') toggleMenu(); return; }
       
       const boardVol = l * t * w;
       const boardPrice = boardVol * cubePrice; 
       
-      history.push({ buyer: buyer, wood: wood, width: widthCm, length: l, thick: parseFloat(document.getElementById('thick').value) || 0, vol: boardVol, cubePrice: cubePrice, price: boardPrice });
+      history.push({ buyer: buyer, wood: wood, width: widthCm, length: l, thick: getSafeNumber('thick'), vol: boardVol, cubePrice: cubePrice, price: boardPrice });
       totalVol += boardVol;
       updateUI(); renderList(); saveStoredData(); playClickSound(); if(navigator.vibrate) navigator.vibrate(40);
     }
@@ -375,6 +382,35 @@
       
       return csvContent;
     }
+
+    // --- АВТОФОРМАТУВАННЯ ПОЛІВ (м, мм, грн) ---
+    function setupFormatting() {
+      const fields = [
+        { id: 'price', unit: 'грн' },
+        { id: 'len', unit: 'м' },
+        { id: 'thick', unit: 'мм' }
+      ];
+
+      fields.forEach(f => {
+        const el = document.getElementById(f.id);
+        
+        const applyFormat = () => {
+          // Беремо тільки цифри (включно з крапкою чи комою)
+          let val = el.value.replace(/[^\d.,]/g, '').trim(); 
+          if (val !== '') el.value = val + ' ' + f.unit;
+        };
+
+        // Коли натискаємо на поле – прибираємо букви, щоб зручно було редагувати
+        el.addEventListener('focus', function() {
+          this.value = this.value.replace(/[^\d.,]/g, '').trim();
+        });
+
+        // Коли прибрали палець з поля – додаємо букви назад
+        el.addEventListener('blur', applyFormat);
+      });
+    }
+    setupFormatting();
+    
     // ==========================================
   </script>
 </body>
