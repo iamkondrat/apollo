@@ -313,7 +313,6 @@
       const date = new Date().toISOString().slice(0, 10);
       const time = new Date().toTimeString().slice(0, 8);
       
-      // Используем запятые для колонок, чтобы iPad читал таблицу ровно
       let csvContent = `data:text/csv;charset=utf-8,\uFEFFПокупець: ${buyer}\nДата: ${date},Час: ${time}\n\n`;
       
       let grandVolTotal = 0;
@@ -334,17 +333,18 @@
         let woodSumTotal = 0;
         
         csvContent += `Порода: ${wood}\n`;
-        // Разделители заменены на запятые
-        csvContent += "Номер,Довжина (м),Товщина (мм),Ширина (см),Об'єм (м3),Ціна\n";
+        // ДОДАНО НОВИЙ СТОВПЧИК: Ціна за куб
+        csvContent += "Номер,Довжина (м),Товщина (мм),Ширина (см),Об'єм (м3),Ціна за куб,Сума\n";
         
         woodCount = 0;
         boards.forEach((b, i) => {
           woodCount++;
-          // Оставляем точку в дробях, чтобы iPad не разрывал число на две колонки
           let volString = b.vol.toFixed(3); 
+          let cubePriceString = Math.round(b.cubePrice || 0).toString(); // Витягуємо ціну за куб
           let priceString = Math.round(b.price).toString();
           
-          csvContent += `${woodCount},${b.length},${b.thick},${b.width},${volString},${priceString}\n`;
+          // ЗАПИСУЄМО НОВЕ ЗНАЧЕННЯ В РЯДОК
+          csvContent += `${woodCount},${b.length},${b.thick},${b.width},${volString},${cubePriceString},${priceString}\n`;
           
           woodVolTotal += b.vol;
           woodSumTotal += b.price;
@@ -352,16 +352,17 @@
         
         let woodVolString = woodVolTotal.toFixed(3);
         let woodSumString = Math.round(woodSumTotal).toString();
-        csvContent += `Всього порода: ${wood},,,,${woodVolString},${woodSumString}\n\n`;
+        // ДОДАНА ЗАЙВА КОМА, щоб сума стояла рівно під колонкою "Сума"
+        csvContent += `Всього порода: ${wood},,,,${woodVolString},,${woodSumString}\n\n`;
         
         grandVolTotal += woodVolTotal;
         grandSumTotal += woodSumTotal;
       });
       
       let grandVolString = grandVolTotal.toFixed(3);
-      // Убрано .toLocaleString('uk-UA'), чтобы пробелы в тысячах (11 508) не ломали математику Excel
       let grandSumString = Math.round(grandSumTotal).toString(); 
-      csvContent += `ЗАГАЛОМ:,,,,${grandVolString},${grandSumString}\n`;
+      // ДОДАНА ЗАЙВА КОМА ТУТ ТАКОЖ
+      csvContent += `ЗАГАЛОМ:,,,,${grandVolString},,${grandSumString}\n`;
       
       return csvContent;
     }
