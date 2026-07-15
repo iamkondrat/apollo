@@ -192,7 +192,6 @@
 
     function addBoardFromWidth(widthCm) {
       const buyer = document.getElementById('buyer-name').value;
-      // Прибрали "|| 'Не вказана'", щоб чітко бачити, коли нічого не обрано
       const wood = document.getElementById('wood-type').value; 
       const cubePrice = parseFloat(document.getElementById('price').value) || 0;
       const l = parseFloat(document.getElementById('len').value) || 0;
@@ -200,9 +199,10 @@
       const w = widthCm / 100;
       
       if (buyer === "") { alert("Будь ласка, вкажіть покупця!"); if(document.getElementById('settings-menu').style.display === 'none') toggleMenu(); return; }
-      
-      // ДОДАНО: Жорстка перевірка на вибір породи
       if (wood === "") { alert("Будь ласка, оберіть породу дерева!"); if(document.getElementById('settings-menu').style.display === 'none') toggleMenu(); return; }
+      
+      // ДОДАНО: Жорстка перевірка на введення ціни
+      if (cubePrice === 0) { alert("Будь ласка, вкажіть ціну за куб!"); if(document.getElementById('settings-menu').style.display === 'none') toggleMenu(); return; }
       
       if (l === 0 || t === 0) { alert("Спочатку відкрийте налаштування та вкажіть довжину та товщину дошки!"); if(document.getElementById('settings-menu').style.display === 'none') toggleMenu(); return; }
       
