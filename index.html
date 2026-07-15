@@ -204,7 +204,8 @@
       const boardVol = l * t * w;
       const boardPrice = boardVol * cubePrice; 
       
-      history.push({ buyer: buyer, wood: wood, width: widthCm, length: l, thick: parseFloat(document.getElementById('thick').value) || 0, vol: boardVol, price: boardPrice });
+      // ДОДАНО: збереження ціни за куб (cubePrice) в історію
+      history.push({ buyer: buyer, wood: wood, width: widthCm, length: l, thick: parseFloat(document.getElementById('thick').value) || 0, vol: boardVol, cubePrice: cubePrice, price: boardPrice });
       totalVol += boardVol;
       updateUI(); renderList(); saveStoredData(); playClickSound(); if(navigator.vibrate) navigator.vibrate(40);
     }
