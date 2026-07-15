@@ -271,7 +271,7 @@
       const buyerSafe = buyer.replace(/\s+/g, '_'); // Safe for filename
       
       // Filename format: Zamer_YYYY-MM-DD_BuyerName_HH-MM-SS.csv
-      const fileName = `Zamer_${date}_${buyerSafe}_${time}.csv`;
+      const fileName = `Замір_${date}_${buyerSafe}_${time}.csv`;
       
       const link = document.createElement("a");
       link.setAttribute("href", encodeURI(csvContent));
