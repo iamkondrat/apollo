@@ -81,7 +81,7 @@
   <div id="settings-menu">
     <div class="inputs">
       <!-- --- NEW: Buyer Name Input Field --- -->
-      <input type="text" id="buyer-name" placeholder="Ім'я покупця">
+      <input type="text" id="buyer-name" placeholder="Покупець">
       <input type="text" id="wood-type" placeholder="Порода">
       <input type="number" id="price" placeholder="Ціна за куб (грн)">
       <input type="number" id="len" placeholder="Довжина (м)">
@@ -170,10 +170,10 @@
 
     function confirmAddBoard() {
       const buyer = document.getElementById('buyer-name').value;
-      if (buyer === "") { alert("Будь ласка, вкажіть ім'я покупця!"); if(document.getElementById('settings-menu').style.display === 'none') toggleMenu(); return; }
-      if (currentWidthInput === "") { alert("Будь ласка, введыть ширину!"); return; }
+      if (buyer === "") { alert("Будь ласка, вкажіть покупця!"); if(document.getElementById('settings-menu').style.display === 'none') toggleMenu(); return; }
+      if (currentWidthInput === "") { alert("Будь ласка, введіть ширину!"); return; }
       const width = parseInt(currentWidthInput);
-      if (isNaN(width) || width < 1 || width > 99) { alert("Будь ласка, введыть правильну ширину (1-99 см)!"); clearWidthInput(); return; }
+      if (isNaN(width) || width < 1 || width > 99) { alert("Будь ласка, введіть правильну ширину (1-99 см)!"); clearWidthInput(); return; }
       addBoardFromWidth(width);
       clearWidthInput();
     }
@@ -186,7 +186,7 @@
       const t = (parseFloat(document.getElementById('thick').value) || 0) / 1000;
       const w = widthCm / 100;
       
-      if (buyer === "") { alert("Будь ласка, вкажіть ім'я покупця!"); if(document.getElementById('settings-menu').style.display === 'none') toggleMenu(); return; }
+      if (buyer === "") { alert("Будь ласка, вкажіть покупця!"); if(document.getElementById('settings-menu').style.display === 'none') toggleMenu(); return; }
       if (l === 0 || t === 0) { alert("Спочатку відкрийте налаштування та вкажіть довжину та товщину дошки!"); if(document.getElementById('settings-menu').style.display === 'none') toggleMenu(); return; }
       
       const boardVol = l * t * w;
@@ -216,13 +216,13 @@
     }
 
     function toggleList() { const modal = document.getElementById('list-modal'); modal.style.display = modal.style.display === 'block' ? 'none' : 'block'; }
-    function renderList() { const modal = document.getElementById('list-modal'); modal.innerHTML = [...history].reverse().map((b, i) => `<div class="list-item">Доска ${history.length - i} (${b.wood}): ${b.length}м × ${b.thick}мм × ${b.width}см = <b>${b.vol.toFixed(3)} м³</b> <span class="item-price">(${Math.round(b.price)} грн)</span></div>`).join(''); }
+    function renderList() { const modal = document.getElementById('list-modal'); modal.innerHTML = [...history].reverse().map((b, i) => `<div class="list-item">Дошка ${history.length - i} (${b.wood}): ${b.length}м × ${b.thick}мм × ${b.width}см = <b>${b.vol.toFixed(3)} м³</b> <span class="item-price">(${Math.round(b.price)} грн)</span></div>`).join(''); }
 
     // --- NEW: Combined send function calls theoretical GAS send and direct download ---
     async function sendData() {
       if(history.length === 0) { alert("Список порожній! Спочатку додайте дошки."); return; }
       const buyer = document.getElementById('buyer-name').value;
-      if (buyer === "") { alert("Будь ласка, вкажіть ім'я покупця перед надсиланням!"); if(document.getElementById('settings-menu').style.display === 'none') toggleMenu(); return; }
+      if (buyer === "") { alert("Будь ласка, вкажіть покупця перед надсиланням!"); if(document.getElementById('settings-menu').style.display === 'none') toggleMenu(); return; }
 
       // 1. Theoretical GAS send
       await theoryAutoSend();
