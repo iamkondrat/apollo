@@ -74,7 +74,7 @@
     </div>
     <div class="header-btns">
       <button class="btn-undo" onclick="undo()">↩ Скасувати</button>
-      <button class="btn-menu" id="menu-toggle-btn" onclick="toggleMenu()">⚙️ Скрыть настройки</button>
+      <button class="btn-menu" id="menu-toggle-btn" onclick="toggleMenu()">⚙️ Приховати налаштування</button>
     </div>
   </div>
 
@@ -83,16 +83,16 @@
       <!-- --- NEW: Buyer Name Input Field --- -->
       <input type="text" id="buyer-name" placeholder="Ім'я покупця">
       <input type="text" id="wood-type" placeholder="Порода">
-      <input type="number" id="price" placeholder="Ціна за куб">
-      <input type="number" id="len" placeholder="Длина (м)">
-      <input type="number" id="thick" placeholder="Толщина (мм)">
+      <input type="number" id="price" placeholder="Ціна за куб (грн)">
+      <input type="number" id="len" placeholder="Довжина (м)">
+      <input type="number" id="thick" placeholder="Товщина (мм)">
     </div>
     <div class="btn-row">
-      <button class="action-btn list-btn" onclick="toggleList()">📋 Список дощок</button>
+      <button class="action-btn list-btn" onclick="toggleList()">📋 Список дошок</button>
       <!-- --- MODIFIED: Direct send button now handles download too --- -->
-      <button class="action-btn export-btn" onclick="sendData()">📥 Надіслати (Директор + Планшет)</button>
+      <button class="action-btn export-btn" onclick="sendData()">📥 Надіслати та завантижити</button>
     </div>
-    <button class="action-btn reset-btn" onclick="resetAll()">🗑 Сбросить всё (Новый замер)</button>
+    <button class="action-btn reset-btn" onclick="resetAll()">🗑 Скинути все</button>
     <div id="list-modal"></div>
   </div>
 
@@ -164,30 +164,30 @@
     function toggleMenu() {
       const menu = document.getElementById('settings-menu');
       const btn = document.getElementById('menu-toggle-btn');
-      if (menu.style.display === 'none') { menu.style.display = 'block'; btn.innerText = '⚙️ Скрыть настройки'; } 
-      else { menu.style.display = 'none'; btn.innerText = '⚙️ Открыть настройки'; }
+      if (menu.style.display === 'none') { menu.style.display = 'block'; btn.innerText = '⚙️ Приховати налаштування'; } 
+      else { menu.style.display = 'none'; btn.innerText = '⚙️ Показати налаштування'; }
     }
 
     function confirmAddBoard() {
       const buyer = document.getElementById('buyer-name').value;
       if (buyer === "") { alert("Будь ласка, вкажіть ім'я покупця!"); if(document.getElementById('settings-menu').style.display === 'none') toggleMenu(); return; }
-      if (currentWidthInput === "") { alert("Пожалуйста, введите ширину!"); return; }
+      if (currentWidthInput === "") { alert("Будь ласка, введыть ширину!"); return; }
       const width = parseInt(currentWidthInput);
-      if (isNaN(width) || width < 1 || width > 99) { alert("Пожалуйста, введите корректную двухзначную ширину (1-99 см)!"); clearWidthInput(); return; }
+      if (isNaN(width) || width < 1 || width > 99) { alert("Будь ласка, введыть правильну ширину (1-99 см)!"); clearWidthInput(); return; }
       addBoardFromWidth(width);
       clearWidthInput();
     }
 
     function addBoardFromWidth(widthCm) {
       const buyer = document.getElementById('buyer-name').value;
-      const wood = document.getElementById('wood-type').value || "Не указана";
+      const wood = document.getElementById('wood-type').value || "Не вказана";
       const cubePrice = parseFloat(document.getElementById('price').value) || 0;
       const l = parseFloat(document.getElementById('len').value) || 0;
       const t = (parseFloat(document.getElementById('thick').value) || 0) / 1000;
       const w = widthCm / 100;
       
       if (buyer === "") { alert("Будь ласка, вкажіть ім'я покупця!"); if(document.getElementById('settings-menu').style.display === 'none') toggleMenu(); return; }
-      if (l === 0 || t === 0) { alert("Сначала откройте настройки и укажите длину и толщину доски!"); if(document.getElementById('settings-menu').style.display === 'none') toggleMenu(); return; }
+      if (l === 0 || t === 0) { alert("Спочатку відкрийте налаштування та вкажіть довжину та товщину дошки!"); if(document.getElementById('settings-menu').style.display === 'none') toggleMenu(); return; }
       
       const boardVol = l * t * w;
       const boardPrice = boardVol * cubePrice; 
@@ -254,10 +254,10 @@
 
         // Оскільки ми використовуємо no-cors, браузер відправляє дані "наосліп" 
         // і не чекає відповіді сервера. Якщо помилки мережі немає - вважаємо, що все ок.
-        alert("Запит відправлено! Перевірте лог-таблицю та папку Директора."); 
+        alert("Відправлено!"); 
         
       } catch (error) {
-        alert("Помилка відправки! Перевірте інтернет-з'єднання.");
+        alert("Помилка відправки! Перевірте інтернет-з'єднання та підтвердіть завантаження файлу на пристрій.");
       }
     }
 
