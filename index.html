@@ -62,10 +62,56 @@
     .list-item { border-bottom: 1px solid #444; padding: 8px 0; }
     .list-item:last-child { border-bottom: none; }
     .item-price { color: #4CAF50; font-weight: bold; }
+    /* Екран завантаження */
+    #loading-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.85); /* Темний фон */
+      z-index: 9999;
+      display: none; /* Спочатку прихований */
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+    }
+    .loader-content {
+      text-align: center;
+    }
+    .spinner {
+      border: 6px solid #333;
+      border-top: 6px solid #4CAF50; /* Зелений колір крутилки */
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 15px auto;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    #loader-text {
+      font-size: 22px;
+      font-weight: bold;
+      color: white;
+    }
+    .success-icon {
+      font-size: 60px;
+      margin-bottom: 10px;
+    }
   </style>
 </head>
 <body>
 
+  <div id="loading-overlay">
+    <div class="loader-content" id="loader-content">
+      <div class="spinner"></div>
+      <div id="loader-text">Відправлення...</div>
+    </div>
+  </div>
+  
   <div class="sticky-header">
     <div class="stats-row">
       <div><span id="vol">0.000</span> м³</div>
@@ -248,16 +294,41 @@
     }
 
     // --- NEW: Combined send function calls theoretical GAS send and direct download ---
+    
     async function sendData() {
       if(history.length === 0) { alert("Список порожній! Спочатку додайте дошки."); return; }
       const buyer = document.getElementById('buyer-name').value;
       if (buyer === "") { alert("Будь ласка, вкажіть покупця перед надсиланням!"); if(document.getElementById('settings-menu').style.display === 'none') toggleMenu(); return; }
 
-      // 1. Theoretical GAS send
-      await theoryAutoSend();
+      const overlay = document.getElementById('loading-overlay');
+      const loaderContent = document.getElementById('loader-content');
 
-      // 2. Immediate direct download to tablet
+      // 1. Показуємо екран завантаження з крутилкою
+      overlay.style.display = 'flex';
+      loaderContent.innerHTML = '<div class="spinner"></div><div id="loader-text">Скачування файлу...</div>';
+
+      // 2. Скачуємо файл на планшет
       downloadCSV();
+
+      // 3. Змінюємо текст
+      document.getElementById('loader-text').innerText = 'Відправлення на склад...';
+
+      // 4. Відправляємо в Диск
+      const success = await theoryAutoSend(false);
+
+      // 5. Показуємо результат
+      if (success) {
+         // Показуємо зелену галочку успіху
+         loaderContent.innerHTML = '<div class="success-icon">✅</div><div id="loader-text">Успішно відправлено!</div>';
+         
+         // Через 2 секунди ховаємо екран і повертаємо крутилку на майбутнє
+         setTimeout(() => {
+            overlay.style.display = 'none';
+         }, 2000);
+      } else {
+         // Якщо помилка, просто приховуємо екран (повідомлення про помилку видасть theoryAutoSend)
+         overlay.style.display = 'none';
+      }
     }
     // ==========================================
 
