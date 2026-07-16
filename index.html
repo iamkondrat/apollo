@@ -197,21 +197,45 @@
 
     function loadStoredData() {
       const storedBuyer = localStorage.getItem('apollo_buyer_name');
+      const storedWood = localStorage.getItem('apollo_wood_type');
+      const storedPrice = localStorage.getItem('apollo_price');
+      const storedLen = localStorage.getItem('apollo_len');
+      const storedThick = localStorage.getItem('apollo_thick');
+      
       const storedHistory = localStorage.getItem('apollo_board_history');
       const storedVol = localStorage.getItem('apollo_total_vol');
+      
       if (storedBuyer) document.getElementById('buyer-name').value = storedBuyer;
+      if (storedWood) document.getElementById('wood-type').value = storedWood;
+      if (storedPrice) document.getElementById('price').value = storedPrice;
+      if (storedLen) document.getElementById('len').value = storedLen;
+      if (storedThick) document.getElementById('thick').value = storedThick;
+
       if (storedHistory) history = JSON.parse(storedHistory);
       if (storedVol) totalVol = parseFloat(storedVol);
+      
       updateUI();
       renderList();
     }
-    loadStoredData(); 
     
     function saveStoredData() {
       localStorage.setItem('apollo_buyer_name', document.getElementById('buyer-name').value);
+      localStorage.setItem('apollo_wood_type', document.getElementById('wood-type').value);
+      localStorage.setItem('apollo_price', document.getElementById('price').value);
+      localStorage.setItem('apollo_len', document.getElementById('len').value);
+      localStorage.setItem('apollo_thick', document.getElementById('thick').value);
+      
       localStorage.setItem('apollo_board_history', JSON.stringify(history));
       localStorage.setItem('apollo_total_vol', totalVol.toString());
     }
+
+    loadStoredData(); 
+    
+    // ДОДАНО: Миттєве збереження кожного поля при будь-якій зміні
+    document.querySelectorAll('#settings-menu input, #settings-menu select').forEach(el => {
+      el.addEventListener('input', saveStoredData);
+      el.addEventListener('change', saveStoredData);
+    });
 
     // Numpad Logic
     function updateWidthDisplay() { document.getElementById('width-display').value = currentWidthInput; }
@@ -269,12 +293,42 @@
     
     function undo() { if(history.length > 0) { const lastBoard = history.pop(); totalVol -= lastBoard.vol; updateUI(); renderList(); saveStoredData(); } }
 
-    function resetAll() {
+    async function resetAll() {
+      if (history.length > 0 && history.length !== lastSentCount) {
+        alert("Спочатку натисніть відправити!");
+        return; 
+      }
+
       if(confirm("Увага! Ви впевнені, що хочете видалити всі заміри та почати заново?")) {
-        totalVol = 0; history = [];
-        localStorage.removeItem('apollo_board_history'); localStorage.removeItem('apollo_total_vol');
-        updateUI(); renderList();
-        document.getElementById('buyer-name').value = ""; document.getElementById('wood-type').value = ""; document.getElementById('price').value = ""; document.getElementById('len').value = ""; document.getElementById('thick').value = ""; document.getElementById('list-modal').style.display = 'none'; clearWidthInput();
+        if (history.length > 0) {
+          downloadCSV();
+        }
+        await theoryAutoSend(true);
+        
+        totalVol = 0; 
+        history = [];
+        lastSentCount = 0; 
+        
+        // Видаляємо ВСЕ з пам'яті браузера
+        localStorage.removeItem('apollo_board_history'); 
+        localStorage.removeItem('apollo_total_vol');
+        localStorage.removeItem('apollo_wood_type'); 
+        localStorage.removeItem('apollo_price'); 
+        localStorage.removeItem('apollo_len'); 
+        localStorage.removeItem('apollo_thick'); 
+
+        updateUI(); 
+        renderList();
+        
+        // Очищаємо поля на екрані
+        document.getElementById('buyer-name').value = ""; 
+        document.getElementById('wood-type').value = ""; 
+        document.getElementById('price').value = ""; 
+        document.getElementById('len').value = ""; 
+        document.getElementById('thick').value = ""; 
+        
+        document.getElementById('list-modal').style.display = 'none'; 
+        clearWidthInput();
       }
     }
 
