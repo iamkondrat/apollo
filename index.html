@@ -365,7 +365,7 @@
       }
     }
     
-    async function resetAll() {
+    function resetAll() {
       let msg = "Увага! Ви впевнені, що хочете видалити всі заміри та почати заново?";
       
       if (history.length > 0 && history.length !== lastSentCount) {
@@ -374,28 +374,32 @@
 
       if(confirm(msg)) {
         
-        // ВІДПРАВЛЯЄМО В "КОШИК" (isSilent = true, isTrash = true)
-        // Відправляємо тільки якщо дійсно є щось нове невідправлене
+        // 1. ФОНОВА ВІДПРАВКА: Запускаємо БЕЗ слова "await"
+        // Додаток пакує дані і відправляє їх, але не чекає на завершення
         if (history.length > 0 && history.length !== lastSentCount) {
-           await theoryAutoSend(true, true);
+           theoryAutoSend(true, true); 
         }
         
+        // 2. МИТТЄВЕ ОЧИЩЕННЯ: Виконується в ту саму мілісекунду
         totalVol = 0; 
         history = [];
         lastSentCount = 0; 
         
+        // Повністю очищаємо пам'ять браузера
         localStorage.removeItem('apollo_board_history'); 
         localStorage.removeItem('apollo_total_vol');
         localStorage.removeItem('apollo_wood_type'); 
         localStorage.removeItem('apollo_price'); 
         localStorage.removeItem('apollo_len'); 
         localStorage.removeItem('apollo_thick'); 
-        localStorage.removeItem('apollo_current_width');
-        localStorage.removeItem('apollo_last_sent');
+        localStorage.removeItem('apollo_current_width'); 
+        localStorage.removeItem('apollo_last_sent'); 
 
+        // Оновлюємо екран
         updateUI(); 
         renderList();
         
+        // Очищаємо поля
         document.getElementById('buyer-name').value = ""; 
         document.getElementById('wood-type').value = ""; 
         document.getElementById('price').value = ""; 
