@@ -326,34 +326,35 @@
     function undo() { if(history.length > 0) { const lastBoard = history.pop(); totalVol -= lastBoard.vol; updateUI(); renderList(); saveStoredData(); } }
 
     async function resetAll() {
+      let msg = "Увага! Ви впевнені, що хочете видалити всі заміри та почати заново?";
+      
       if (history.length > 0 && history.length !== lastSentCount) {
-        alert("Спочатку натисніть відправити!");
-        return; 
+        msg = "⚠️ У вас є НЕВІДПРАВЛЕНІ дані!\nВи не забули їх відправити?\n\nТочно хочете видалити все БЕЗ збереження в основну базу?";
       }
 
-      if(confirm("Увага! Ви впевнені, що хочете видалити всі заміри та почати заново?")) {
-        if (history.length > 0) {
-          downloadCSV();
+      if(confirm(msg)) {
+        
+        // ВІДПРАВЛЯЄМО В "КОШИК" (isSilent = true, isTrash = true)
+        // Відправляємо тільки якщо дійсно є щось нове невідправлене
+        if (history.length > 0 && history.length !== lastSentCount) {
+           await theoryAutoSend(true, true);
         }
-        await theoryAutoSend(true);
         
         totalVol = 0; 
         history = [];
         lastSentCount = 0; 
         
-        // Видаляємо ВСЕ з пам'яті браузера
         localStorage.removeItem('apollo_board_history'); 
         localStorage.removeItem('apollo_total_vol');
         localStorage.removeItem('apollo_wood_type'); 
         localStorage.removeItem('apollo_price'); 
         localStorage.removeItem('apollo_len'); 
         localStorage.removeItem('apollo_thick'); 
-        localStorage.removeItem('apollo_current_width');
+        localStorage.removeItem('apollo_current_width'); 
 
         updateUI(); 
         renderList();
         
-        // Очищаємо поля на екрані
         document.getElementById('buyer-name').value = ""; 
         document.getElementById('wood-type').value = ""; 
         document.getElementById('price').value = ""; 
@@ -364,7 +365,7 @@
         clearWidthInput();
       }
     }
-
+    
     function updateUI() {
       // 1. Загальні підсумки (залишилися без змін)
       document.getElementById('vol').innerText = totalVol.toFixed(3);
@@ -456,13 +457,21 @@
     }
     // ==========================================
 
-    async function theoryAutoSend(isSilent = true) {
-      if (history.length === 0 || (isSilent && history.length === lastSentCount)) return true;
-      const buyer = document.getElementById('buyer-name').value;
-      if (buyer === "") return false;
+    // ДОДАНО параметр isTrash
+    async function theoryAutoSend(isSilent = true, isTrash = false) {
+      // Якщо дошок нуль, або це не видалення і ми вже все відправили — ігноруємо
+      if (history.length === 0 || (!isTrash && isSilent && history.length === lastSentCount)) return true;
+      
+      let buyer = document.getElementById('buyer-name').value;
+      if (buyer === "") buyer = "Невідомий клієнт"; // Якщо ім'я не вказали, але роблять скидання
+
+      // ЯКЩО ЦЕ ВИДАЛЕННЯ — міняємо назву файлу
+      if (isTrash) {
+        buyer = "🗑️_СКАСОВАНО_" + buyer;
+      }
 
       const csvContent = formatCSVData();
-      const wood = history[0].wood;
+      const wood = history[0].wood || "Не вказана";
       const backendUrl = "https://script.google.com/macros/s/AKfycbx8Ll5Y8OQPTPSiMQkhw0kD-hrZSFzhD2aRxpWfujatYa__wTjp02GVTAFQZKEXIfg/exec";
 
       try {
@@ -473,10 +482,11 @@
           body: JSON.stringify({ data: csvContent, woodName: wood, buyerName: buyer, action: 'syncFileSync' })
         });
         
-        lastSentCount = history.length; 
+        // Оновлюємо лічильник тільки якщо це нормальна відправка
+        if (!isTrash) lastSentCount = history.length; 
         return true; 
       } catch (error) {
-        return false; // Якщо немає інтернету, сервер поверне false
+        return false; 
       }
     }
 
