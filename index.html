@@ -18,6 +18,27 @@
     .sticky-header { background: #1e1e1e; padding: 10px 15px; position: sticky; top: 0; z-index: 100; box-shadow: 0 4px 10px rgba(0,0,0,0.5); border-bottom: 2px solid #333; }
     .stats-row { display: flex; justify-content: space-between; font-size: 16px; font-weight: bold; margin-bottom: 10px; }
     .stats-row span { color: #4CAF50; font-size: 18px; }
+
+    /* Стилі для розбивки по породах і товщинах */
+    .sub-stats {
+      font-size: 13px;
+      color: #ccc;
+      margin-bottom: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      max-height: 90px; /* Обмежуємо висоту, щоб шапка не стала величезною */
+      overflow-y: auto; /* Додаємо скрол, якщо позицій багато */
+    }
+    .sub-stat-row {
+      display: flex;
+      justify-content: space-between;
+      background: #2a2a2a;
+      padding: 6px 10px;
+      border-radius: 6px;
+      border-left: 3px solid #4CAF50; /* Зелена смужка збоку для краси */
+    }
+    .sub-stat-row span { color: #fff; font-weight: bold; }
     
     .header-btns { display: flex; gap: 10px; }
     .header-btns button { flex: 1; padding: 10px; border: none; border-radius: 8px; font-size: 15px; font-weight: bold; cursor: pointer; color: white; transition: background 0.1s; }
@@ -118,6 +139,9 @@
       <div><span id="sum">0</span> грн</div>
       <div><span id="count">0</span> шт</div>
     </div>
+
+    <div id="sub-stats" class="sub-stats"></div>
+    
     <div class="header-btns">
       <button class="btn-undo" onclick="undo()">↩ Скасувати</button>
       <button class="btn-menu" id="menu-toggle-btn" onclick="toggleMenu()">⚙️ Приховати налаштування</button>
@@ -342,10 +366,49 @@
     }
 
     function updateUI() {
+      // 1. Загальні підсумки (залишилися без змін)
       document.getElementById('vol').innerText = totalVol.toFixed(3);
       const totalSum = history.reduce((sum, board) => sum + board.price, 0);
       document.getElementById('sum').innerText = Math.round(totalSum).toLocaleString('uk-UA');
       document.getElementById('count').innerText = history.length;
+
+      // 2. ДОДАНО: Розбивка по породах і товщинах
+      const subStatsContainer = document.getElementById('sub-stats');
+      if (!subStatsContainer) return; // Захист від помилок
+
+      // Якщо список порожній, очищаємо блок
+      if (history.length === 0) {
+        subStatsContainer.innerHTML = '';
+        return;
+      }
+
+      // Групуємо дошки
+      const groups = {};
+      history.forEach(b => {
+        const key = `${b.wood} ${b.thick} мм`;
+        if (!groups[key]) {
+          groups[key] = { vol: 0, sum: 0, count: 0 };
+        }
+        groups[key].vol += b.vol;
+        groups[key].sum += b.price;
+        groups[key].count++;
+      });
+
+      // Створюємо HTML для кожної групи
+      let subHtml = '';
+      for (const [name, data] of Object.entries(groups)) {
+        subHtml += `
+          <div class="sub-stat-row">
+            <div>${name}:</div>
+            <div><span>${data.vol.toFixed(3)}</span> м³</div>
+            <div><span>${Math.round(data.sum).toLocaleString('uk-UA')}</span> грн</div>
+            <div><span>${data.count}</span> шт</div>
+          </div>
+        `;
+      }
+      
+      // Виводимо на екран
+      subStatsContainer.innerHTML = subHtml;
     }
 
     function toggleList() { const modal = document.getElementById('list-modal'); modal.style.display = modal.style.display === 'block' ? 'none' : 'block'; }
