@@ -204,6 +204,7 @@
       
       const storedHistory = localStorage.getItem('apollo_board_history');
       const storedVol = localStorage.getItem('apollo_total_vol');
+      const storedWidth = localStorage.getItem('apollo_current_width'); // ДОДАНО: ширина
       
       if (storedBuyer) document.getElementById('buyer-name').value = storedBuyer;
       if (storedWood) document.getElementById('wood-type').value = storedWood;
@@ -214,6 +215,12 @@
       if (storedHistory) history = JSON.parse(storedHistory);
       if (storedVol) totalVol = parseFloat(storedVol);
       
+      // Відновлюємо набрану ширину, якщо вона була
+      if (storedWidth) {
+        currentWidthInput = storedWidth;
+        updateWidthDisplay();
+      }
+
       updateUI();
       renderList();
     }
@@ -227,6 +234,7 @@
       
       localStorage.setItem('apollo_board_history', JSON.stringify(history));
       localStorage.setItem('apollo_total_vol', totalVol.toString());
+      localStorage.setItem('apollo_current_width', currentWidthInput); // ДОДАНО: збереження ширини
     }
 
     loadStoredData(); 
@@ -239,9 +247,9 @@
 
     // Numpad Logic
     function updateWidthDisplay() { document.getElementById('width-display').value = currentWidthInput; }
-    function pressKey(key) { if (currentWidthInput.length < 2) { currentWidthInput += key; updateWidthDisplay(); playClickSound(); } }
-    function clearWidthInput() { currentWidthInput = ""; updateWidthDisplay(); playClickSound(); }
-    function pressBackspace() { currentWidthInput = currentWidthInput.slice(0, -1); updateWidthDisplay(); playClickSound(); }
+    function pressKey(key) { if (currentWidthInput.length < 2) { currentWidthInput += key; updateWidthDisplay(); saveStoredData(); playClickSound(); } }
+    function clearWidthInput() { currentWidthInput = ""; updateWidthDisplay(); saveStoredData(); playClickSound(); }
+    function pressBackspace() { currentWidthInput = currentWidthInput.slice(0, -1); updateWidthDisplay(); saveStoredData(); playClickSound(); }
 
     function toggleMenu() {
       const menu = document.getElementById('settings-menu');
@@ -316,6 +324,7 @@
         localStorage.removeItem('apollo_price'); 
         localStorage.removeItem('apollo_len'); 
         localStorage.removeItem('apollo_thick'); 
+        localStorage.removeItem('apollo_current_width');
 
         updateUI(); 
         renderList();
@@ -501,7 +510,7 @@
       return csvContent;
     }
 
-    // --- АВТОФОРМАТУВАННЯ ПОЛІВ (м, мм, грн) ---
+   // --- АВТОФОРМАТУВАННЯ ПОЛІВ (м, мм, грн) ---
     function setupFormatting() {
       const fields = [
         { id: 'price', unit: 'грн' },
@@ -513,18 +522,18 @@
         const el = document.getElementById(f.id);
         
         const applyFormat = () => {
-          // Беремо тільки цифри (включно з крапкою чи комою)
           let val = el.value.replace(/[^\d.,]/g, '').trim(); 
           if (val !== '') el.value = val + ' ' + f.unit;
         };
 
-        // Коли натискаємо на поле – прибираємо букви, щоб зручно було редагувати
         el.addEventListener('focus', function() {
           this.value = this.value.replace(/[^\d.,]/g, '').trim();
         });
 
-        // Коли прибрали палець з поля – додаємо букви назад
         el.addEventListener('blur', applyFormat);
+
+        // ДОДАНО: Одразу малюємо красиві одиниці виміру при оновленні сторінки
+        applyFormat();
       });
     }
     setupFormatting();
