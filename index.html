@@ -333,7 +333,7 @@
       totalVol = history.reduce((sum, board) => sum + board.vol, 0);
       
       // ЖОРСТКИЙ ЗАПОБІЖНИК: якщо об'єм менше нуля або мізерно малий — ставимо рівно 0
-      if (totalVol < 0.0001) {
+      if (totalVol < 0.001) {
         totalVol = 0;
       }
       
