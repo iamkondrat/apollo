@@ -453,47 +453,37 @@
     function toggleList() { const modal = document.getElementById('list-modal'); modal.style.display = modal.style.display === 'block' ? 'none' : 'block'; }
     
     function renderList() {
-      // Знаходимо контейнер, де малюється список (перевір, щоб ID збігався з твоїм)
-      const listObj = document.getElementById('board-list'); 
+      // 1. Використовуємо твій правильний ID
+      const listObj = document.getElementById('list-modal'); 
       if (!listObj) return;
       
-      // Очищаємо старий список перед малюванням нового
-      listObj.innerHTML = "";
-      
-      // Проходимося по всій історії дошок
-      history.forEach((b, index) => {
-        const item = document.createElement('div');
+      // 2. Створюємо перевернутий список, але з правильними індексами для видалення
+      const listHTML = [...history].reverse().map((b, i) => {
         
-        // Додаємо стилі прямо сюди, щоб список виглядав акуратно і сучасно
-        item.style.display = "flex";
-        item.style.justifyContent = "space-between";
-        item.style.alignItems = "center";
-        item.style.padding = "12px 10px";
-        item.style.borderBottom = "1px solid #444";
-        item.style.background = "#2a2a2a";
-        item.style.marginBottom = "6px";
-        item.style.borderRadius = "8px";
+        // Вираховуємо справжній номер дошки в пам'яті
+        const realIndex = history.length - 1 - i; 
         
-        item.innerHTML = `
-          <div style="flex-grow: 1;">
-             <div style="font-weight: bold; color: #fff; font-size: 16px;">
-               ${index + 1}. ${b.wood} — ${b.thick} мм
-             </div>
-             <div style="color: #bbb; font-size: 14px; margin-top: 4px;">
-               Ширина: <b style="color: #fff;">${b.width} см</b> | Довжина: ${b.length} м
-             </div>
-             <div style="color: #4CAF50; font-size: 14px; margin-top: 4px; font-weight: bold;">
-               ${b.vol.toFixed(3)} м³ | ${Math.round(b.price).toLocaleString('uk-UA')} грн
-             </div>
+        return `
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 10px; border-bottom: 1px solid #444; background: #2a2a2a; margin-bottom: 6px; border-radius: 8px;">
+            <div style="flex-grow: 1;">
+               <div style="font-weight: bold; color: #fff; font-size: 16px;">
+                 Дошка ${realIndex + 1} (${b.wood}): ${b.length}м × ${b.thick}мм × ${b.width}см = <b>${b.vol.toFixed(3)} м³</b>
+               </div>
+               <div style="color: #4CAF50; font-size: 14px; margin-top: 4px;">
+                 (${Math.round(b.price)} грн / по ${Math.round(b.cubePrice || 0)} грн за куб)
+               </div>
+            </div>
+            
+            <!-- Кнопка видалення передає правильний realIndex -->
+            <button onclick="deleteBoard(${realIndex})" style="background: #d32f2f; color: white; border: none; width: 48px; height: 48px; border-radius: 10px; font-size: 22px; cursor: pointer; display: flex; justify-content: center; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.3); margin-left: 10px;">
+              🗑️
+            </button>
           </div>
-          
-          <!-- Кнопка видалення конкретної дошки -->
-          <button onclick="deleteBoard(${index})" style="background: #d32f2f; color: white; border: none; width: 48px; height: 48px; border-radius: 10px; font-size: 22px; cursor: pointer; display: flex; justify-content: center; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.3); margin-left: 10px;">
-            🗑️
-          </button>
         `;
-        listObj.appendChild(item);
-      });
+      }).join('');
+      
+      // Вставляємо все це у твоє вікно
+      listObj.innerHTML = listHTML;
     }
 
     // --- NEW: Combined send function calls theoretical GAS send and direct download ---
