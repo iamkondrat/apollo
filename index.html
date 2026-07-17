@@ -654,7 +654,7 @@
       sortedWoods.forEach(wood => {
         const boards = groupedData[wood];
         let woodVolTotal = 0;
-        let woodSumTotal = 0;
+        let woodSumTotal = 0; 
         
         csvContent += `Порода: ${wood}\n`;
         csvContent += "Номер,Довжина (м),Товщина (мм),Ширина (см),Об'єм (м3),Ціна за куб,Сума\n";
@@ -664,20 +664,22 @@
           woodCount++;
           
           let volString = parseFloat(b.vol.toFixed(6)); 
-          // Ціну за куб зазвичай залишають цілою, але якщо треба з копійками, можна теж змінити
           let cubePriceString = Math.round(b.cubePrice || 0).toString(); 
           
-          // ЗМІНЕНО: Тепер сума за дошку виводиться з копійками (наприклад, 604.80)
-          let priceString = b.price.toFixed(2);
+          // 1. Спочатку жорстко округлюємо ціну дошки до 2 копійок (наприклад, 0.5796 -> 0.58)
+          let roundedBoardPrice = Number(b.price.toFixed(2));
+          let priceString = roundedBoardPrice.toFixed(2);
           
           csvContent += `${woodCount},${b.length},${b.thick},${b.width},${volString},${cubePriceString},${priceString}\n`;
           
           woodVolTotal += b.vol;
-          woodSumTotal += b.price;
+          
+          // 2. БУХГАЛТЕРСЬКИЙ ТРЮК: Додаємо до підсумку САМЕ округлену цифру (0.58), а не нескінченний дріб
+          woodSumTotal += roundedBoardPrice;
         });
         
         let woodVolString = parseFloat(woodVolTotal.toFixed(6));
-        // ЗМІНЕНО: Підсумок по породі з копійками
+        // 3. Виводимо підсумок по породі теж з двома нулями, навіть якщо це ціле число (наприклад, 30.99)
         let woodSumString = woodSumTotal.toFixed(2);
         
         csvContent += `Всього порода: ${wood},,,,${woodVolString},,${woodSumString}\n\n`;
@@ -687,7 +689,6 @@
       });
       
       let grandVolString = parseFloat(grandVolTotal.toFixed(6));
-      // ЗМІНЕНО: Загальний підсумок з копійками
       let grandSumString = grandSumTotal.toFixed(2); 
       
       csvContent += `ЗАГАЛОМ:,,,,${grandVolString},,${grandSumString}\n`;
