@@ -219,7 +219,7 @@
       osc.start(); osc.stop(audioCtx.currentTime + 0.1);
     }
 
-    function loadStoredData() {
+   function loadStoredData() {
       const storedBuyer = localStorage.getItem('apollo_buyer_name');
       const storedWood = localStorage.getItem('apollo_wood_type');
       const storedPrice = localStorage.getItem('apollo_price');
@@ -228,7 +228,8 @@
       
       const storedHistory = localStorage.getItem('apollo_board_history');
       const storedVol = localStorage.getItem('apollo_total_vol');
-      const storedWidth = localStorage.getItem('apollo_current_width'); // ДОДАНО: ширина
+      const storedWidth = localStorage.getItem('apollo_current_width'); 
+      const storedLastSent = localStorage.getItem('apollo_last_sent'); // ДОДАНО: Пам'ять про відправки
       
       if (storedBuyer) document.getElementById('buyer-name').value = storedBuyer;
       if (storedWood) document.getElementById('wood-type').value = storedWood;
@@ -239,11 +240,13 @@
       if (storedHistory) history = JSON.parse(storedHistory);
       if (storedVol) totalVol = parseFloat(storedVol);
       
-      // Відновлюємо набрану ширину, якщо вона була
       if (storedWidth) {
         currentWidthInput = storedWidth;
         updateWidthDisplay();
       }
+      
+      // ДОДАНО: Відновлюємо пам'ять про те, чи відправляли ми ці дошки
+      if (storedLastSent) lastSentCount = parseInt(storedLastSent, 10); 
 
       updateUI();
       renderList();
@@ -258,9 +261,12 @@
       
       localStorage.setItem('apollo_board_history', JSON.stringify(history));
       localStorage.setItem('apollo_total_vol', totalVol.toString());
-      localStorage.setItem('apollo_current_width', currentWidthInput); // ДОДАНО: збереження ширини
+      localStorage.setItem('apollo_current_width', currentWidthInput); 
+      
+      // ДОДАНО: Миттєво зберігаємо статус відправки
+      localStorage.setItem('apollo_last_sent', lastSentCount.toString()); 
     }
-
+    
     loadStoredData(); 
     
     // ДОДАНО: Миттєве збереження кожного поля при будь-якій зміні
@@ -384,7 +390,8 @@
         localStorage.removeItem('apollo_price'); 
         localStorage.removeItem('apollo_len'); 
         localStorage.removeItem('apollo_thick'); 
-        localStorage.removeItem('apollo_current_width'); 
+        localStorage.removeItem('apollo_current_width');
+        localStorage.removeItem('apollo_last_sent');
 
         updateUI(); 
         renderList();
@@ -548,8 +555,10 @@
           body: JSON.stringify({ data: csvContent, woodName: wood, buyerName: buyer, action: 'syncFileSync' })
         });
         
-        // Оновлюємо лічильник тільки якщо це нормальна відправка
-        if (!isTrash) lastSentCount = history.length; 
+        if (!isTrash) {
+          lastSentCount = history.length; 
+          saveStoredData(); // <--- ДОДАЙ ЦЕЙ РЯДОК, щоб планшет запам'ятав успіх
+        }
         return true; 
       } catch (error) {
         return false; 
