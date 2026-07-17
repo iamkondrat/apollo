@@ -630,6 +630,7 @@
 
     // --- NEW: Format CSV data with unique grouping and totals ---
     // --- NEW: Format CSV data with unique grouping and totals ---
+    
     function formatCSVData() {
       const buyer = document.getElementById('buyer-name').value || "Без покупця";
       const sortedHistory = getSortedHistory();
@@ -662,8 +663,10 @@
         woodCount = 0;
         boards.forEach((b, i) => {
           woodCount++;
-          let volString = b.vol.toFixed(3); 
-          let cubePriceString = Math.round(b.cubePrice || 0).toString(); // Витягуємо ціну за куб
+          
+          // ЗМІНЕНО: Виводимо сирий об'єм без округлення до 3 цифр
+          let volString = parseFloat(b.vol.toFixed(6)); 
+          let cubePriceString = Math.round(b.cubePrice || 0).toString(); 
           let priceString = Math.round(b.price).toString();
           
           // ЗАПИСУЄМО НОВЕ ЗНАЧЕННЯ В РЯДОК
@@ -673,8 +676,10 @@
           woodSumTotal += b.price;
         });
         
-        let woodVolString = woodVolTotal.toFixed(3);
+        // ЗМІНЕНО: Точний підсумок об'єму для конкретної породи
+        let woodVolString = parseFloat(woodVolTotal.toFixed(6));
         let woodSumString = Math.round(woodSumTotal).toString();
+        
         // ДОДАНА ЗАЙВА КОМА, щоб сума стояла рівно під колонкою "Сума"
         csvContent += `Всього порода: ${wood},,,,${woodVolString},,${woodSumString}\n\n`;
         
@@ -682,14 +687,16 @@
         grandSumTotal += woodSumTotal;
       });
       
-      let grandVolString = grandVolTotal.toFixed(3);
+      // ЗМІНЕНО: Точний загальний підсумок об'єму для всієї таблиці
+      let grandVolString = parseFloat(grandVolTotal.toFixed(6));
       let grandSumString = Math.round(grandSumTotal).toString(); 
+      
       // ДОДАНА ЗАЙВА КОМА ТУТ ТАКОЖ
       csvContent += `ЗАГАЛОМ:,,,,${grandVolString},,${grandSumString}\n`;
       
       return csvContent;
     }
-
+    
    // --- АВТОФОРМАТУВАННЯ ПОЛІВ (м, мм, грн) ---
     function setupFormatting() {
       const fields = [
