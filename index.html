@@ -507,30 +507,58 @@
       const overlay = document.getElementById('loading-overlay');
       const loaderContent = document.getElementById('loader-content');
 
-      // 1. Показуємо екран завантаження (це блокує планшет від зайвих кліків)
+      // 1. Блокуємо екран і показуємо завантаження
       overlay.style.display = 'flex';
-      loaderContent.innerHTML = '<div class="spinner"></div><div id="loader-text">Відправлення...</div>';
+      loaderContent.innerHTML = '<div class="spinner"></div><div id="loader-text" style="color: white; font-size: 22px; font-weight: bold;">Відправлення на склад...</div>';
 
-      // 2. ВАЖЛИВО: Спочатку відправляємо в хмару!
-      // Safari не перерве інтернет, бо ми ще не викликали вікно завантаження.
+      // 2. БЕЗПЕЧНА відправка (чекаємо підтвердження від Диску)
       const success = await theoryAutoSend(false);
 
-      // 3. Змінюємо екран на галочку або хрестик
+      // 3. Змінюємо екран залежно від результату
       if (success) {
-         loaderContent.innerHTML = '<div class="success-icon">✅</div><div id="loader-text">Успішно відправлено!</div>';
+         loaderContent.innerHTML = '<div class="success-icon">✅</div><div id="loader-text" style="color: white; font-size: 22px; font-weight: bold;">Успішно! Очищення...</div>';
       } else {
-         loaderContent.innerHTML = '<div class="success-icon">❌</div><div id="loader-text">Помилка! Збережено лише на планшет.</div>';
+         loaderContent.innerHTML = '<div class="success-icon">❌</div><div id="loader-text" style="color: #ff5252; font-size: 22px; font-weight: bold;">Помилка мережі! Дані збережено на планшет.</div>';
       }
 
-      // 4. Робимо мікро-паузу і ТІЛЬКИ ТЕПЕР віддаємо файл на планшет
+      // 4. Одразу віддаємо бекап-файл на сам планшет
       setTimeout(() => {
           downloadCSV();
       }, 500);
 
-      // 5. Ховаємо екран через 3 секунди
+      // 5. Чекаємо 3 секунди (щоб працівник побачив статус) і діємо далі
       setTimeout(() => {
+         // РОЗУМНЕ ОЧИЩЕННЯ: Стираємо все ТІЛЬКИ якщо відправка в інтернет була успішною
+         if (success) {
+            totalVol = 0; 
+            history = [];
+            lastSentCount = 0; 
+            
+            localStorage.removeItem('apollo_board_history'); 
+            localStorage.removeItem('apollo_total_vol');
+            localStorage.removeItem('apollo_wood_type'); 
+            localStorage.removeItem('apollo_price'); 
+            localStorage.removeItem('apollo_len'); 
+            localStorage.removeItem('apollo_thick'); 
+            localStorage.removeItem('apollo_current_width'); 
+            localStorage.removeItem('apollo_last_sent'); 
+
+            updateUI(); 
+            renderList();
+            
+            document.getElementById('buyer-name').value = ""; 
+            document.getElementById('wood-type').value = ""; 
+            document.getElementById('price').value = ""; 
+            document.getElementById('len').value = ""; 
+            document.getElementById('thick').value = ""; 
+            
+            document.getElementById('list-modal').style.display = 'none'; 
+            clearWidthInput();
+         }
+         
+         // Ховаємо темний екран в будь-якому випадку
          overlay.style.display = 'none';
-      }, 3000);
+      }, 3000); 
     }
     // ==========================================
 
