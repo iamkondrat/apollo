@@ -657,41 +657,39 @@
         let woodSumTotal = 0;
         
         csvContent += `Порода: ${wood}\n`;
-        // ДОДАНО НОВИЙ СТОВПЧИК: Ціна за куб
         csvContent += "Номер,Довжина (м),Товщина (мм),Ширина (см),Об'єм (м3),Ціна за куб,Сума\n";
         
         woodCount = 0;
         boards.forEach((b, i) => {
           woodCount++;
           
-          // ЗМІНЕНО: Виводимо сирий об'єм без округлення до 3 цифр
           let volString = parseFloat(b.vol.toFixed(6)); 
+          // Ціну за куб зазвичай залишають цілою, але якщо треба з копійками, можна теж змінити
           let cubePriceString = Math.round(b.cubePrice || 0).toString(); 
-          let priceString = Math.round(b.price).toString();
           
-          // ЗАПИСУЄМО НОВЕ ЗНАЧЕННЯ В РЯДОК
+          // ЗМІНЕНО: Тепер сума за дошку виводиться з копійками (наприклад, 604.80)
+          let priceString = b.price.toFixed(2);
+          
           csvContent += `${woodCount},${b.length},${b.thick},${b.width},${volString},${cubePriceString},${priceString}\n`;
           
           woodVolTotal += b.vol;
           woodSumTotal += b.price;
         });
         
-        // ЗМІНЕНО: Точний підсумок об'єму для конкретної породи
         let woodVolString = parseFloat(woodVolTotal.toFixed(6));
-        let woodSumString = Math.round(woodSumTotal).toString();
+        // ЗМІНЕНО: Підсумок по породі з копійками
+        let woodSumString = woodSumTotal.toFixed(2);
         
-        // ДОДАНА ЗАЙВА КОМА, щоб сума стояла рівно під колонкою "Сума"
         csvContent += `Всього порода: ${wood},,,,${woodVolString},,${woodSumString}\n\n`;
         
         grandVolTotal += woodVolTotal;
         grandSumTotal += woodSumTotal;
       });
       
-      // ЗМІНЕНО: Точний загальний підсумок об'єму для всієї таблиці
       let grandVolString = parseFloat(grandVolTotal.toFixed(6));
-      let grandSumString = Math.round(grandSumTotal).toString(); 
+      // ЗМІНЕНО: Загальний підсумок з копійками
+      let grandSumString = grandSumTotal.toFixed(2); 
       
-      // ДОДАНА ЗАЙВА КОМА ТУТ ТАКОЖ
       csvContent += `ЗАГАЛОМ:,,,,${grandVolString},,${grandSumString}\n`;
       
       return csvContent;
