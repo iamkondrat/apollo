@@ -385,23 +385,28 @@
     }
     
     function updateUI() {
-      // 1. Загальні підсумки (залишилися без змін)
+      // 1. БРОНЬОВАНИЙ ПІДРАХУНОК: Рахуємо об'єм з нуля по списку
+      totalVol = history.reduce((sum, board) => sum + board.vol, 0);
+      
+      // Відкидаємо будь-які мінуси чи мікро-похибки: беремо максимум між нулем і нашим числом
+      totalVol = Math.max(0, totalVol);
+      
       document.getElementById('vol').innerText = totalVol.toFixed(3);
+      
       const totalSum = history.reduce((sum, board) => sum + board.price, 0);
-      document.getElementById('sum').innerText = Math.round(totalSum).toLocaleString('uk-UA');
+      // Тут теж ставимо захист від мінусів для суми
+      document.getElementById('sum').innerText = Math.max(0, Math.round(totalSum)).toLocaleString('uk-UA');
       document.getElementById('count').innerText = history.length;
 
-      // 2. ДОДАНО: Розбивка по породах і товщинах
+      // 2. Розбивка по породах і товщинах
       const subStatsContainer = document.getElementById('sub-stats');
-      if (!subStatsContainer) return; // Захист від помилок
+      if (!subStatsContainer) return;
 
-      // Якщо список порожній, очищаємо блок
       if (history.length === 0) {
         subStatsContainer.innerHTML = '';
         return;
       }
 
-      // Групуємо дошки
       const groups = {};
       history.forEach(b => {
         const key = `${b.wood} ${b.thick} мм`;
@@ -413,20 +418,19 @@
         groups[key].count++;
       });
 
-      // Створюємо HTML для кожної групи
       let subHtml = '';
       for (const [name, data] of Object.entries(groups)) {
         subHtml += `
           <div class="sub-stat-row">
             <div>${name}:</div>
-            <div><span>${data.vol.toFixed(3)}</span> м³</div>
-            <div><span>${Math.round(data.sum).toLocaleString('uk-UA')}</span> грн</div>
+            <!-- Захист від мінусів для кожної підгрупи -->
+            <div><span>${Math.max(0, data.vol).toFixed(3)}</span> м³</div>
+            <div><span>${Math.max(0, Math.round(data.sum)).toLocaleString('uk-UA')}</span> грн</div>
             <div><span>${data.count}</span> шт</div>
           </div>
         `;
       }
       
-      // Виводимо на екран
       subStatsContainer.innerHTML = subHtml;
     }
 
