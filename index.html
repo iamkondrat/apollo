@@ -323,8 +323,26 @@
       updateUI(); renderList(); saveStoredData(); playClickSound(); if(navigator.vibrate) navigator.vibrate(40);
     }
     
-    function undo() { if(history.length > 0) { const lastBoard = history.pop(); totalVol -= lastBoard.vol; updateUI(); renderList(); saveStoredData(); } }
-
+    function undo() {
+      if (history.length === 0) return;
+      
+      // Видаляємо останню дошку
+      history.pop(); 
+      
+      // НАДІЙНИЙ ПІДРАХУНОК: Рахуємо об'єм заново по залишених дошках
+      totalVol = history.reduce((sum, board) => sum + board.vol, 0);
+      
+      // ЖОРСТКИЙ ЗАПОБІЖНИК: якщо об'єм менше нуля або мізерно малий — ставимо рівно 0
+      if (totalVol < 0.0001) {
+        totalVol = 0;
+      }
+      
+      updateUI(); 
+      renderList(); 
+      saveStoredData(); 
+      playClickSound();
+    }
+    
     async function resetAll() {
       let msg = "Увага! Ви впевнені, що хочете видалити всі заміри та почати заново?";
       
