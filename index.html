@@ -509,7 +509,7 @@
 
       // 1. Блокуємо екран і показуємо завантаження
       overlay.style.display = 'flex';
-      loaderContent.innerHTML = '<div class="spinner"></div><div id="loader-text" style="color: white; font-size: 22px; font-weight: bold;">Відправлення на склад...</div>';
+      loaderContent.innerHTML = '<div class="spinner"></div><div id="loader-text" style="color: white; font-size: 22px; font-weight: bold;">Відправлення...</div>';
 
       // 2. БЕЗПЕЧНА відправка (чекаємо підтвердження від Диску)
       const success = await theoryAutoSend(false);
