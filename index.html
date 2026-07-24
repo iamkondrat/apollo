@@ -698,7 +698,7 @@
       return csvContent;
     }
     
-    */
+    
 
     function formatCSVData() {
       const buyer = document.getElementById('buyer-name').value || "Без покупця";
@@ -763,6 +763,75 @@
       
       return csvContent;
     }
+    */
+
+    function formatCSVData() {
+      const buyer = document.getElementById('buyer-name').value || "Без покупця";
+      const sortedHistory = getSortedHistory();
+      const date = new Date().toISOString().slice(0, 10);
+      const time = new Date().toTimeString().slice(0, 8);
+      
+      let csvContent = `data:text/csv;charset=utf-8,\uFEFFПокупець: ${buyer}\nДата: ${date},Час: ${time}\n\n`;
+      
+      let grandVolTotal = 0;
+      let grandSumTotal = 0;
+      let woodCount = 0;
+      
+      const groupedData = {};
+      sortedHistory.forEach(board => {
+        // ЗМІНЕНО: Тепер ми створюємо складну назву для групи, яка включає і породу, і ціну
+        const priceLabel = Math.round(board.cubePrice || 0);
+        const groupName = `${board.wood} (ціна: ${priceLabel} грн/м3)`;
+        
+        if (!groupedData[groupName]) groupedData[groupName] = [];
+        groupedData[groupName].push(board);
+      });
+      
+      const sortedGroups = Object.keys(groupedData).sort();
+      
+      sortedGroups.forEach(groupName => {
+        const boards = groupedData[groupName];
+        let woodVolTotal = 0;
+        let woodSumTotal = 0; 
+        
+        // ЗМІНЕНО: Виводимо розширену назву породи з ціною над табличкою
+        csvContent += `Порода: ${groupName}\n`;
+        csvContent += "Номер,Довжина (м),Товщина (мм),Ширина (см),Об'єм (м3),Ціна за куб,Сума\n";
+        
+        woodCount = 0;
+        boards.forEach((b, i) => {
+          woodCount++;
+          
+          let volString = parseFloat(b.vol.toFixed(6)); 
+          let cubePriceString = Math.round(b.cubePrice || 0).toString(); 
+          
+          let roundedBoardPrice = Number(b.price.toFixed(2));
+          let priceString = roundedBoardPrice.toFixed(2);
+          
+          csvContent += `${woodCount},${b.length},${b.thick},${b.width},${volString},${cubePriceString},${priceString}\n`;
+          
+          woodVolTotal += b.vol;
+          woodSumTotal += roundedBoardPrice;
+        });
+        
+        let woodVolString = woodVolTotal.toFixed(3);
+        let woodSumString = Math.round(woodSumTotal).toString();
+        
+        // ЗМІНЕНО: Підсумок тепер теж показує породу разом із ціною
+        csvContent += `Всього порода: ${groupName},,,,${woodVolString},,${woodSumString}\n\n`;
+        
+        grandVolTotal += woodVolTotal;
+        grandSumTotal += woodSumTotal;
+      });
+      
+      let grandVolString = grandVolTotal.toFixed(3);
+      let grandSumString = Math.round(grandSumTotal).toString(); 
+      
+      csvContent += `ЗАГАЛОМ:,,,,${grandVolString},,${grandSumString}\n`;
+      
+      return csvContent;
+    }
+    
     
    // --- АВТОФОРМАТУВАННЯ ПОЛІВ (м, мм, грн) ---
     function setupFormatting() {
