@@ -410,7 +410,7 @@
         clearWidthInput();
       }
     }
-    
+    /*
     function updateUI() {
       // 1. БРОНЬОВАНИЙ ПІДРАХУНОК: Рахуємо об'єм з нуля по списку
       totalVol = history.reduce((sum, board) => sum + board.vol, 0);
@@ -460,6 +460,54 @@
       
       subStatsContainer.innerHTML = subHtml;
     }
+*/
+    function updateUI() {
+      totalVol = history.reduce((sum, board) => sum + board.vol, 0);
+      totalVol = Math.max(0, totalVol);
+      
+      document.getElementById('vol').innerText = totalVol.toFixed(3);
+      
+      const totalSum = history.reduce((sum, board) => sum + board.price, 0);
+      document.getElementById('sum').innerText = Math.max(0, Math.round(totalSum)).toLocaleString('uk-UA');
+      document.getElementById('count').innerText = history.length;
+
+      const subStatsContainer = document.getElementById('sub-stats');
+      if (!subStatsContainer) return;
+
+      if (history.length === 0) {
+        subStatsContainer.innerHTML = '';
+        return;
+      }
+
+      const groups = {};
+      history.forEach(b => {
+        // ЗМІНЕНО: Тепер група створюється з урахуванням породи, товщини та ціни
+        const priceLabel = Math.round(b.cubePrice || 0);
+        const key = `${b.wood} ${b.thick} мм (${priceLabel} грн/м³)`;
+        
+        if (!groups[key]) {
+          groups[key] = { vol: 0, sum: 0, count: 0 };
+        }
+        groups[key].vol += b.vol;
+        groups[key].sum += b.price;
+        groups[key].count++;
+      });
+
+      let subHtml = '';
+      for (const [name, data] of Object.entries(groups)) {
+        subHtml += `
+          <div class="sub-stat-row">
+            <div>${name}:</div>
+            <div><span>${Math.max(0, data.vol).toFixed(3)}</span> м³</div>
+            <div><span>${Math.max(0, Math.round(data.sum)).toLocaleString('uk-UA')}</span> грн</div>
+            <div><span>${data.count}</span> шт</div>
+          </div>
+        `;
+      }
+      
+      subStatsContainer.innerHTML = subHtml;
+    }
+
 
     function toggleList() { const modal = document.getElementById('list-modal'); modal.style.display = modal.style.display === 'block' ? 'none' : 'block'; }
     
