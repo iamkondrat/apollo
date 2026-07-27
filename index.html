@@ -611,14 +611,12 @@
     // ==========================================
 
     // ДОДАНО параметр isTrash
-    async function theoryAutoSend(isSilent = true, isTrash = false) {
-      // Якщо дошок нуль, або це не видалення і ми вже все відправили — ігноруємо
+   async function theoryAutoSend(isSilent = true, isTrash = false) {
       if (history.length === 0 || (!isTrash && isSilent && history.length === lastSentCount)) return true;
       
       let buyer = document.getElementById('buyer-name').value;
-      if (buyer === "") buyer = "Невідомий клієнт"; // Якщо ім'я не вказали, але роблять скидання
+      if (buyer === "") buyer = "Невідомий клієнт";
 
-      // ЯКЩО ЦЕ ВИДАЛЕННЯ — міняємо назву файлу
       if (isTrash) {
         buyer = "🗑️_СКАСОВАНО_" + buyer;
       }
@@ -627,24 +625,36 @@
       const wood = history[0].wood || "Не вказана";
       const backendUrl = "https://script.google.com/macros/s/AKfycbx8Ll5Y8OQPTPSiMQkhw0kD-hrZSFzhD2aRxpWfujatYa__wTjp02GVTAFQZKEXIfg/exec";
 
+      // --- ГАРАНТОВАНИЙ ПІДРАХУНОК СУМИ ПЕРЕД ВІДПРАВКОЮ ---
+      let calculatedSum = 0;
+      if (history.length > 0) {
+          calculatedSum = Math.round(history.reduce((sum, board) => sum + board.price, 0));
+      }
+      // ----------------------------------------------------
+
       try {
         await fetch(backendUrl, {
           method: 'POST',
           mode: 'no-cors',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify({ data: csvContent, woodName: wood, buyerName: buyer, totalSum: totalSum, action: 'syncFileSync' })
+          body: JSON.stringify({ 
+            data: csvContent, 
+            woodName: wood, 
+            buyerName: buyer, 
+            totalSum: calculatedSum, // Передаємо нашу нову змінну
+            action: 'syncFileSync' 
+          })
         });
         
         if (!isTrash) {
           lastSentCount = history.length; 
-          saveStoredData(); // <--- ДОДАЙ ЦЕЙ РЯДОК, щоб планшет запам'ятав успіх
+          saveStoredData();
         }
         return true; 
       } catch (error) {
         return false; 
       }
     }
-
     // --- NEW/MODIFIED: Direct download to tablet with unique name and formatting ---
     function downloadCSV() {
       const buyer = document.getElementById('buyer-name').value;
