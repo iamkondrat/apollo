@@ -622,7 +622,7 @@
       }
 
       const csvContent = formatCSVData();
-      const wood = history[0].wood || "Не вказана";
+      const wood = [...new Set(history.map(b => b.wood))].join(', ') || "Не вказана";
       const backendUrl = "https://script.google.com/macros/s/AKfycbx8Ll5Y8OQPTPSiMQkhw0kD-hrZSFzhD2aRxpWfujatYa__wTjp02GVTAFQZKEXIfg/exec";
 
       // --- ГАРАНТОВАНИЙ ПІДРАХУНОК СУМИ ПЕРЕД ВІДПРАВКОЮ ---
