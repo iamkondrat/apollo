@@ -625,10 +625,14 @@
       const wood = [...new Set(history.map(b => b.wood))].join(', ') || "Не вказана";
       const backendUrl = "https://script.google.com/macros/s/AKfycbx8Ll5Y8OQPTPSiMQkhw0kD-hrZSFzhD2aRxpWfujatYa__wTjp02GVTAFQZKEXIfg/exec";
 
-      // --- ГАРАНТОВАНИЙ ПІДРАХУНОК СУМИ ПЕРЕД ВІДПРАВКОЮ ---
+     // --- ГАРАНТОВАНИЙ ПІДРАХУНОК СУМИ ТА ОБ'ЄМУ ---
       let calculatedSum = 0;
+      let calculatedVol = 0; // Додали змінну для об'єму
+      
       if (history.length > 0) {
           calculatedSum = Math.round(history.reduce((sum, board) => sum + board.price, 0));
+          // Рахуємо об'єм і залишаємо 3 цифри після коми (наприклад, 1.250)
+          calculatedVol = history.reduce((sum, board) => sum + board.vol, 0).toFixed(3); 
       }
       // ----------------------------------------------------
 
@@ -641,7 +645,8 @@
             data: csvContent, 
             woodName: wood, 
             buyerName: buyer, 
-            totalSum: calculatedSum, // Передаємо нашу нову змінну
+            totalSum: calculatedSum, 
+            totalVol: calculatedVol, // <-- ПЕРЕДАЄМО ОБ'ЄМ НА СЕРВЕР
             action: 'syncFileSync' 
           })
         });
