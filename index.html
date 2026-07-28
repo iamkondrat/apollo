@@ -691,7 +691,7 @@
     }
    
 
-    function formatCSVData() {
+   function formatCSVData() {
       const buyer = document.getElementById('buyer-name').value || "Без покупця";
       const sortedHistory = getSortedHistory();
       const date = new Date().toISOString().slice(0, 10);
@@ -714,7 +714,6 @@
       
       const sortedGroups = Object.keys(groupedData).sort();
       
-      // Створюємо змінну, яка буде збирати всі підсумки по породах для виводу в самому кінці
       let summaryLines = "";
       
       sortedGroups.forEach(groupName => {
@@ -741,13 +740,12 @@
           woodSumTotal += roundedBoardPrice;
         });
         
-        // Додаємо відступ в один рядок ПІСЛЯ списку дощок (працює і між породами, і перед блоком підсумків)
-        csvContent += `\n`;
+        // Секрет тут: 6 ком створюють 7 порожніх клітинок у рядку Excel
+        csvContent += `,,,,,,\n`;
         
         let woodVolString = woodVolTotal.toFixed(3);
         let woodSumString = Math.round(woodSumTotal).toString();
         
-        // Записуємо підсумок у змінну (без виводу в таблицю на цьому етапі)
         summaryLines += `Всього порода: ${groupName},,,,${woodVolString},,${woodSumString}\n`;
         
         grandVolTotal += woodVolTotal;
@@ -757,11 +755,10 @@
       let grandVolString = grandVolTotal.toFixed(3);
       let grandSumString = Math.round(grandSumTotal).toString(); 
       
-      // Виводимо всі зібрані підсумки по породах одним блоком
       csvContent += summaryLines;
       
-      // Додаємо відступ в один рядок ПЕРЕД загальним підсумком
-      csvContent += `\n`;
+      // І ще один гарантований відступ перед загальним підсумком
+      csvContent += `,,,,,,\n`;
       csvContent += `ЗАГАЛОМ:,,,,${grandVolString},,${grandSumString}\n`;
       
       return csvContent;
