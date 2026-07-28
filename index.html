@@ -741,13 +741,13 @@
           woodSumTotal += roundedBoardPrice;
         });
         
-        // Робимо відступ після списку дощок поточної породи
+        // Додаємо відступ в один рядок ПІСЛЯ списку дощок (працює і між породами, і перед блоком підсумків)
         csvContent += `\n`;
         
         let woodVolString = woodVolTotal.toFixed(3);
         let woodSumString = Math.round(woodSumTotal).toString();
         
-        // ЗАМІСТЬ виводу підсумку сюди, додаємо його в нашу збірку підсумків
+        // Записуємо підсумок у змінну (без виводу в таблицю на цьому етапі)
         summaryLines += `Всього порода: ${groupName},,,,${woodVolString},,${woodSumString}\n`;
         
         grandVolTotal += woodVolTotal;
@@ -757,9 +757,11 @@
       let grandVolString = grandVolTotal.toFixed(3);
       let grandSumString = Math.round(grandSumTotal).toString(); 
       
-      // ТЕПЕР виводимо всі зібрані підсумки одним блоком в самому кінці
-      csvContent += `\n`; // Відступ перед блоком підсумків
+      // Виводимо всі зібрані підсумки по породах одним блоком
       csvContent += summaryLines;
+      
+      // Додаємо відступ в один рядок ПЕРЕД загальним підсумком
+      csvContent += `\n`;
       csvContent += `ЗАГАЛОМ:,,,,${grandVolString},,${grandSumString}\n`;
       
       return csvContent;
