@@ -691,7 +691,7 @@
     }
    
 
-   function formatCSVData() {
+function formatCSVData() {
       const buyer = document.getElementById('buyer-name').value || "Без покупця";
       const sortedHistory = getSortedHistory();
       const date = new Date().toISOString().slice(0, 10);
@@ -740,8 +740,8 @@
           woodSumTotal += roundedBoardPrice;
         });
         
-        // Секрет тут: 6 ком створюють 7 порожніх клітинок у рядку Excel
-        csvContent += `,,,,,,\n`;
+        // Хитрість: додаємо пробіл на початку, щоб Гугл не видалив цей рядок
+        csvContent += ` ,,,,,,\n`;
         
         let woodVolString = woodVolTotal.toFixed(3);
         let woodSumString = Math.round(woodSumTotal).toString();
@@ -757,12 +757,13 @@
       
       csvContent += summaryLines;
       
-      // І ще один гарантований відступ перед загальним підсумком
-      csvContent += `,,,,,,\n`;
+      // І ще один відступ з пробілом перед загальним підсумком
+      csvContent += ` ,,,,,,\n`;
       csvContent += `ЗАГАЛОМ:,,,,${grandVolString},,${grandSumString}\n`;
       
       return csvContent;
     }
+    
     
     
    // --- АВТОФОРМАТУВАННЯ ПОЛІВ (м, мм, грн) ---
