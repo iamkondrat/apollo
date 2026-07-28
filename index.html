@@ -697,11 +697,11 @@ function formatCSVData() {
       const date = new Date().toISOString().slice(0, 10);
       const time = new Date().toTimeString().slice(0, 8);
       
-      // Розбиваємо шапку на окремі рядки і додаємо по 6 ком, щоб Гугл з першого рядка бачив 7 колонок
       let csvContent = `data:text/csv;charset=utf-8,\uFEFF`;
       csvContent += `Покупець: ${buyer},,,,,,\n`;
       csvContent += `Дата: ${date} Час: ${time},,,,,,\n`;
-      csvContent += `---,,,,,,\n`; // Тепер цей відступ гарантовано спрацює
+      // Гарантований відступ з дефісами
+      csvContent += `---,,,,,,\n`; 
       
       let grandVolTotal = 0;
       let grandSumTotal = 0;
@@ -728,7 +728,6 @@ function formatCSVData() {
         const pureWoodName = boards[0].wood;
         const groupPrice = Math.round(boards[0].cubePrice || 0).toString();
         
-        // Додаємо коми і в рядок з породою, щоб не ламати структуру
         csvContent += `Порода: ${groupName},,,,,,\n`;
         csvContent += "Номер,Довжина (м),Товщина (мм),Ширина (см),Об'єм (м3),Ціна за куб,Сума\n";
         
