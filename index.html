@@ -706,6 +706,7 @@ function formatCSVData() {
       const groupedData = {};
       sortedHistory.forEach(board => {
         const priceLabel = Math.round(board.cubePrice || 0);
+        // Залишаємо таку назву для групування і заголовка над таблицею
         const groupName = `${board.wood} (ціна: ${priceLabel} грн/м3)`;
         
         if (!groupedData[groupName]) groupedData[groupName] = [];
@@ -720,6 +721,10 @@ function formatCSVData() {
         const boards = groupedData[groupName];
         let woodVolTotal = 0;
         let woodSumTotal = 0; 
+        
+        // Беремо чисту назву породи та ціну для рядка підсумків
+        const pureWoodName = boards[0].wood;
+        const groupPrice = Math.round(boards[0].cubePrice || 0).toString();
         
         csvContent += `Порода: ${groupName}\n`;
         csvContent += "Номер,Довжина (м),Товщина (мм),Ширина (см),Об'єм (м3),Ціна за куб,Сума\n";
@@ -740,13 +745,14 @@ function formatCSVData() {
           woodSumTotal += roundedBoardPrice;
         });
         
-        // Гарантований відступ-роздільник за допомогою дефісів
+        // Відступ-роздільник
         csvContent += `---,,,,,, \n`;
         
         let woodVolString = woodVolTotal.toFixed(3);
         let woodSumString = Math.round(woodSumTotal).toString();
         
-        summaryLines += `Всього порода: ${groupName},,,,${woodVolString},,${woodSumString}\n`;
+        // ЗМІНЕНО: тепер порода без дужок, а ціна стоїть у своїй колонці (перед сумою)
+        summaryLines += `Всього: ${pureWoodName},,,,${woodVolString},${groupPrice},${woodSumString}\n`;
         
         grandVolTotal += woodVolTotal;
         grandSumTotal += woodSumTotal;
@@ -757,7 +763,7 @@ function formatCSVData() {
       
       csvContent += summaryLines;
       
-      // І ще один відступ-роздільник перед загальним підсумком
+      // Відступ-роздільник перед фінальним загальним підсумком
       csvContent += `---,,,,,, \n`;
       csvContent += `ЗАГАЛОМ:,,,,${grandVolString},,${grandSumString}\n`;
       
