@@ -740,8 +740,8 @@ function formatCSVData() {
           woodSumTotal += roundedBoardPrice;
         });
         
-        // Хитрість: додаємо пробіл на початку, щоб Гугл не видалив цей рядок
-        csvContent += ` ,,,,,,\n`;
+        // Гарантований відступ-роздільник за допомогою дефісів
+        csvContent += `---,,,,,, \n`;
         
         let woodVolString = woodVolTotal.toFixed(3);
         let woodSumString = Math.round(woodSumTotal).toString();
@@ -757,8 +757,8 @@ function formatCSVData() {
       
       csvContent += summaryLines;
       
-      // І ще один відступ з пробілом перед загальним підсумком
-      csvContent += ` ,,,,,,\n`;
+      // І ще один відступ-роздільник перед загальним підсумком
+      csvContent += `---,,,,,, \n`;
       csvContent += `ЗАГАЛОМ:,,,,${grandVolString},,${grandSumString}\n`;
       
       return csvContent;
