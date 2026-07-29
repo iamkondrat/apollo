@@ -702,11 +702,13 @@
 
 function formatCSVData() {
       const buyer = document.getElementById('buyer-name').value || "Без покупця";
+      const phone = document.getElementById('buyer-phone').value.trim() || "Не вказано";
       const sortedHistory = getSortedHistory();
       const date = new Date().toISOString().slice(0, 10);
       const time = new Date().toTimeString().slice(0, 8);
       
       let csvContent = `data:text/csv;charset=utf-8,\uFEFF`;
+      svContent += `Телефон: ${phone},,,,,,\n`;
       csvContent += `Покупець: ${buyer},,,,,,\n`;
       csvContent += `Дата: ${date} Час: ${time},,,,,,\n`;
       // Гарантований відступ з дефісами
