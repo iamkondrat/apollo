@@ -19,7 +19,6 @@
     .stats-row { display: flex; justify-content: space-between; font-size: 16px; font-weight: bold; margin-bottom: 10px; }
     .stats-row span { color: #4CAF50; font-size: 18px; }
 
-    /* Стилі для розбивки по породах і товщинах */
     .sub-stats {
       font-size: 13px;
       color: #ccc;
@@ -27,8 +26,8 @@
       display: flex;
       flex-direction: column;
       gap: 4px;
-      max-height: 90px; /* Обмежуємо висоту, щоб шапка не стала величезною */
-      overflow-y: auto; /* Додаємо скрол, якщо позицій багато */
+      max-height: 90px;
+      overflow-y: auto; 
     }
     .sub-stat-row {
       display: flex;
@@ -36,7 +35,7 @@
       background: #2a2a2a;
       padding: 6px 10px;
       border-radius: 6px;
-      border-left: 3px solid #4CAF50; /* Зелена смужка збоку для краси */
+      border-left: 3px solid #4CAF50; 
     }
     .sub-stat-row span { color: #fff; font-weight: bold; }
     
@@ -57,8 +56,7 @@
     .list-btn { background: #f57c00; margin-top: 0; }
     .list-btn:active { background: #e65100; }
     
-    /* --- NEW/MODIFIED: Combined direct send button and download button --- */
-    .export-btn { background: #1976d2; margin-top: 0; color: white; flex: 2; /* Шире кнопки списка */ }
+    .export-btn { background: #1976d2; margin-top: 0; color: white; flex: 2; }
     .export-btn:active { background: #1565c0; }
     
     .reset-btn { background: #555; margin-top: 10px; }
@@ -83,16 +81,16 @@
     .list-item { border-bottom: 1px solid #444; padding: 8px 0; }
     .list-item:last-child { border-bottom: none; }
     .item-price { color: #4CAF50; font-weight: bold; }
-    /* Екран завантаження */
+    
     #loading-overlay {
       position: fixed;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0, 0, 0, 0.85); /* Темний фон */
+      background: rgba(0, 0, 0, 0.85); 
       z-index: 9999;
-      display: none; /* Спочатку прихований */
+      display: none; 
       justify-content: center;
       align-items: center;
       flex-direction: column;
@@ -102,7 +100,7 @@
     }
     .spinner {
       border: 6px solid #333;
-      border-top: 6px solid #4CAF50; /* Зелений колір крутилки */
+      border-top: 6px solid #4CAF50; 
       border-radius: 50%;
       width: 60px;
       height: 60px;
@@ -150,7 +148,6 @@
 
   <div id="settings-menu">
     <div class="inputs">
-      <!-- --- NEW: Buyer Name Input Field --- -->
       <input type="text" id="buyer-name" placeholder="Покупець">
       <input type="tel" id="buyer-phone" placeholder="Номер телефону">
       <select id="wood-type">
@@ -172,7 +169,6 @@
     </div>
     <div class="btn-row">
       <button class="action-btn list-btn" onclick="toggleList()">📋 Список дошок</button>
-      <!-- --- MODIFIED: Direct send button now handles download too --- -->
       <button class="action-btn export-btn" onclick="sendData()">📥 Надіслати та завантижити</button>
     </div>
     <button class="action-btn reset-btn" onclick="resetAll()">🗑 Скинути все</button>
@@ -205,9 +201,8 @@
     let totalVol = 0;
     let history = []; 
     let currentWidthInput = ""; 
-    let lastSentCount = 0;
+    let lastSentCount = 0; 
 
-    // Настройка звука
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     let audioCtx;
     function playClickSound() {
@@ -221,7 +216,7 @@
       osc.start(); osc.stop(audioCtx.currentTime + 0.1);
     }
 
-   function loadStoredData() {
+    function loadStoredData() {
       const storedBuyer = localStorage.getItem('apollo_buyer_name');
       const storedPhone = localStorage.getItem('apollo_buyer_phone');
       const storedWood = localStorage.getItem('apollo_wood_type');
@@ -232,14 +227,14 @@
       const storedHistory = localStorage.getItem('apollo_board_history');
       const storedVol = localStorage.getItem('apollo_total_vol');
       const storedWidth = localStorage.getItem('apollo_current_width'); 
-      const storedLastSent = localStorage.getItem('apollo_last_sent'); // ДОДАНО: Пам'ять про відправки
+      const storedLastSent = localStorage.getItem('apollo_last_sent'); 
       
-      if (storedBuyer) document.getElementById('buyer-name').value = storedBuyer;
-      if (storedPhone) document.getElementById('buyer-phone').value = storedPhone;
-      if (storedWood) document.getElementById('wood-type').value = storedWood;
-      if (storedPrice) document.getElementById('price').value = storedPrice;
-      if (storedLen) document.getElementById('len').value = storedLen;
-      if (storedThick) document.getElementById('thick').value = storedThick;
+      if (storedBuyer) { const el = document.getElementById('buyer-name'); if(el) el.value = storedBuyer; }
+      if (storedPhone) { const el = document.getElementById('buyer-phone'); if(el) el.value = storedPhone; }
+      if (storedWood) { const el = document.getElementById('wood-type'); if(el) el.value = storedWood; }
+      if (storedPrice) { const el = document.getElementById('price'); if(el) el.value = storedPrice; }
+      if (storedLen) { const el = document.getElementById('len'); if(el) el.value = storedLen; }
+      if (storedThick) { const el = document.getElementById('thick'); if(el) el.value = storedThick; }
 
       if (storedHistory) history = JSON.parse(storedHistory);
       if (storedVol) totalVol = parseFloat(storedVol);
@@ -249,7 +244,6 @@
         updateWidthDisplay();
       }
       
-      // ДОДАНО: Відновлюємо пам'ять про те, чи відправляли ми ці дошки
       if (storedLastSent) lastSentCount = parseInt(storedLastSent, 10); 
 
       updateUI();
@@ -257,31 +251,41 @@
     }
     
     function saveStoredData() {
-      localStorage.setItem('apollo_buyer_name', document.getElementById('buyer-name').value);
-      localStorage.setItem('apollo_buyer_phone', document.getElementById('buyer-phone').value);
-      localStorage.setItem('apollo_wood_type', document.getElementById('wood-type').value);
-      localStorage.setItem('apollo_price', document.getElementById('price').value);
-      localStorage.setItem('apollo_len', document.getElementById('len').value);
-      localStorage.setItem('apollo_thick', document.getElementById('thick').value);
+      const bName = document.getElementById('buyer-name');
+      if (bName) localStorage.setItem('apollo_buyer_name', bName.value);
+      
+      const bPhone = document.getElementById('buyer-phone');
+      if (bPhone) localStorage.setItem('apollo_buyer_phone', bPhone.value);
+      
+      const wType = document.getElementById('wood-type');
+      if (wType) localStorage.setItem('apollo_wood_type', wType.value);
+      
+      const pPrice = document.getElementById('price');
+      if (pPrice) localStorage.setItem('apollo_price', pPrice.value);
+      
+      const pLen = document.getElementById('len');
+      if (pLen) localStorage.setItem('apollo_len', pLen.value);
+      
+      const pThick = document.getElementById('thick');
+      if (pThick) localStorage.setItem('apollo_thick', pThick.value);
       
       localStorage.setItem('apollo_board_history', JSON.stringify(history));
       localStorage.setItem('apollo_total_vol', totalVol.toString());
       localStorage.setItem('apollo_current_width', currentWidthInput); 
-      
-      // ДОДАНО: Миттєво зберігаємо статус відправки
       localStorage.setItem('apollo_last_sent', lastSentCount.toString()); 
     }
     
     loadStoredData(); 
     
-    // ДОДАНО: Миттєве збереження кожного поля при будь-якій зміні
     document.querySelectorAll('#settings-menu input, #settings-menu select').forEach(el => {
       el.addEventListener('input', saveStoredData);
       el.addEventListener('change', saveStoredData);
     });
 
-    // Numpad Logic
-    function updateWidthDisplay() { document.getElementById('width-display').value = currentWidthInput; }
+    function updateWidthDisplay() { 
+      const el = document.getElementById('width-display');
+      if (el) el.value = currentWidthInput; 
+    }
     function pressKey(key) { if (currentWidthInput.length < 2) { currentWidthInput += key; updateWidthDisplay(); saveStoredData(); playClickSound(); } }
     function clearWidthInput() { currentWidthInput = ""; updateWidthDisplay(); saveStoredData(); playClickSound(); }
     function pressBackspace() { currentWidthInput = currentWidthInput.slice(0, -1); updateWidthDisplay(); saveStoredData(); playClickSound(); }
@@ -289,12 +293,15 @@
     function toggleMenu() {
       const menu = document.getElementById('settings-menu');
       const btn = document.getElementById('menu-toggle-btn');
-      if (menu.style.display === 'none') { menu.style.display = 'block'; btn.innerText = '⚙️ Приховати налаштування'; } 
-      else { menu.style.display = 'none'; btn.innerText = '⚙️ Показати налаштування'; }
+      if (menu && btn) {
+        if (menu.style.display === 'none') { menu.style.display = 'block'; btn.innerText = '⚙️ Приховати налаштування'; } 
+        else { menu.style.display = 'none'; btn.innerText = '⚙️ Показати налаштування'; }
+      }
     }
 
     function confirmAddBoard() {
-      const buyer = document.getElementById('buyer-name').value;
+      const buyerEl = document.getElementById('buyer-name');
+      const buyer = buyerEl ? buyerEl.value : "";
       if (buyer === "") { alert("Будь ласка, вкажіть покупця!"); if(document.getElementById('settings-menu').style.display === 'none') toggleMenu(); return; }
       if (currentWidthInput === "") { alert("Будь ласка, введіть ширину!"); return; }
       const width = parseInt(currentWidthInput);
@@ -304,18 +311,19 @@
     }
 
     function getSafeNumber(id) {
-      let val = document.getElementById(id).value;
-      if (!val) return 0;
-      // Видаляємо всі літери/пробіли і міняємо кому на крапку
-      val = val.replace(/[^\d.,]/g, '').replace(',', '.');
+      let el = document.getElementById(id);
+      if (!el || !el.value) return 0;
+      let val = el.value.replace(/[^\d.,]/g, '').replace(',', '.');
       return parseFloat(val) || 0;
     }
 
     function addBoardFromWidth(widthCm) {
-      const buyer = document.getElementById('buyer-name').value;
-      const wood = document.getElementById('wood-type').value; 
+      const buyerEl = document.getElementById('buyer-name');
+      const buyer = buyerEl ? buyerEl.value : "";
       
-      // Використовуємо нашу нову безпечну функцію для зчитування чисел
+      const woodEl = document.getElementById('wood-type');
+      const wood = woodEl ? woodEl.value : ""; 
+      
       const cubePrice = getSafeNumber('price');
       const l = getSafeNumber('len');
       const t = getSafeNumber('thick') / 1000;
@@ -336,18 +344,11 @@
     
     function undo() {
       if (history.length === 0) return;
-      
-      // Видаляємо останню дошку
       history.pop(); 
-      
-      // НАДІЙНИЙ ПІДРАХУНОК: Рахуємо об'єм заново по залишених дошках
       totalVol = history.reduce((sum, board) => sum + board.vol, 0);
-      
-      // ЖОРСТКИЙ ЗАПОБІЖНИК: якщо об'єм менше нуля або мізерно малий — ставимо рівно 0
       if (totalVol < 0.001) {
         totalVol = 0;
       }
-      
       updateUI(); 
       renderList(); 
       saveStoredData(); 
@@ -356,41 +357,28 @@
 
     function deleteBoard(index) {
       if (confirm("Точно видалити цю дошку зі списку?")) {
-        // splice вирізає 1 елемент із масиву за вказаним індексом
         history.splice(index, 1); 
-        
-        // Перераховуємо загальний об'єм та суми (завдяки попередньому оновленню, мінусів не буде)
         updateUI(); 
-        
-        // Оновлюємо список на екрані, щоб дошка зникла
         renderList(); 
-        
-        // Миттєво зберігаємо зміни в пам'ять планшета
         saveStoredData(); 
       }
     }
     
     function resetAll() {
       let msg = "Увага! Ви впевнені, що хочете видалити всі заміри та почати заново?";
-      
       if (history.length > 0 && history.length !== lastSentCount) {
         msg = "⚠️ У вас є НЕВІДПРАВЛЕНІ дані!\nВи не забули їх відправити?\n\nТочно хочете видалити все БЕЗ збереження в основну базу?";
       }
 
       if(confirm(msg)) {
-        
-        // 1. ФОНОВА ВІДПРАВКА: Запускаємо БЕЗ слова "await"
-        // Додаток пакує дані і відправляє їх, але не чекає на завершення
         if (history.length > 0 && history.length !== lastSentCount) {
            theoryAutoSend(true, true); 
         }
         
-        // 2. МИТТЄВЕ ОЧИЩЕННЯ: Виконується в ту саму мілісекунду
         totalVol = 0; 
         history = [];
         lastSentCount = 0; 
         
-        // Повністю очищаємо пам'ять браузера
         localStorage.removeItem('apollo_board_history'); 
         localStorage.removeItem('apollo_total_vol');
         localStorage.removeItem('apollo_wood_type'); 
@@ -400,82 +388,35 @@
         localStorage.removeItem('apollo_current_width'); 
         localStorage.removeItem('apollo_last_sent'); 
 
-        // Оновлюємо екран
         updateUI(); 
         renderList();
         
-        // Очищаємо поля
-        document.getElementById('buyer-name').value = ""; 
-        document.getElementById('buyer-phone').value = "";
-        document.getElementById('wood-type').value = ""; 
-        document.getElementById('price').value = ""; 
-        document.getElementById('len').value = ""; 
-        document.getElementById('thick').value = ""; 
+        const bName = document.getElementById('buyer-name'); if(bName) bName.value = ""; 
+        const bPhone = document.getElementById('buyer-phone'); if(bPhone) bPhone.value = "";
+        const wType = document.getElementById('wood-type'); if(wType) wType.value = ""; 
+        const pPrice = document.getElementById('price'); if(pPrice) pPrice.value = ""; 
+        const pLen = document.getElementById('len'); if(pLen) pLen.value = ""; 
+        const pThick = document.getElementById('thick'); if(pThick) pThick.value = ""; 
         
-        document.getElementById('list-modal').style.display = 'none'; 
+        const modal = document.getElementById('list-modal');
+        if (modal) modal.style.display = 'none'; 
         clearWidthInput();
       }
     }
-    /*
-    function updateUI() {
-      // 1. БРОНЬОВАНИЙ ПІДРАХУНОК: Рахуємо об'єм з нуля по списку
-      totalVol = history.reduce((sum, board) => sum + board.vol, 0);
-      
-      // Відкидаємо будь-які мінуси чи мікро-похибки: беремо максимум між нулем і нашим числом
-      totalVol = Math.max(0, totalVol);
-      
-      document.getElementById('vol').innerText = totalVol.toFixed(3);
-      
-      const totalSum = history.reduce((sum, board) => sum + board.price, 0);
-      // Тут теж ставимо захист від мінусів для суми
-      document.getElementById('sum').innerText = Math.max(0, Math.round(totalSum)).toLocaleString('uk-UA');
-      document.getElementById('count').innerText = history.length;
 
-      // 2. Розбивка по породах і товщинах
-      const subStatsContainer = document.getElementById('sub-stats');
-      if (!subStatsContainer) return;
-
-      if (history.length === 0) {
-        subStatsContainer.innerHTML = '';
-        return;
-      }
-
-      const groups = {};
-      history.forEach(b => {
-        const key = `${b.wood} ${b.thick} мм`;
-        if (!groups[key]) {
-          groups[key] = { vol: 0, sum: 0, count: 0 };
-        }
-        groups[key].vol += b.vol;
-        groups[key].sum += b.price;
-        groups[key].count++;
-      });
-
-      let subHtml = '';
-      for (const [name, data] of Object.entries(groups)) {
-        subHtml += `
-          <div class="sub-stat-row">
-            <div>${name}:</div>
-            <!-- Захист від мінусів для кожної підгрупи -->
-            <div><span>${Math.max(0, data.vol).toFixed(3)}</span> м³</div>
-            <div><span>${Math.max(0, Math.round(data.sum)).toLocaleString('uk-UA')}</span> грн</div>
-            <div><span>${data.count}</span> шт</div>
-          </div>
-        `;
-      }
-      
-      subStatsContainer.innerHTML = subHtml;
-    }
-*/
     function updateUI() {
       totalVol = history.reduce((sum, board) => sum + board.vol, 0);
       totalVol = Math.max(0, totalVol);
       
-      document.getElementById('vol').innerText = totalVol.toFixed(3);
+      const volEl = document.getElementById('vol');
+      if(volEl) volEl.innerText = totalVol.toFixed(3);
       
       const totalSum = history.reduce((sum, board) => sum + board.price, 0);
-      document.getElementById('sum').innerText = Math.max(0, Math.round(totalSum)).toLocaleString('uk-UA');
-      document.getElementById('count').innerText = history.length;
+      const sumEl = document.getElementById('sum');
+      if (sumEl) sumEl.innerText = Math.max(0, Math.round(totalSum)).toLocaleString('uk-UA');
+      
+      const countEl = document.getElementById('count');
+      if(countEl) countEl.innerText = history.length;
 
       const subStatsContainer = document.getElementById('sub-stats');
       if (!subStatsContainer) return;
@@ -487,7 +428,6 @@
 
       const groups = {};
       history.forEach(b => {
-        // ЗМІНЕНО: Тепер група створюється з урахуванням породи, товщини та ціни
         const priceLabel = Math.round(b.cubePrice || 0);
         const key = `${b.wood} ${b.thick} мм (${priceLabel} грн/м³)`;
         
@@ -514,20 +454,14 @@
       subStatsContainer.innerHTML = subHtml;
     }
 
-
-    function toggleList() { const modal = document.getElementById('list-modal'); modal.style.display = modal.style.display === 'block' ? 'none' : 'block'; }
+    function toggleList() { const modal = document.getElementById('list-modal'); if(modal) modal.style.display = modal.style.display === 'block' ? 'none' : 'block'; }
     
     function renderList() {
-      // 1. Використовуємо твій правильний ID
       const listObj = document.getElementById('list-modal'); 
       if (!listObj) return;
       
-      // 2. Створюємо перевернутий список, але з правильними індексами для видалення
       const listHTML = [...history].reverse().map((b, i) => {
-        
-        // Вираховуємо справжній номер дошки в пам'яті
         const realIndex = history.length - 1 - i; 
-        
         return `
           <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 10px; border-bottom: 1px solid #444; background: #2a2a2a; margin-bottom: 6px; border-radius: 8px;">
             <div style="flex-grow: 1;">
@@ -538,8 +472,6 @@
                  (${Math.round(b.price)} грн / по ${Math.round(b.cubePrice || 0)} грн за куб)
                </div>
             </div>
-            
-            <!-- Кнопка видалення передає правильний realIndex -->
             <button onclick="deleteBoard(${realIndex})" style="background: #d32f2f; color: white; border: none; width: 48px; height: 48px; border-radius: 10px; font-size: 22px; cursor: pointer; display: flex; justify-content: center; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.3); margin-left: 10px;">
               🗑️
             </button>
@@ -547,84 +479,81 @@
         `;
       }).join('');
       
-      // Вставляємо все це у твоє вікно
       listObj.innerHTML = listHTML;
     }
 
-    // --- NEW: Combined send function calls theoretical GAS send and direct download ---
-    
     async function sendData() {
-      if(history.length === 0) { alert("Список порожній! Спочатку додайте дошки."); return; }
-      const buyer = document.getElementById('buyer-name').value;
-      if (buyer === "") { alert("Будь ласка, вкажіть покупця перед надсиланням!"); if(document.getElementById('settings-menu').style.display === 'none') toggleMenu(); return; }
+      try {
+        if(history.length === 0) { alert("Список порожній! Спочатку додайте дошки."); return; }
+        
+        const buyerEl = document.getElementById('buyer-name');
+        const buyer = buyerEl ? buyerEl.value : "";
+        if (buyer === "") { alert("Будь ласка, вкажіть покупця перед надсиланням!"); if(document.getElementById('settings-menu').style.display === 'none') toggleMenu(); return; }
 
-      const overlay = document.getElementById('loading-overlay');
-      const loaderContent = document.getElementById('loader-content');
+        const overlay = document.getElementById('loading-overlay');
+        const loaderContent = document.getElementById('loader-content');
 
-      // 1. Блокуємо екран і показуємо завантаження
-      overlay.style.display = 'flex';
-      loaderContent.innerHTML = '<div class="spinner"></div><div id="loader-text" style="color: white; font-size: 22px; font-weight: bold;">Відправлення...</div>';
+        if(overlay) overlay.style.display = 'flex';
+        if(loaderContent) loaderContent.innerHTML = '<div class="spinner"></div><div id="loader-text" style="color: white; font-size: 22px; font-weight: bold;">Відправлення...</div>';
 
-      // 2. БЕЗПЕЧНА відправка (чекаємо підтвердження від Диску)
-      const success = await theoryAutoSend(false);
+        const success = await theoryAutoSend(false);
 
-      // 3. Змінюємо екран залежно від результату
-      if (success) {
-         loaderContent.innerHTML = '<div class="success-icon">✅</div><div id="loader-text" style="color: white; font-size: 22px; font-weight: bold;">Успішно! Очищення...</div>';
-      } else {
-         loaderContent.innerHTML = '<div class="success-icon">❌</div><div id="loader-text" style="color: #ff5252; font-size: 22px; font-weight: bold;">Помилка мережі! Дані збережено на планшет.</div>';
+        if (success) {
+           if(loaderContent) loaderContent.innerHTML = '<div class="success-icon">✅</div><div id="loader-text" style="color: white; font-size: 22px; font-weight: bold;">Успішно! Очищення...</div>';
+        } else {
+           if(loaderContent) loaderContent.innerHTML = '<div class="success-icon">❌</div><div id="loader-text" style="color: #ff5252; font-size: 22px; font-weight: bold;">Помилка мережі! Дані збережено на планшет.</div>';
+        }
+
+        setTimeout(() => { downloadCSV(); }, 500);
+
+        setTimeout(() => {
+           if (success) {
+              totalVol = 0; 
+              history = [];
+              lastSentCount = 0; 
+              
+              localStorage.removeItem('apollo_board_history'); 
+              localStorage.removeItem('apollo_total_vol');
+              localStorage.removeItem('apollo_wood_type'); 
+              localStorage.removeItem('apollo_price'); 
+              localStorage.removeItem('apollo_len'); 
+              localStorage.removeItem('apollo_thick'); 
+              localStorage.removeItem('apollo_current_width'); 
+              localStorage.removeItem('apollo_last_sent'); 
+
+              updateUI(); 
+              renderList();
+              
+              const bName = document.getElementById('buyer-name'); if(bName) bName.value = ""; 
+              const bPhone = document.getElementById('buyer-phone'); if(bPhone) bPhone.value = "";
+              const wType = document.getElementById('wood-type'); if(wType) wType.value = ""; 
+              const pPrice = document.getElementById('price'); if(pPrice) pPrice.value = ""; 
+              const pLen = document.getElementById('len'); if(pLen) pLen.value = ""; 
+              const pThick = document.getElementById('thick'); if(pThick) pThick.value = ""; 
+              
+              const modal = document.getElementById('list-modal');
+              if(modal) modal.style.display = 'none'; 
+              clearWidthInput();
+           }
+           if(overlay) overlay.style.display = 'none';
+        }, 3000); 
+
+      } catch (err) {
+        alert("Знайдено помилку: " + err.message);
+        const overlay = document.getElementById('loading-overlay');
+        if(overlay) overlay.style.display = 'none';
       }
-
-      // 4. Одразу віддаємо бекап-файл на сам планшет
-      setTimeout(() => {
-          downloadCSV();
-      }, 500);
-
-      // 5. Чекаємо 3 секунди (щоб працівник побачив статус) і діємо далі
-      setTimeout(() => {
-         // РОЗУМНЕ ОЧИЩЕННЯ: Стираємо все ТІЛЬКИ якщо відправка в інтернет була успішною
-         if (success) {
-            totalVol = 0; 
-            history = [];
-            lastSentCount = 0; 
-            
-            localStorage.removeItem('apollo_board_history'); 
-            localStorage.removeItem('apollo_total_vol');
-            localStorage.removeItem('apollo_wood_type'); 
-            localStorage.removeItem('apollo_price'); 
-            localStorage.removeItem('apollo_len'); 
-            localStorage.removeItem('apollo_thick'); 
-            localStorage.removeItem('apollo_current_width'); 
-            localStorage.removeItem('apollo_last_sent'); 
-
-            updateUI(); 
-            renderList();
-            
-            document.getElementById('buyer-name').value = "";
-            document.getElementById('buyer-phone').value = "";
-            document.getElementById('wood-type').value = ""; 
-            document.getElementById('price').value = ""; 
-            document.getElementById('len').value = ""; 
-            document.getElementById('thick').value = ""; 
-            
-            document.getElementById('list-modal').style.display = 'none'; 
-            clearWidthInput();
-         }
-         
-         // Ховаємо темний екран в будь-якому випадку
-         overlay.style.display = 'none';
-      }, 3000); 
     }
-    // ==========================================
 
-    // ДОДАНО параметр isTrash
    async function theoryAutoSend(isSilent = true, isTrash = false) {
       if (history.length === 0 || (!isTrash && isSilent && history.length === lastSentCount)) return true;
       
-      let buyer = document.getElementById('buyer-name').value;
+      const buyerEl = document.getElementById('buyer-name');
+      let buyer = buyerEl ? buyerEl.value : "Невідомий клієнт";
       if (buyer === "") buyer = "Невідомий клієнт";
 
-     let phone = document.getElementById('buyer-phone').value.trim();
+      const phoneEl = document.getElementById('buyer-phone');
+      let phone = phoneEl ? phoneEl.value.trim() : "Не вказано";
 
       if (isTrash) {
         buyer = "🗑️_СКАСОВАНО_" + buyer;
@@ -634,16 +563,13 @@
       const wood = [...new Set(history.map(b => b.wood))].join(', ') || "Не вказана";
       const backendUrl = "https://script.google.com/macros/s/AKfycbx8Ll5Y8OQPTPSiMQkhw0kD-hrZSFzhD2aRxpWfujatYa__wTjp02GVTAFQZKEXIfg/exec";
 
-     // --- ГАРАНТОВАНИЙ ПІДРАХУНОК СУМИ ТА ОБ'ЄМУ ---
       let calculatedSum = 0;
-      let calculatedVol = 0; // Додали змінну для об'єму
+      let calculatedVol = 0; 
       
       if (history.length > 0) {
           calculatedSum = Math.round(history.reduce((sum, board) => sum + board.price, 0));
-          // Рахуємо об'єм і залишаємо 3 цифри після коми (наприклад, 1.250)
           calculatedVol = history.reduce((sum, board) => sum + board.vol, 0).toFixed(3); 
       }
-      // ----------------------------------------------------
 
       try {
         await fetch(backendUrl, {
@@ -656,7 +582,7 @@
             buyerName: buyer,
             phone: phone,
             totalSum: calculatedSum, 
-            totalVol: calculatedVol, // <-- ПЕРЕДАЄМО ОБ'ЄМ НА СЕРВЕР
+            totalVol: calculatedVol, 
             action: 'syncFileSync' 
           })
         });
@@ -670,16 +596,16 @@
         return false; 
       }
     }
-    // --- NEW/MODIFIED: Direct download to tablet with unique name and formatting ---
+
     function downloadCSV() {
-      const buyer = document.getElementById('buyer-name').value;
+      const buyerEl = document.getElementById('buyer-name');
+      const buyer = buyerEl ? buyerEl.value : "Без покупця";
       const csvContent = formatCSVData();
       
       const date = new Date().toISOString().slice(0, 10);
       const time = new Date().toTimeString().slice(0, 8).replace(/:/g, '-');
-      const buyerSafe = buyer.replace(/\s+/g, '_'); // Safe for filename
+      const buyerSafe = buyer.replace(/\s+/g, '_'); 
       
-      // Filename format: Zamer_YYYY-MM-DD_BuyerName_HH-MM-SS.csv
       const fileName = `ТОЧКОВКА_${date}_${buyerSafe}_${time}.csv`;
       
       const link = document.createElement("a");
@@ -689,9 +615,7 @@
       link.click();
       document.body.removeChild(link);
     }
-    // ==========================================
 
-    // --- NEW: Helper function to sort history by wood type ---
     function getSortedHistory() {
       return [...history].sort((a, b) => {
         if (a.wood < b.wood) return -1;
@@ -699,20 +623,23 @@
         return 0;
       });
     }
-   
 
-function formatCSVData() {
-      const buyer = document.getElementById('buyer-name').value || "Без покупця";
-      const phone = document.getElementById('buyer-phone').value.trim() || "Не вказано";
+    function formatCSVData() {
+      const buyerEl = document.getElementById('buyer-name');
+      const buyer = buyerEl ? buyerEl.value : "Без покупця";
+      
+      const phoneEl = document.getElementById('buyer-phone');
+      const phone = phoneEl ? phoneEl.value.trim() : "Не вказано";
+      if(phone === "") phone = "Не вказано";
+      
       const sortedHistory = getSortedHistory();
       const date = new Date().toISOString().slice(0, 10);
       const time = new Date().toTimeString().slice(0, 8);
       
       let csvContent = `data:text/csv;charset=utf-8,\uFEFF`;
-      сsvContent += `Телефон: ${phone},,,,,,\n`;
+      csvContent += `Телефон: ${phone},,,,,,\n`;
       csvContent += `Покупець: ${buyer},,,,,,\n`;
       csvContent += `Дата: ${date} Час: ${time},,,,,,\n`;
-      // Гарантований відступ з дефісами
       csvContent += `---,,,,,,\n`; 
       
       let grandVolTotal = 0;
@@ -746,25 +673,18 @@ function formatCSVData() {
         woodCount = 0;
         boards.forEach((b, i) => {
           woodCount++;
-          
           let volString = parseFloat(b.vol.toFixed(6)); 
           let cubePriceString = Math.round(b.cubePrice || 0).toString(); 
-          
           let roundedBoardPrice = Number(b.price.toFixed(2));
           let priceString = roundedBoardPrice.toFixed(2);
-          
           csvContent += `${woodCount},${b.length},${b.thick},${b.width},${volString},${cubePriceString},${priceString}\n`;
-          
           woodVolTotal += b.vol;
           woodSumTotal += roundedBoardPrice;
         });
         
-        // Відступ-роздільник
         csvContent += `---,,,,,,\n`;
-        
         let woodVolString = woodVolTotal.toFixed(3);
         let woodSumString = Math.round(woodSumTotal).toString();
-        
         summaryLines += `Всього: ${pureWoodName},,,,${woodVolString},${groupPrice},${woodSumString}\n`;
         
         grandVolTotal += woodVolTotal;
@@ -775,17 +695,12 @@ function formatCSVData() {
       let grandSumString = Math.round(grandSumTotal).toString(); 
       
       csvContent += summaryLines;
-      
-      // Відступ-роздільник перед фінальним загальним підсумком
       csvContent += `---,,,,,,\n`;
       csvContent += `ЗАГАЛОМ:,,,,${grandVolString},,${grandSumString}\n`;
       
       return csvContent;
     }
     
-    
-    
-   // --- АВТОФОРМАТУВАННЯ ПОЛІВ (м, мм, грн) ---
     function setupFormatting() {
       const fields = [
         { id: 'price', unit: 'грн' },
@@ -795,6 +710,7 @@ function formatCSVData() {
 
       fields.forEach(f => {
         const el = document.getElementById(f.id);
+        if(!el) return;
         
         const applyFormat = () => {
           let val = el.value.replace(/[^\d.,]/g, '').trim(); 
@@ -804,25 +720,17 @@ function formatCSVData() {
         el.addEventListener('focus', function() {
           this.value = this.value.replace(/[^\d.,]/g, '').trim();
         });
-
         el.addEventListener('blur', applyFormat);
-
-        // ДОДАНО: Одразу малюємо красиві одиниці виміру при оновленні сторінки
         applyFormat();
       });
     }
     setupFormatting();
-    
-    // ==========================================
 
-
-    // Автоматичне повне оновлення сторінки кожні 4 години
-setInterval(() => {
-    // Перевіряємо, чи немає зараз незбережених дощок, щоб випадково не стерти роботу
-    if (history.length === 0) {
-        window.location.reload(true); 
-    }
-}, 1000 * 60 * 60 * 4); // 4 години у мілісекундах
+    setInterval(() => {
+        if (history.length === 0) {
+            window.location.reload(true); 
+        }
+    }, 1000 * 60 * 60 * 4);
   </script>
 </body>
-</html> 
+</html>
