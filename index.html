@@ -152,6 +152,7 @@
     <div class="inputs">
       <!-- --- NEW: Buyer Name Input Field --- -->
       <input type="text" id="buyer-name" placeholder="Покупець">
+      <input type="tel" id="buyer-phone" placeholder="Номер телефону">
       <select id="wood-type">
         <option value="" disabled selected>Оберіть породу</option>
         <option value="Сосна">Сосна</option>
@@ -221,6 +222,7 @@
 
    function loadStoredData() {
       const storedBuyer = localStorage.getItem('apollo_buyer_name');
+      const storedPhone = localStorage.getItem('apollo_buyer_phone');
       const storedWood = localStorage.getItem('apollo_wood_type');
       const storedPrice = localStorage.getItem('apollo_price');
       const storedLen = localStorage.getItem('apollo_len');
@@ -232,6 +234,7 @@
       const storedLastSent = localStorage.getItem('apollo_last_sent'); // ДОДАНО: Пам'ять про відправки
       
       if (storedBuyer) document.getElementById('buyer-name').value = storedBuyer;
+      if (storedPhone) document.getElementById('buyer-phone').value = storedPhone;
       if (storedWood) document.getElementById('wood-type').value = storedWood;
       if (storedPrice) document.getElementById('price').value = storedPrice;
       if (storedLen) document.getElementById('len').value = storedLen;
@@ -254,6 +257,7 @@
     
     function saveStoredData() {
       localStorage.setItem('apollo_buyer_name', document.getElementById('buyer-name').value);
+      localStorage.setItem('apollo_buyer_phone', document.getElementById('buyer-phone').value);
       localStorage.setItem('apollo_wood_type', document.getElementById('wood-type').value);
       localStorage.setItem('apollo_price', document.getElementById('price').value);
       localStorage.setItem('apollo_len', document.getElementById('len').value);
@@ -401,6 +405,7 @@
         
         // Очищаємо поля
         document.getElementById('buyer-name').value = ""; 
+        document.getElementById('buyer-phone').value = "";
         document.getElementById('wood-type').value = ""; 
         document.getElementById('price').value = ""; 
         document.getElementById('len').value = ""; 
@@ -594,7 +599,8 @@
             updateUI(); 
             renderList();
             
-            document.getElementById('buyer-name').value = ""; 
+            document.getElementById('buyer-name').value = "";
+            document.getElementById('buyer-phone').value = "";
             document.getElementById('wood-type').value = ""; 
             document.getElementById('price').value = ""; 
             document.getElementById('len').value = ""; 
@@ -616,6 +622,8 @@
       
       let buyer = document.getElementById('buyer-name').value;
       if (buyer === "") buyer = "Невідомий клієнт";
+
+     let phone = document.getElementById('buyer-phone').value.trim();
 
       if (isTrash) {
         buyer = "🗑️_СКАСОВАНО_" + buyer;
@@ -644,7 +652,8 @@
           body: JSON.stringify({ 
             data: csvContent, 
             woodName: wood, 
-            buyerName: buyer, 
+            buyerName: buyer,
+            phone: phone,
             totalSum: calculatedSum, 
             totalVol: calculatedVol, // <-- ПЕРЕДАЄМО ОБ'ЄМ НА СЕРВЕР
             action: 'syncFileSync' 
