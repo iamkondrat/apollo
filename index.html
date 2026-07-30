@@ -624,13 +624,14 @@
       });
     }
 
-    function formatCSVData() {
+   function formatCSVData() {
       const buyerEl = document.getElementById('buyer-name');
       const buyer = buyerEl ? buyerEl.value : "Без покупця";
       
       const phoneEl = document.getElementById('buyer-phone');
-      const phone = phoneEl ? phoneEl.value.trim() : "Не вказано";
-      if(phone === "") phone = "Не вказано";
+      // Ось тут була помилка (стояло const замість let)
+      let phone = phoneEl ? phoneEl.value.trim() : "Не вказано";
+      if(phone === "") phone = "Не вказано"; 
       
       const sortedHistory = getSortedHistory();
       const date = new Date().toISOString().slice(0, 10);
@@ -700,6 +701,7 @@
       
       return csvContent;
     }
+    
     
     function setupFormatting() {
       const fields = [
