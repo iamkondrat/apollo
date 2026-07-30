@@ -127,7 +127,7 @@
   <div class="sticky-header" id="main-header">
     <div class="stats-row">
       <div><span id="vol">0.000</span> м³</div>
-      <div><span id="sum">0</span> грн</div>
+      <div id="sum-container"><span id="sum">0</span> грн</div>
       <div><span id="count">0</span> шт</div>
     </div>
     <div id="sub-stats" class="sub-stats"></div>
@@ -192,14 +192,14 @@
 
   <script>
     // === УВАГА! ВСТАВ СЮДИ СВОЄ НОВЕ ТЕСТОВЕ ПОСИЛАННЯ ===
-    const BACKEND_URL = "https://script.google.com/macros/s/AKfycbzyTV7cnWGeYD4rX23UaTcnBNQJ5MwOMriJB-aHsQ3K51c69et1rNBsnc63o_8ybeM/exec";
+    const BACKEND_URL = "ТВІЙ_НОВИЙ_ТЕСТОВИЙ_URL_ТУТ";
     // ====================================================
 
     let totalVol = 0;
     let history = []; 
     let currentWidthInput = ""; 
     let lastSentCount = 0; 
-    let currentMode = 'sale'; // 'sale' або 'income'
+    let currentMode = 'sale'; 
 
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     let audioCtx;
@@ -232,6 +232,8 @@
       document.getElementById('start-menu').style.display = 'none';
       
       const buyerInput = document.getElementById('buyer-name');
+      const phoneInput = document.getElementById('buyer-phone');
+      const priceInput = document.getElementById('price');
       const header = document.getElementById('main-header');
       const settings = document.getElementById('settings-menu');
 
@@ -240,26 +242,32 @@
         header.style.background = '#112240';
         settings.style.background = '#0a192f';
         if (buyerInput) buyerInput.placeholder = "Ім'я постачальника";
+        // Приховуємо телефон і ціну для приходу
+        if (phoneInput) phoneInput.style.display = 'none';
+        if (priceInput) priceInput.style.display = 'none';
       } else {
         document.body.style.background = '#121212'; 
         header.style.background = '#1e1e1e';
         settings.style.background = '#222';
         if (buyerInput) buyerInput.placeholder = "Ім'я покупця";
+        // Показуємо телефон і ціну для продажу
+        if (phoneInput) phoneInput.style.display = '';
+        if (priceInput) priceInput.style.display = '';
       }
       
       settings.style.display = 'block';
       document.getElementById('menu-toggle-btn').innerText = '⚙️ Приховати налаштування';
+      updateUI(); // Оновлюємо статистику (щоб приховати Суму)
     }
 
     // ================== РОБОТА З ЧЕРНЕТКАМИ (API) ==================
-    let loadedDrafts = []; // Зберігаємо завантажені чернетки в пам'ять
+    let loadedDrafts = []; 
 
     async function fetchDrafts() {
       const listDiv = document.getElementById('drafts-list');
       listDiv.innerHTML = '<div style="color: #888; text-align: center;">Завантаження списку...</div>';
       
       try {
-        // Робимо GET запит, щоб обійти блокування CORS
         const res = await fetch(BACKEND_URL + "?action=loadDrafts");
         const data = await res.json();
         
@@ -272,7 +280,6 @@
             const color = isIncome ? '#2980b9' : '#27ae60';
             const boards = JSON.parse(d.boardsData);
             
-            // Форматуємо час
             const timeRaw = new Date(d.date);
             const timeStr = timeRaw.getHours().toString().padStart(2, '0') + ':' + timeRaw.getMinutes().toString().padStart(2, '0');
 
@@ -307,9 +314,21 @@
       const nameEl = document.getElementById('buyer-name'); if(nameEl) nameEl.value = draft.name || "";
       const phoneEl = document.getElementById('buyer-phone'); if(phoneEl) phoneEl.value = draft.phone || "";
       
+      // ВІДНОВЛЮЄМО ВСІ ПОЛЯ З ОСТАННЬОЇ ДОШКИ В ЧЕРНЕТЦІ
       if (history.length > 0) {
+        const lastBoard = history[history.length - 1];
+        
         const woodEl = document.getElementById('wood-type'); 
-        if(woodEl) woodEl.value = history[0].wood || "";
+        if(woodEl) woodEl.value = lastBoard.wood || "";
+        
+        const priceEl = document.getElementById('price');
+        if(priceEl && lastBoard.cubePrice) priceEl.value = lastBoard.cubePrice + " грн";
+        
+        const lenEl = document.getElementById('len');
+        if(lenEl && lastBoard.length) lenEl.value = lastBoard.length + " м";
+        
+        const thickEl = document.getElementById('thick');
+        if(thickEl && lastBoard.thick) thickEl.value = lastBoard.thick + " мм";
       }
       
       deleteDraftUI(draftId, true);
@@ -317,6 +336,7 @@
       setAppMode(draft.mode || 'sale');
       updateUI();
       renderList();
+      saveStoredData(); // Зберігаємо відновлені дані локально
     }
 
     async function deleteDraftUI(draftId, isResuming = false) {
@@ -335,9 +355,7 @@
           body: JSON.stringify({ action: 'deleteDraft', draftId: draftId })
         });
         
-        if (!isResuming) {
-          setTimeout(fetchDrafts, 1000); 
-        }
+        if (!isResuming) setTimeout(fetchDrafts, 1000); 
       } catch (err) {
         if (!isResuming) alert("Помилка видалення чернетки");
       }
@@ -484,14 +502,15 @@
       const woodEl = document.getElementById('wood-type');
       const wood = woodEl ? woodEl.value : ""; 
       
-      const cubePrice = getSafeNumber('price');
+      // Якщо це прихід, ціна автоматично 0 і не перевіряється
+      const cubePrice = (currentMode === 'income') ? 0 : getSafeNumber('price');
       const l = getSafeNumber('len');
       const t = getSafeNumber('thick') / 1000;
       const w = widthCm / 100;
       
       if (buyer === "") { alert("Вкажіть ім'я!"); return; }
       if (wood === "") { alert("Оберіть породу дерева!"); return; }
-      if (cubePrice === 0) { alert("Вкажіть ціну за куб!"); return; }
+      if (currentMode === 'sale' && cubePrice === 0) { alert("Вкажіть ціну за куб!"); return; }
       if (l === 0 || t === 0) { alert("Вкажіть довжину та товщину дошки!"); return; }
       
       const boardVol = l * t * w;
@@ -529,8 +548,18 @@
       totalVol = Math.max(0, totalVol);
       
       const volEl = document.getElementById('vol'); if(volEl) volEl.innerText = totalVol.toFixed(3);
+      
+      // Приховуємо поле "Сума", якщо це Прихід
       const totalSum = history.reduce((sum, board) => sum + board.price, 0);
-      const sumEl = document.getElementById('sum'); if (sumEl) sumEl.innerText = Math.max(0, Math.round(totalSum)).toLocaleString('uk-UA');
+      const sumEl = document.getElementById('sum'); 
+      if (sumEl) {
+        sumEl.innerText = Math.max(0, Math.round(totalSum)).toLocaleString('uk-UA');
+        const sumParent = document.getElementById('sum-container');
+        if (sumParent) {
+            sumParent.style.display = (currentMode === 'income') ? 'none' : 'block';
+        }
+      }
+      
       const countEl = document.getElementById('count'); if(countEl) countEl.innerText = history.length;
 
       const subStatsContainer = document.getElementById('sub-stats');
@@ -540,14 +569,17 @@
       const groups = {};
       history.forEach(b => {
         const priceLabel = Math.round(b.cubePrice || 0);
-        const key = `${b.wood} ${b.thick} мм (${priceLabel} грн/м³)`;
+        // Не показуємо ціну за куб у статистиці, якщо це прихід
+        const key = (currentMode === 'income') ? `${b.wood} ${b.thick} мм` : `${b.wood} ${b.thick} мм (${priceLabel} грн/м³)`;
+        
         if (!groups[key]) groups[key] = { vol: 0, sum: 0, count: 0 };
         groups[key].vol += b.vol; groups[key].sum += b.price; groups[key].count++;
       });
 
       let subHtml = '';
       for (const [name, data] of Object.entries(groups)) {
-        subHtml += `<div class="sub-stat-row"><div>${name}:</div><div><span>${Math.max(0, data.vol).toFixed(3)}</span> м³</div><div><span>${Math.max(0, Math.round(data.sum)).toLocaleString('uk-UA')}</span> грн</div><div><span>${data.count}</span> шт</div></div>`;
+        const sumHtml = (currentMode === 'income') ? '' : `<div><span>${Math.max(0, Math.round(data.sum)).toLocaleString('uk-UA')}</span> грн</div>`;
+        subHtml += `<div class="sub-stat-row"><div>${name}:</div><div><span>${Math.max(0, data.vol).toFixed(3)}</span> м³</div>${sumHtml}<div><span>${data.count}</span> шт</div></div>`;
       }
       subStatsContainer.innerHTML = subHtml;
     }
@@ -560,6 +592,8 @@
       
       const listHTML = [...history].reverse().map((b, i) => {
         const realIndex = history.length - 1 - i; 
+        const priceText = (currentMode === 'income') ? '' : `(${Math.round(b.price)} грн / по ${Math.round(b.cubePrice || 0)} грн за куб)`;
+        
         return `
           <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 10px; border-bottom: 1px solid #444; background: rgba(0,0,0,0.2); margin-bottom: 6px; border-radius: 8px;">
             <div style="flex-grow: 1;">
@@ -567,7 +601,7 @@
                  Дошка ${realIndex + 1} (${b.wood}): ${b.length}м × ${b.thick}мм × ${b.width}см = <b>${b.vol.toFixed(3)} м³</b>
                </div>
                <div style="color: #4CAF50; font-size: 14px; margin-top: 4px;">
-                 (${Math.round(b.price)} грн / по ${Math.round(b.cubePrice || 0)} грн за куб)
+                 ${priceText}
                </div>
             </div>
             <button onclick="deleteBoard(${realIndex})" style="background: #d32f2f; color: white; border: none; width: 48px; height: 48px; border-radius: 10px; font-size: 22px; cursor: pointer; display: flex; justify-content: center; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.3); margin-left: 10px;">
@@ -691,7 +725,9 @@
       const groupedData = {};
       sortedHistory.forEach(board => {
         const priceLabel = Math.round(board.cubePrice || 0);
-        const groupName = `${board.wood} (ціна: ${priceLabel} грн/м3)`;
+        // Не пишемо ціну в заголовок породи в Excel, якщо це прихід
+        const groupName = (currentMode === 'income') ? board.wood : `${board.wood} (ціна: ${priceLabel} грн/м3)`;
+        
         if (!groupedData[groupName]) groupedData[groupName] = [];
         groupedData[groupName].push(board);
       });
