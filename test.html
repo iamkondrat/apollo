@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="uk">
 <head>
@@ -219,11 +218,9 @@
     function initApp() {
       const storedHistory = localStorage.getItem('apollo_board_history');
       if (storedHistory && JSON.parse(storedHistory).length > 0) {
-        // Якщо є недороблена історія, ховаємо меню і продовжуємо
         document.getElementById('start-menu').style.display = 'none';
         loadStoredData();
       } else {
-        // Інакше показуємо меню і вантажимо чернетки
         document.getElementById('start-menu').style.display = 'flex';
         fetchDrafts();
       }
@@ -239,40 +236,110 @@
       const settings = document.getElementById('settings-menu');
 
       if (mode === 'income') {
-        document.body.style.background = '#0a192f'; // Темно-синій фон
+        document.body.style.background = '#0a192f'; 
         header.style.background = '#112240';
         settings.style.background = '#0a192f';
         if (buyerInput) buyerInput.placeholder = "Ім'я постачальника";
       } else {
-        document.body.style.background = '#121212'; // Стандартний темний
+        document.body.style.background = '#121212'; 
         header.style.background = '#1e1e1e';
         settings.style.background = '#222';
         if (buyerInput) buyerInput.placeholder = "Ім'я покупця";
       }
       
-      // Відкриваємо налаштування автоматично при новому старті
       settings.style.display = 'block';
       document.getElementById('menu-toggle-btn').innerText = '⚙️ Приховати налаштування';
     }
 
     // ================== РОБОТА З ЧЕРНЕТКАМИ (API) ==================
+    let loadedDrafts = []; // Зберігаємо завантажені чернетки в пам'ять
+
     async function fetchDrafts() {
       const listDiv = document.getElementById('drafts-list');
-      listDiv.innerHTML = '<div style="color: #888; text-align: center;">Завантаження...</div>';
+      listDiv.innerHTML = '<div style="color: #888; text-align: center;">Завантаження списку...</div>';
       
       try {
-        const res = await fetch(BACKEND_URL, {
-          method: 'POST', mode: 'no-cors',
-          body: JSON.stringify({ action: 'loadDrafts' })
-        });
-        // Оскільки CORS блокує читання у браузері на безкоштовному акаунті, 
-        // для "Пісочниці" використовується просте рішення. 
-        // У цьому варіанті за замовчуванням (через no-cors) ми не побачимо відповідь сервера.
-        // Щоб читати чернетки потрібен повноцінний GET запит (JSONP) або публічне розгортання без CORS.
-        // Для спрощення тестування, ми покажемо повідомлення:
-        listDiv.innerHTML = '<div style="color: #f39c12; font-size:12px; text-align: center;">Чернетки активні. (Для відображення списку необхідне налаштування CORS на сервері, але відкладання працює).</div>';
+        // Робимо GET запит, щоб обійти блокування CORS
+        const res = await fetch(BACKEND_URL + "?action=loadDrafts");
+        const data = await res.json();
+        
+        if (data.drafts && data.drafts.length > 0) {
+          loadedDrafts = data.drafts;
+          let html = '';
+          data.drafts.forEach(d => {
+            const isIncome = (d.mode === 'income');
+            const title = isIncome ? 'Прихід' : 'Продаж';
+            const color = isIncome ? '#2980b9' : '#27ae60';
+            const boards = JSON.parse(d.boardsData);
+            
+            // Форматуємо час
+            const timeRaw = new Date(d.date);
+            const timeStr = timeRaw.getHours().toString().padStart(2, '0') + ':' + timeRaw.getMinutes().toString().padStart(2, '0');
+
+            html += `
+              <div class="draft-card" style="border-left-color: ${color}">
+                <div class="draft-info">
+                  <div class="draft-title">${title}: ${d.name || 'Без імені'}</div>
+                  <div>${boards.length} дошок • збережено о ${timeStr}</div>
+                </div>
+                <div class="draft-actions">
+                  <button class="btn-play" onclick="resumeDraft('${d.id}')">▶️</button>
+                  <button class="btn-trash" onclick="deleteDraftUI('${d.id}')">🗑</button>
+                </div>
+              </div>
+            `;
+          });
+          listDiv.innerHTML = html;
+        } else {
+          listDiv.innerHTML = '<div style="color: #888; text-align: center;">Немає відкладених замірів</div>';
+        }
       } catch(e) {
-        listDiv.innerHTML = '<div style="color: #d32f2f; text-align: center;">Помилка мережі</div>';
+        listDiv.innerHTML = '<div style="color: #d32f2f; text-align: center;">Помилка завантаження чернеток</div>';
+      }
+    }
+
+    function resumeDraft(draftId) {
+      const draft = loadedDrafts.find(d => d.id === draftId);
+      if (!draft) return;
+      
+      history = JSON.parse(draft.boardsData);
+      
+      const nameEl = document.getElementById('buyer-name'); if(nameEl) nameEl.value = draft.name || "";
+      const phoneEl = document.getElementById('buyer-phone'); if(phoneEl) phoneEl.value = draft.phone || "";
+      
+      if (history.length > 0) {
+        const woodEl = document.getElementById('wood-type'); 
+        if(woodEl) woodEl.value = history[0].wood || "";
+      }
+      
+      deleteDraftUI(draftId, true);
+      
+      setAppMode(draft.mode || 'sale');
+      updateUI();
+      renderList();
+    }
+
+    async function deleteDraftUI(draftId, isResuming = false) {
+      if (!isResuming && !confirm("Точно видалити цю чернетку з бази?")) return;
+      
+      if (!isResuming) {
+        const listDiv = document.getElementById('drafts-list');
+        listDiv.innerHTML = '<div style="color: #888; text-align: center;">Видалення...</div>';
+      }
+      
+      try {
+        await fetch(BACKEND_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: 'deleteDraft', draftId: draftId })
+        });
+        
+        if (!isResuming) {
+          setTimeout(fetchDrafts, 1000); 
+        }
+      } catch (err) {
+        if (!isResuming) alert("Помилка видалення чернетки");
       }
     }
 
@@ -319,6 +386,7 @@
       clearWidthInput();
       
       document.getElementById('start-menu').style.display = 'flex';
+      fetchDrafts();
     }
 
     function showLoader(text) {
@@ -326,7 +394,6 @@
       document.getElementById('loader-content').innerHTML = `<div class="spinner"></div><div id="loader-text">${text}</div>`;
     }
     function hideLoader() { document.getElementById('loading-overlay').style.display = 'none'; }
-
 
     // ================== СТАНДАРТНІ ФУНКЦІЇ КАЛЬКУЛЯТОРА ==================
     function loadStoredData() {
@@ -570,7 +637,7 @@
             totalSum: calculatedSum, 
             totalVol: calculatedVol, 
             action: 'syncFileSync',
-            mode: currentMode // ПЕРЕДАЄМО РЕЖИМ
+            mode: currentMode
           })
         });
         
@@ -612,7 +679,6 @@
       const date = new Date().toISOString().slice(0, 10);
       const time = new Date().toTimeString().slice(0, 8);
       
-      // Динамічний напис (Покупець / Постачальник)
       const personLabel = (currentMode === 'income') ? "Постачальник" : "Покупець";
 
       let csvContent = `data:text/csv;charset=utf-8,\uFEFF`;
