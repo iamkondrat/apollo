@@ -192,7 +192,7 @@
 
   <script>
     // === УВАГА! ВСТАВ СЮДИ СВОЄ НОВЕ ТЕСТОВЕ ПОСИЛАННЯ ===
-    const BACKEND_URL = "https://script.google.com/macros/s/AKfycbzyTV7cnWGeYD4rX23UaTcnBNQJ5MwOMriJB-aHsQ3K51c69et1rNBsnc63o_8ybeM/exec";
+    const BACKEND_URL = "";
     // ====================================================
 
     let totalVol = 0;
@@ -242,7 +242,6 @@
         header.style.background = '#112240';
         settings.style.background = '#0a192f';
         if (buyerInput) buyerInput.placeholder = "Ім'я постачальника";
-        // Приховуємо телефон і ціну для приходу
         if (phoneInput) phoneInput.style.display = 'none';
         if (priceInput) priceInput.style.display = 'none';
       } else {
@@ -250,14 +249,13 @@
         header.style.background = '#1e1e1e';
         settings.style.background = '#222';
         if (buyerInput) buyerInput.placeholder = "Ім'я покупця";
-        // Показуємо телефон і ціну для продажу
         if (phoneInput) phoneInput.style.display = '';
         if (priceInput) priceInput.style.display = '';
       }
       
       settings.style.display = 'block';
       document.getElementById('menu-toggle-btn').innerText = '⚙️ Приховати налаштування';
-      updateUI(); // Оновлюємо статистику (щоб приховати Суму)
+      updateUI(); 
     }
 
     // ================== РОБОТА З ЧЕРНЕТКАМИ (API) ==================
@@ -312,9 +310,17 @@
       history = JSON.parse(draft.boardsData);
       
       const nameEl = document.getElementById('buyer-name'); if(nameEl) nameEl.value = draft.name || "";
-      const phoneEl = document.getElementById('buyer-phone'); if(phoneEl) phoneEl.value = draft.phone || "";
       
-      // ВІДНОВЛЮЄМО ВСІ ПОЛЯ З ОСТАННЬОЇ ДОШКИ В ЧЕРНЕТЦІ
+      // === РОЗУМНЕ ВІДНОВЛЕННЯ ТЕЛЕФОНУ (повертаємо з'їдений нуль) ===
+      const phoneEl = document.getElementById('buyer-phone'); 
+      if(phoneEl) {
+        let restoredPhone = (draft.phone || "").toString();
+        if (restoredPhone.length === 9) {
+          restoredPhone = '0' + restoredPhone;
+        }
+        phoneEl.value = restoredPhone;
+      }
+      
       if (history.length > 0) {
         const lastBoard = history[history.length - 1];
         
@@ -336,7 +342,7 @@
       setAppMode(draft.mode || 'sale');
       updateUI();
       renderList();
-      saveStoredData(); // Зберігаємо відновлені дані локально
+      saveStoredData(); 
     }
 
     async function deleteDraftUI(draftId, isResuming = false) {
@@ -502,7 +508,6 @@
       const woodEl = document.getElementById('wood-type');
       const wood = woodEl ? woodEl.value : ""; 
       
-      // Якщо це прихід, ціна автоматично 0 і не перевіряється
       const cubePrice = (currentMode === 'income') ? 0 : getSafeNumber('price');
       const l = getSafeNumber('len');
       const t = getSafeNumber('thick') / 1000;
@@ -549,7 +554,6 @@
       
       const volEl = document.getElementById('vol'); if(volEl) volEl.innerText = totalVol.toFixed(3);
       
-      // Приховуємо поле "Сума", якщо це Прихід
       const totalSum = history.reduce((sum, board) => sum + board.price, 0);
       const sumEl = document.getElementById('sum'); 
       if (sumEl) {
@@ -569,7 +573,6 @@
       const groups = {};
       history.forEach(b => {
         const priceLabel = Math.round(b.cubePrice || 0);
-        // Не показуємо ціну за куб у статистиці, якщо це прихід
         const key = (currentMode === 'income') ? `${b.wood} ${b.thick} мм` : `${b.wood} ${b.thick} мм (${priceLabel} грн/м³)`;
         
         if (!groups[key]) groups[key] = { vol: 0, sum: 0, count: 0 };
@@ -725,7 +728,6 @@
       const groupedData = {};
       sortedHistory.forEach(board => {
         const priceLabel = Math.round(board.cubePrice || 0);
-        // Не пишемо ціну в заголовок породи в Excel, якщо це прихід
         const groupName = (currentMode === 'income') ? board.wood : `${board.wood} (ціна: ${priceLabel} грн/м3)`;
         
         if (!groupedData[groupName]) groupedData[groupName] = [];
