@@ -311,7 +311,6 @@
       
       const nameEl = document.getElementById('buyer-name'); if(nameEl) nameEl.value = draft.name || "";
       
-      // === РОЗУМНЕ ВІДНОВЛЕННЯ ТЕЛЕФОНУ (повертаємо з'їдений нуль) ===
       const phoneEl = document.getElementById('buyer-phone'); 
       if(phoneEl) {
         let restoredPhone = (draft.phone || "").toString();
@@ -323,18 +322,10 @@
       
       if (history.length > 0) {
         const lastBoard = history[history.length - 1];
-        
-        const woodEl = document.getElementById('wood-type'); 
-        if(woodEl) woodEl.value = lastBoard.wood || "";
-        
-        const priceEl = document.getElementById('price');
-        if(priceEl && lastBoard.cubePrice) priceEl.value = lastBoard.cubePrice + " грн";
-        
-        const lenEl = document.getElementById('len');
-        if(lenEl && lastBoard.length) lenEl.value = lastBoard.length + " м";
-        
-        const thickEl = document.getElementById('thick');
-        if(thickEl && lastBoard.thick) thickEl.value = lastBoard.thick + " мм";
+        const woodEl = document.getElementById('wood-type'); if(woodEl) woodEl.value = lastBoard.wood || "";
+        const priceEl = document.getElementById('price'); if(priceEl && lastBoard.cubePrice) priceEl.value = lastBoard.cubePrice + " грн";
+        const lenEl = document.getElementById('len'); if(lenEl && lastBoard.length) lenEl.value = lastBoard.length + " м";
+        const thickEl = document.getElementById('thick'); if(thickEl && lastBoard.thick) thickEl.value = lastBoard.thick + " мм";
       }
       
       deleteDraftUI(draftId, true);
@@ -347,7 +338,6 @@
 
     async function deleteDraftUI(draftId, isResuming = false) {
       if (!isResuming && !confirm("Точно видалити цю чернетку з бази?")) return;
-      
       if (!isResuming) {
         const listDiv = document.getElementById('drafts-list');
         listDiv.innerHTML = '<div style="color: #888; text-align: center;">Видалення...</div>';
@@ -355,12 +345,10 @@
       
       try {
         await fetch(BACKEND_URL, {
-          method: 'POST',
-          mode: 'no-cors',
+          method: 'POST', mode: 'no-cors',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify({ action: 'deleteDraft', draftId: draftId })
         });
-        
         if (!isResuming) setTimeout(fetchDrafts, 1000); 
       } catch (err) {
         if (!isResuming) alert("Помилка видалення чернетки");
@@ -393,6 +381,26 @@
       } catch (err) {
         hideLoader();
         alert("Помилка збереження чернетки! Перевірте інтернет.");
+      }
+    }
+
+    // === ОНОВЛЕНА ФУНКЦІЯ СКИНУТИ ВСЕ (ІЗ ВІДПРАВКОЮ В СКАСОВАНЕ) ===
+    async function resetAll() {
+      let msg = "Увага! Ви впевнені, що хочете видалити всі заміри та вийти в Головне меню?";
+      
+      // Якщо є введені дошки
+      if (history.length > 0 && history.length !== lastSentCount) {
+         msg = "⚠️ У вас є НЕВІДПРАВЛЕНІ дані!\nТочно хочете скасувати їх?\n(Вони збережуться в таблицю з позначкою СКАСОВАНО)";
+      }
+      
+      if (confirm(msg)) {
+        if (history.length > 0 && history.length !== lastSentCount) {
+          showLoader("Відправка в скасоване...");
+          // Відправляємо на сервер з прапорцем "Сміття" (isTrash = true)
+          await theoryAutoSend(true, true);
+        }
+        resetAndGoHome();
+        hideLoader();
       }
     }
 
@@ -540,13 +548,6 @@
         updateUI(); renderList(); saveStoredData(); 
       }
     }
-    
-    function resetAll() {
-      let msg = "Увага! Ви впевнені, що хочете видалити всі заміри та вийти в Головне меню?";
-      if (confirm(msg)) {
-        resetAndGoHome();
-      }
-    }
 
     function updateUI() {
       totalVol = history.reduce((sum, board) => sum + board.vol, 0);
@@ -645,12 +646,18 @@
       }
     }
 
-    async function theoryAutoSend() {
+    // === ОНОВЛЕНА ФУНКЦІЯ ВІДПРАВКИ (З ПІДТРИМКОЮ СКАСУВАННЯ) ===
+    async function theoryAutoSend(isSilent = false, isTrash = false) {
       if (history.length === 0) return true;
       
       const buyerEl = document.getElementById('buyer-name');
       let buyer = buyerEl ? buyerEl.value : "Невідомий";
       if (buyer === "") buyer = "Невідомий";
+
+      // Додаємо позначку "СКАСОВАНО", якщо натиснуто кнопку Скинути
+      if (isTrash) {
+        buyer = "🗑️_СКАСОВАНО_" + buyer;
+      }
 
       const phoneEl = document.getElementById('buyer-phone');
       let phone = phoneEl ? phoneEl.value.trim() : "Не вказано";
@@ -674,12 +681,15 @@
             totalSum: calculatedSum, 
             totalVol: calculatedVol, 
             action: 'syncFileSync',
-            mode: currentMode
+            mode: currentMode,
+            isTrash: isTrash // ПЕРЕДАЄМО НА СЕРВЕР ПРАПОРЕЦЬ СКАСУВАННЯ
           })
         });
         
-        lastSentCount = history.length; 
-        saveStoredData();
+        if (!isTrash) {
+          lastSentCount = history.length; 
+          saveStoredData();
+        }
         return true; 
       } catch (error) {
         return false; 
