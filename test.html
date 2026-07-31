@@ -232,11 +232,16 @@
       osc.start(); osc.stop(audioCtx.currentTime + 0.1);
     }
 
+    // === ОНОВЛЕНА ЛОГІКА ІНІЦІАЛІЗАЦІЇ ===
     function initApp() {
-      const storedHistory = localStorage.getItem('apollo_board_history');
-      if (storedHistory && JSON.parse(storedHistory).length > 0) {
+      // Перевіряємо, чи є збережений режим (якщо є, отже ми не скидали додаток)
+      const storedMode = localStorage.getItem('apollo_mode');
+      
+      if (storedMode) {
+        // Якщо режим був обраний раніше, одразу завантажуємо калькулятор
         loadStoredData();
       } else {
+        // Якщо режиму немає (був скинутий), показуємо стартове меню
         document.getElementById('start-menu').style.display = 'flex';
         document.getElementById('main-app').style.display = 'none';
         fetchDrafts();
@@ -806,24 +811,21 @@
       });
     }
 
-    // === СЛІДКУЄМО ЗА СЛОВОМ "СТОЛЯРКА" І ВСТАВЛЯЄМО НОМЕР ===
     function setupExtraListeners() {
       const bName = document.getElementById('buyer-name');
       const bPhone = document.getElementById('buyer-phone');
       if (bName && bPhone) {
         bName.addEventListener('input', function() {
           if (this.value.toLowerCase().includes('столярка')) {
-            // Якщо поле пусте, або там інший номер (щоб не збивало, якщо випадково стерли)
             if (bPhone.value !== '0685386959') {
               bPhone.value = '0685386959';
-              saveStoredData(); // зберігаємо в пам'ять
+              saveStoredData(); 
             }
           }
         });
       }
     }
     
-    // Ініціалізація
     setupFormatting();
     setupExtraListeners();
     initApp();
