@@ -26,13 +26,13 @@
     /* СТИЛІ ДЛЯ ПРОЗОРОГО ЛОГОТИПА */
     .logo-container {
       width: 100%;
-      margin: 10px 0 35px 0; /* Відступи зверху і знизу */
+      margin: 10px 0 35px 0;
       display: flex;
       justify-content: center;
       align-items: center;
     }
     .app-logo {
-      width: 240px; /* Зробили трохи більшим, бо тепер немає рамок */
+      width: 240px; 
       height: auto;
       display: block;
     }
@@ -106,8 +106,6 @@
 
   <!-- ================= СТАРТОВИЙ ЕКРАН (МЕНЮ) ================= -->
   <div id="start-menu">
-    
-    <!-- ТУТ ТЕПЕР ТВІЙ ПРОЗОРИЙ ЛОГОТИП (.png) -->
     <div class="logo-container">
       <img src="logo.png" alt="Аполло Пиломатеріали" class="app-logo">
     </div>
@@ -177,7 +175,7 @@
           <option value="Берест">Берест</option>
         </select>
         <input type="text" inputmode="decimal" id="price" placeholder="Ціна за куб (грн)">
-        <input type="text inputmode="decimal" id="len" placeholder="Довжина (м)">
+        <input type="text" inputmode="decimal" id="len" placeholder="Довжина (м)">
         <input type="text" inputmode="decimal" id="thick" placeholder="Товщина (мм)">
       </div>
       <div class="btn-row">
@@ -807,9 +805,27 @@
         el.addEventListener('blur', applyFormat); applyFormat();
       });
     }
+
+    // === СЛІДКУЄМО ЗА СЛОВОМ "СТОЛЯРКА" І ВСТАВЛЯЄМО НОМЕР ===
+    function setupExtraListeners() {
+      const bName = document.getElementById('buyer-name');
+      const bPhone = document.getElementById('buyer-phone');
+      if (bName && bPhone) {
+        bName.addEventListener('input', function() {
+          if (this.value.toLowerCase().includes('столярка')) {
+            // Якщо поле пусте, або там інший номер (щоб не збивало, якщо випадково стерли)
+            if (bPhone.value !== '0685386959') {
+              bPhone.value = '0685386959';
+              saveStoredData(); // зберігаємо в пам'ять
+            }
+          }
+        });
+      }
+    }
     
     // Ініціалізація
     setupFormatting();
+    setupExtraListeners();
     initApp();
 
   </script>
