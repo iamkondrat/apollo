@@ -22,7 +22,24 @@
       display: flex; flex-direction: column; align-items: center; padding: 20px; box-sizing: border-box;
       overflow-y: auto;
     }
-    .menu-title { font-size: 28px; font-weight: bold; margin-bottom: 20px; text-align: center; color: #fff; margin-top: 20px; }
+    
+    /* СТИЛІ ДЛЯ ЛОГОТИПА */
+    .logo-container {
+      background: #ffffff;
+      padding: 15px 20px;
+      border-radius: 20px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.6);
+      margin: 30px 0 25px 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .app-logo {
+      width: 180px; /* Ідеальна ширина для телефону */
+      height: auto;
+      display: block;
+    }
+
     .mode-btn { width: 100%; max-width: 400px; padding: 25px; margin-bottom: 15px; font-size: 22px; font-weight: bold; color: white; border: none; border-radius: 12px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 5px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
     .mode-btn.sale { background: #27ae60; }
     .mode-btn.sale:active { background: #1e8449; transform: scale(0.98); }
@@ -92,7 +109,11 @@
 
   <!-- ================= СТАРТОВИЙ ЕКРАН (МЕНЮ) ================= -->
   <div id="start-menu">
-    <div class="menu-title">Система Аполло</div>
+    
+    <!-- ТУТ ТЕПЕР ТВІЙ ЛОГОТИП -->
+    <div class="logo-container">
+      <img src="logo.jpg" alt="Аполло Пиломатеріали" class="app-logo">
+    </div>
     
     <button class="mode-btn sale" onclick="setAppMode('sale')">
       🟢 НОВИЙ ПРОДАЖ
