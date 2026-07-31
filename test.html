@@ -23,19 +23,16 @@
       overflow-y: auto;
     }
     
-    /* СТИЛІ ДЛЯ ЛОГОТИПА */
+    /* СТИЛІ ДЛЯ ПРОЗОРОГО ЛОГОТИПА */
     .logo-container {
-      background: #ffffff;
-      padding: 15px 20px;
-      border-radius: 20px;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.6);
-      margin: 30px 0 25px 0;
+      width: 100%;
+      margin: 10px 0 35px 0; /* Відступи зверху і знизу */
       display: flex;
       justify-content: center;
       align-items: center;
     }
     .app-logo {
-      width: 180px; /* Ідеальна ширина для телефону */
+      width: 240px; /* Зробили трохи більшим, бо тепер немає рамок */
       height: auto;
       display: block;
     }
@@ -110,7 +107,7 @@
   <!-- ================= СТАРТОВИЙ ЕКРАН (МЕНЮ) ================= -->
   <div id="start-menu">
     
-    <!-- ТУТ ТЕПЕР ТВІЙ ЛОГОТИП -->
+    <!-- ТУТ ТЕПЕР ТВІЙ ПРОЗОРИЙ ЛОГОТИП (.png) -->
     <div class="logo-container">
       <img src="logo.png" alt="Аполло Пиломатеріали" class="app-logo">
     </div>
@@ -180,7 +177,7 @@
           <option value="Берест">Берест</option>
         </select>
         <input type="text" inputmode="decimal" id="price" placeholder="Ціна за куб (грн)">
-        <input type="text" inputmode="decimal" id="len" placeholder="Довжина (м)">
+        <input type="text inputmode="decimal" id="len" placeholder="Довжина (м)">
         <input type="text" inputmode="decimal" id="thick" placeholder="Товщина (мм)">
       </div>
       <div class="btn-row">
@@ -216,9 +213,7 @@
   </div> 
 
   <script>
-    // === АВТОМАТИЧНО ВСТАВЛЕНЕ ПОСИЛАННЯ ===
     const BACKEND_URL = "https://script.google.com/macros/s/AKfycbzyTV7cnWGeYD4rX23UaTcnBNQJ5MwOMriJB-aHsQ3K51c69et1rNBsnc63o_8ybeM/exec";
-    // =======================================
 
     let totalVol = 0;
     let history = []; 
