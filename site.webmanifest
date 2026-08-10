@@ -3,7 +3,7 @@
   "short_name": "Аполло",
   "icons": [
     {
-      "src": "logo.png",
+      "src": "icon.png",
       "sizes": "any",
       "type": "image/png",
       "purpose": "any"
