@@ -432,7 +432,7 @@
       let msg = "Увага! Ви впевнені, що хочете видалити всі заміри та вийти в Головне меню?";
       
       if (history.length > 0 && history.length !== lastSentCount) {
-         msg = "⚠️ У вас є НЕВІДПРАВЛЕНІ дані!\nТочно хочете скасувати їх?\n(Вони збережуться в таблицю з позначкою СКАСОВАНО)";
+         msg = "⚠️ У вас є НЕВІДПРАВЛЕНІ дані!\nТочно хочете скасувати їх?";
       }
       
       if (confirm(msg)) {
@@ -710,7 +710,7 @@
       if (buyer === "") buyer = "Невідомий";
 
       if (isTrash) {
-        buyer = "🗑️_СКАСОВАНО_" + buyer;
+        buyer = "СКАСОВАНО_" + buyer;
       }
 
       const phoneEl = document.getElementById('buyer-phone');
