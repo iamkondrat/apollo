@@ -673,6 +673,7 @@
       listObj.innerHTML = listHTML;
     }
 
+    // === ОНОВЛЕНА ФУНКЦІЯ З ОБРОБКОЮ ТАЙМАУТУ ===
     async function sendData() {
       try {
         if(history.length === 0) { alert("Список порожній! Спочатку додайте дошки."); return; }
@@ -681,20 +682,23 @@
         if (buyer === "") { alert("Будь ласка, вкажіть ім'я перед надсиланням!"); if(document.getElementById('settings-menu').style.display === 'none') toggleMenu(); return; }
 
         showLoader("Відправлення...");
-        const success = await theoryAutoSend();
+        const result = await theoryAutoSend();
 
-        if (success) {
+        if (result === true) {
            document.getElementById('loader-content').innerHTML = '<div style="font-size: 50px; margin-bottom:10px;">✅</div><div id="loader-text" style="color: white; font-size: 22px; font-weight: bold;">Успішно!</div>';
+           setTimeout(() => { downloadCSV(); }, 500);
+           setTimeout(() => {
+              resetAndGoHome();
+              hideLoader();
+           }, 2000); 
+        } else if (result === 'timeout') {
+           document.getElementById('loader-content').innerHTML = '<div style="font-size: 50px; margin-bottom:10px;">⚠️</div><div id="loader-text" style="color: #f39c12; font-size: 22px; font-weight: bold;">Слабкий інтернет!</div><div style="color: #ccc; font-size: 14px; text-align: center; margin-top: 10px;">Спробуйте відправити заново</div>';
+           // Прибираємо лоадер через 4.5 сек, дані залишаються на екрані
+           setTimeout(() => { hideLoader(); }, 4500);
         } else {
            document.getElementById('loader-content').innerHTML = '<div style="font-size: 50px; margin-bottom:10px;">❌</div><div id="loader-text" style="color: #ff5252; font-size: 22px; font-weight: bold;">Помилка мережі! Дані збережено на планшет.</div>';
+           setTimeout(() => { hideLoader(); }, 3000);
         }
-
-        setTimeout(() => { downloadCSV(); }, 500);
-
-        setTimeout(() => {
-           if (success) resetAndGoHome();
-           hideLoader();
-        }, 2000); 
 
       } catch (err) {
         alert("Знайдено помилку: " + err.message);
@@ -702,6 +706,7 @@
       }
     }
 
+    // === ТЕПЕР З ТАЙМЕРОМ НА 15 СЕКУНД ===
     async function theoryAutoSend(isSilent = false, isTrash = false) {
       if (history.length === 0) return true;
       
@@ -722,6 +727,10 @@
       let calculatedSum = Math.round(history.reduce((sum, board) => sum + board.price, 0));
       let calculatedVol = history.reduce((sum, board) => sum + board.vol, 0).toFixed(3); 
 
+      // Створюємо секундомір
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000);
+
       try {
         await fetch(BACKEND_URL, {
           method: 'POST',
@@ -737,8 +746,11 @@
             action: 'syncFileSync',
             mode: currentMode,
             isTrash: isTrash
-          })
+          }),
+          signal: controller.signal // Прив'язуємо секундомір до запиту
         });
+        
+        clearTimeout(timeoutId); // Зупиняємо секундомір, якщо Гугл відповів швидко
         
         if (!isTrash) {
           lastSentCount = history.length; 
@@ -746,6 +758,11 @@
         }
         return true; 
       } catch (error) {
+        clearTimeout(timeoutId);
+        // Якщо помилка сталася через таймер (минуло 15 секунд)
+        if (error.name === 'AbortError') {
+          return 'timeout'; 
+        }
         return false; 
       }
     }
