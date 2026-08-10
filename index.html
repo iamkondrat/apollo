@@ -226,7 +226,7 @@
 
   <script>
     // === СИСТЕМА ПРИМУСОВОГО ОНОВЛЕННЯ ДЛЯ ПЛАНШЕТІВ ===
-    const APP_VERSION = "2.0"; 
+    const APP_VERSION = "2.1"; 
     if (localStorage.getItem("apollo_version") !== APP_VERSION) {
       localStorage.setItem("apollo_version", APP_VERSION);
       window.location.reload(true); 
@@ -786,7 +786,7 @@
 
     function getSortedHistory() { return [...history].sort((a, b) => { if (a.wood < b.wood) return -1; if (a.wood > b.wood) return 1; return 0; }); }
 
-    function formatCSVData() {
+   function formatCSVData() {
       const buyerEl = document.getElementById('buyer-name');
       const buyer = buyerEl ? buyerEl.value : "Без імені";
       const phoneEl = document.getElementById('buyer-phone');
@@ -797,19 +797,23 @@
       const date = new Date().toISOString().slice(0, 10);
       const time = new Date().toTimeString().slice(0, 8);
       
-      const personLabel = (currentMode === 'income') ? "Постачальник" : "Покупець";
+      const isIncome = (currentMode === 'income');
+      const personLabel = isIncome ? "Постачальник" : "Покупець";
+
+      // Розумна кількість ком для вирівнювання (5 колонок для приходу, 7 для продажу)
+      const c = isIncome ? ",,,," : ",,,,,,";
 
       let csvContent = `data:text/csv;charset=utf-8,\uFEFF`;
-      csvContent += `Телефон: ${phone},,,,,,\n`;
-      csvContent += `${personLabel}: ${buyer},,,,,,\n`;
-      csvContent += `Дата: ${date} Час: ${time},,,,,,\n`;
-      csvContent += `---,,,,,,\n`; 
+      csvContent += `Телефон: ${phone}${c}\n`;
+      csvContent += `${personLabel}: ${buyer}${c}\n`;
+      csvContent += `Дата: ${date} Час: ${time}${c}\n`;
+      csvContent += `---${c}\n`; 
       
       let grandVolTotal = 0; let grandSumTotal = 0; let woodCount = 0;
       const groupedData = {};
       sortedHistory.forEach(board => {
         const priceLabel = Math.round(board.cubePrice || 0);
-        const groupName = (currentMode === 'income') ? board.wood : `${board.wood} (ціна: ${priceLabel} грн/м3)`;
+        const groupName = isIncome ? board.wood : `${board.wood} (ціна: ${priceLabel} грн/м3)`;
         
         if (!groupedData[groupName]) groupedData[groupName] = [];
         groupedData[groupName].push(board);
@@ -824,8 +828,14 @@
         const pureWoodName = boards[0].wood;
         const groupPrice = Math.round(boards[0].cubePrice || 0).toString();
         
-        csvContent += `Порода: ${groupName},,,,,,\n`;
-        csvContent += "Номер,Довжина (м),Товщина (мм),Ширина (см),Об'єм (м3),Ціна за куб,Сума\n";
+        csvContent += `Порода: ${groupName}${c}\n`;
+        
+        // ЗМІНА ТУТ: Формуємо різні шапки таблиці залежно від режиму
+        if (isIncome) {
+          csvContent += "Номер,Довжина (м),Товщина (мм),Ширина (см),Об'єм (м3)\n";
+        } else {
+          csvContent += "Номер,Довжина (м),Товщина (мм),Ширина (см),Об'єм (м3),Ціна за куб,Сума\n";
+        }
         
         woodCount = 0;
         boards.forEach((b) => {
@@ -834,22 +844,43 @@
           let cubePriceString = Math.round(b.cubePrice || 0).toString(); 
           let roundedBoardPrice = Number(b.price.toFixed(2));
           let priceString = roundedBoardPrice.toFixed(2);
-          csvContent += `${woodCount},${b.length},${b.thick},${b.width},${volString},${cubePriceString},${priceString}\n`;
+          
+          // ЗМІНА ТУТ: Рядки таблиці також без цін для Приходу
+          if (isIncome) {
+            csvContent += `${woodCount},${b.length},${b.thick},${b.width},${volString}\n`;
+          } else {
+            csvContent += `${woodCount},${b.length},${b.thick},${b.width},${volString},${cubePriceString},${priceString}\n`;
+          }
+          
           woodVolTotal += b.vol; woodSumTotal += roundedBoardPrice;
         });
         
-        csvContent += `---,,,,,,\n`;
+        csvContent += `---${c}\n`;
         let woodVolString = woodVolTotal.toFixed(3);
         let woodSumString = Math.round(woodSumTotal).toString();
-        summaryLines += `Всього: ${pureWoodName},,,,${woodVolString},${groupPrice},${woodSumString}\n`;
+        
+        // ЗМІНА ТУТ: Підсумки без нульових цін
+        if (isIncome) {
+          summaryLines += `Всього: ${pureWoodName},,,,${woodVolString}\n`;
+        } else {
+          summaryLines += `Всього: ${pureWoodName},,,,${woodVolString},${groupPrice},${woodSumString}\n`;
+        }
+        
         grandVolTotal += woodVolTotal; grandSumTotal += woodSumTotal;
       });
       
       let grandVolString = grandVolTotal.toFixed(3);
       let grandSumString = Math.round(grandSumTotal).toString(); 
       csvContent += summaryLines;
-      csvContent += `---,,,,,,\n`;
-      csvContent += `ЗАГАЛОМ:,,,,${grandVolString},,${grandSumString}\n`;
+      csvContent += `---${c}\n`;
+      
+      // ЗМІНА ТУТ: Загальні підсумки теж чисті
+      if (isIncome) {
+        csvContent += `ЗАГАЛОМ:,,,,${grandVolString}\n`;
+      } else {
+        csvContent += `ЗАГАЛОМ:,,,,${grandVolString},,${grandSumString}\n`;
+      }
+      
       return csvContent;
     }
     
