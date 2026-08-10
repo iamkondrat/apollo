@@ -3,16 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
-  <title>ERP Склад Аполло</title>
+  <title>Аполло</title>
   
   <!-- Примусові теги для Android та iOS -->
   <meta name="theme-color" content="#1e1e1e">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   
-  <link rel="icon" sizes="192x192" href="logo.png">
-  <link rel="icon" sizes="512x512" href="logo.png">
-  <link rel="apple-touch-icon" href="logo.png">
+  <!-- ОСЬ ТУТ ТЕПЕР ВКАЗАНО ICON.PNG ДЛЯ ЯРЛИКІВ -->
+  <link rel="icon" sizes="192x192" href="icon.png">
+  <link rel="icon" sizes="512x512" href="icon.png">
+  <link rel="apple-touch-icon" href="icon.png">
   <link rel="manifest" href="site.webmanifest">
 
   <style>
@@ -109,6 +110,7 @@
 
   <!-- ================= СТАРТОВИЙ ЕКРАН (МЕНЮ) ================= -->
   <div id="start-menu">
+    <!-- А ОСЬ ТУТ У САМОМУ ДОДАТКУ ЗАЛИШАЄТЬСЯ ТВІЙ LOGO.PNG (ПРОЗОРИЙ) -->
     <div class="logo-container">
       <img src="logo.png" alt="Аполло Пиломатеріали" class="app-logo">
     </div>
@@ -179,14 +181,11 @@
         </select>
         <input type="text" inputmode="decimal" id="price" placeholder="Ціна за куб (грн)">
         <input type="text" inputmode="decimal" id="len" placeholder="Довжина (м)">
-        
-        <!-- НОВИЙ ВИПАДНИЙ СПИСОК ДЛЯ ТОВЩИНИ -->
         <select id="thick">
           <option value="" disabled selected>Товщина (мм)</option>
           <option value="30">30 мм</option>
           <option value="50">50 мм</option>
         </select>
-        
       </div>
       <div class="btn-row">
         <button class="action-btn list-btn" onclick="toggleList()">📋 Список дошок</button>
@@ -354,7 +353,6 @@
         const priceEl = document.getElementById('price'); if(priceEl && lastBoard.cubePrice) priceEl.value = lastBoard.cubePrice + " грн";
         const lenEl = document.getElementById('len'); if(lenEl && lastBoard.length) lenEl.value = lastBoard.length + " м";
         
-        // Розумне відновлення товщини
         const thickEl = document.getElementById('thick'); 
         if(thickEl && lastBoard.thick) {
           let cleanThick = lastBoard.thick.toString().replace(/[^\d]/g, '');
@@ -481,7 +479,6 @@
       if (storedPrice) { const el = document.getElementById('price'); if(el) el.value = storedPrice; }
       if (storedLen) { const el = document.getElementById('len'); if(el) el.value = storedLen; }
       
-      // Розумне відновлення товщини
       if (storedThick) { 
         const el = document.getElementById('thick'); 
         if(el) {
@@ -819,7 +816,6 @@
       return csvContent;
     }
     
-    // Оновлена функція - тепер вона не форматує поле товщини, бо це вже список
     function setupFormatting() {
       const fields = [{ id: 'price', unit: 'грн' }, { id: 'len', unit: 'м' }];
       fields.forEach(f => {
