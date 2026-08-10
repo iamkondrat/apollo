@@ -194,7 +194,7 @@
       </div>
       <div class="btn-row">
         <button class="action-btn list-btn" onclick="toggleList()">📋 Список дошок</button>
-        <button class="action-btn export-btn" onclick="sendData()">📥 Надіслати на сервер</button>
+        <button class="action-btn export-btn" onclick="sendData()">📥 Надіслати</button>
       </div>
       <button class="action-btn reset-btn" onclick="resetAll()">🗑 Скинути і вийти в меню</button>
       <div id="list-modal"></div>
@@ -680,7 +680,7 @@
         const buyer = buyerEl ? buyerEl.value : "";
         if (buyer === "") { alert("Будь ласка, вкажіть ім'я перед надсиланням!"); if(document.getElementById('settings-menu').style.display === 'none') toggleMenu(); return; }
 
-        showLoader("Відправлення на сервер...");
+        showLoader("Відправлення...");
         const success = await theoryAutoSend();
 
         if (success) {
