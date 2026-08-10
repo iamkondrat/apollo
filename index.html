@@ -5,6 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
   <title>Аполло</title>
   
+  <!-- АНТИ-КЕШ ТЕГИ ДЛЯ ПРИМУСОВОГО ОНОВЛЕННЯ ДИЗАЙНУ -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  
   <!-- Примусові теги для Android та iOS -->
   <meta name="theme-color" content="#1e1e1e">
   <meta name="mobile-web-app-capable" content="yes">
@@ -220,6 +225,13 @@
   </div> 
 
   <script>
+    // === СИСТЕМА ПРИМУСОВОГО ОНОВЛЕННЯ ДЛЯ ПЛАНШЕТІВ ===
+    const APP_VERSION = "2.0"; 
+    if (localStorage.getItem("apollo_version") !== APP_VERSION) {
+      localStorage.setItem("apollo_version", APP_VERSION);
+      window.location.reload(true); 
+    }
+
     const BACKEND_URL = "https://script.google.com/macros/s/AKfycbzyTV7cnWGeYD4rX23UaTcnBNQJ5MwOMriJB-aHsQ3K51c69et1rNBsnc63o_8ybeM/exec";
 
     let totalVol = 0;
@@ -433,9 +445,17 @@
       }
     }
 
+    // === БЕЗПЕЧНЕ СТИРАННЯ КЕШУ ДЛЯ ЗБЕРЕЖЕННЯ ВЕРСІЇ ОНОВЛЕННЯ ===
     function resetAndGoHome() {
       totalVol = 0; history = []; lastSentCount = 0;
-      localStorage.clear(); 
+      
+      const keysToRemove = [
+        'apollo_buyer_name', 'apollo_buyer_phone', 'apollo_wood_type', 
+        'apollo_price', 'apollo_len', 'apollo_thick', 'apollo_board_history', 
+        'apollo_total_vol', 'apollo_current_width', 'apollo_last_sent', 'apollo_mode'
+      ];
+      keysToRemove.forEach(k => localStorage.removeItem(k));
+      
       updateUI(); renderList();
       
       document.getElementById('buyer-name').value = ""; 
