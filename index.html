@@ -226,7 +226,7 @@
 
   <script>
     // === СИСТЕМА ПРИМУСОВОГО ОНОВЛЕННЯ ДЛЯ ПЛАНШЕТІВ ===
-    const APP_VERSION = "2.1"; 
+    const APP_VERSION = "2.2"; 
     if (localStorage.getItem("apollo_version") !== APP_VERSION) {
       localStorage.setItem("apollo_version", APP_VERSION);
       window.location.reload(true); 
@@ -804,7 +804,12 @@
       const c = isIncome ? ",,,," : ",,,,,,";
 
       let csvContent = `data:text/csv;charset=utf-8,\uFEFF`;
-      csvContent += `Телефон: ${phone}${c}\n`;
+      
+      // ЗМІНА ТУТ: Додаємо телефон ТІЛЬКИ для продажу
+      if (!isIncome) {
+        csvContent += `Телефон: ${phone}${c}\n`;
+      }
+      
       csvContent += `${personLabel}: ${buyer}${c}\n`;
       csvContent += `Дата: ${date} Час: ${time}${c}\n`;
       csvContent += `---${c}\n`; 
@@ -830,7 +835,6 @@
         
         csvContent += `Порода: ${groupName}${c}\n`;
         
-        // ЗМІНА ТУТ: Формуємо різні шапки таблиці залежно від режиму
         if (isIncome) {
           csvContent += "Номер,Довжина (м),Товщина (мм),Ширина (см),Об'єм (м3)\n";
         } else {
@@ -845,7 +849,6 @@
           let roundedBoardPrice = Number(b.price.toFixed(2));
           let priceString = roundedBoardPrice.toFixed(2);
           
-          // ЗМІНА ТУТ: Рядки таблиці також без цін для Приходу
           if (isIncome) {
             csvContent += `${woodCount},${b.length},${b.thick},${b.width},${volString}\n`;
           } else {
@@ -859,7 +862,6 @@
         let woodVolString = woodVolTotal.toFixed(3);
         let woodSumString = Math.round(woodSumTotal).toString();
         
-        // ЗМІНА ТУТ: Підсумки без нульових цін
         if (isIncome) {
           summaryLines += `Всього: ${pureWoodName},,,,${woodVolString}\n`;
         } else {
@@ -874,7 +876,6 @@
       csvContent += summaryLines;
       csvContent += `---${c}\n`;
       
-      // ЗМІНА ТУТ: Загальні підсумки теж чисті
       if (isIncome) {
         csvContent += `ЗАГАЛОМ:,,,,${grandVolString}\n`;
       } else {
