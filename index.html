@@ -144,11 +144,12 @@
       </button>
       
       <button class="pay-btn" style="border-color: #4CAF50;" onclick="selectBank('PrivatBank')">
-        <div class="icon-box" style="background: #fff;">
-          <svg viewBox="0 0 100 100" style="width: 100%; height: 100%; display: block;">
+        <!-- ТУТ БІЛИЙ ФОН І ВІДЦЕНТРОВАНЕ ЛОГО НА 65% РОЗМІРУ -->
+        <div class="icon-box" style="background: #fff; display: flex; align-items: center; justify-content: center;">
+          <svg viewBox="0 0 100 100" style="width: 65%; height: 65%; display: block;">
             <!-- Ідеально точний вектор ПриватБанку -->
-            <path d="M0,0 L100,0 L100,100 L70,100 L70,60 A 30 30 0 0 0 40,30 L0,30 Z" fill="#71B436" />
-            <rect x="0" y="52" width="48" height="48" fill="#111111" />
+            <path d="M0,0 L100,0 L100,100 L70,100 L70,70 A 40 40 0 0 0 30,30 L0,30 Z" fill="#71B436" />
+            <rect x="0" y="68" width="32" height="32" fill="#111111" />
           </svg>
         </div> ПриватБанк
       </button>
@@ -289,7 +290,7 @@
   </div> 
 
   <script>
-    const APP_VERSION = "2.16"; 
+    const APP_VERSION = "2.17"; 
     
     document.addEventListener("DOMContentLoaded", () => {
        const verEl = document.getElementById('version-display');
