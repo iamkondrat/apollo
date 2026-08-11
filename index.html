@@ -146,11 +146,10 @@
       <button class="pay-btn" style="border-color: #4CAF50;" onclick="selectBank('PrivatBank')">
         <div class="icon-box" style="background: #fff; display: flex; align-items: center; justify-content: center;">
           <svg viewBox="0 0 100 100" style="width: 75%; height: 75%; display: block;">
-            <!-- Ідеальний подвійний шлях. Зовнішня лінія за годинниковою стрілкою, внутрішня проти годинникової.
-                 Це створює товстий зелений контур, що зростає ТІЛЬКИ всередину -->
-            <path d="M5,5 L95,5 L95,95 L55,95 A50,50 0 0,0 5,45 Z M21,21 L21,31 A66,66 0 0,1 69,79 L79,79 L79,21 Z" fill="#71B436" fill-rule="evenodd" />
-            <!-- Чорний квадратик у самому куті зліва знизу -->
-            <rect x="5" y="65" width="30" height="30" fill="#111111" />
+            <!-- Зелена фігура з потовщеним усередину контуром (fill-rule="evenodd") -->
+            <path d="M5,5 L95,5 L95,95 L55,95 A 50 50 0 0 0 5,45 Z M25,25 L75,25 L75,75 L55,75 A 30 30 0 0 0 25,45 Z" fill="#71B436" fill-rule="evenodd"/>
+            <!-- Чорний квадрат у лівому нижньому кутку -->
+            <rect x="0" y="66" width="34" height="34" fill="#111111" />
           </svg>
         </div> ПриватБанк
       </button>
@@ -292,7 +291,7 @@
   </div> 
 
   <script>
-    const APP_VERSION = "2.27"; 
+    const APP_VERSION = "2.26"; 
     
     document.addEventListener("DOMContentLoaded", () => {
        const verEl = document.getElementById('version-display');
@@ -449,11 +448,321 @@
       if (storedBuyer) { const el = document.getElementById('buyer-name'); if(el) el.value = storedBuyer; }
       if (storedPhone) { const el = document.getElementById('buyer-phone'); if(el) el.value = storedPhone; }
       if (storedWood) { const el = document.getElementById('wood-type'); if(el) el.value = storedWood; }
-      if (storedPrice) { const el = documentДійсно, на файлі "Снимок экрана 2026-08-11 в 16.24.33.png" видно, що з дугою (внутрішнім білим вирізом на зеленій фігурі) є проблема. Вона виглядає дещо "зламаною", а перехід від кривої до прямої лінії, особливо в нижній частині, вийшов не плавним (крива не переходить у пряму по дотичній, утворюючи невеликий кут).
+      if (storedPrice) { const el = document.getElementById('price'); if(el) el.value = storedPrice; }
+      if (storedLen) { const el = document.getElementById('len'); if(el) el.value = storedLen; }
+      if (storedThick) { const el = document.getElementById('thick'); if(el) el.value = storedThick; } 
+      if (storedHistory) history = JSON.parse(storedHistory);
+      if (storedVol) totalVol = parseFloat(storedVol);
+      if (storedWidth) { currentWidthInput = storedWidth; updateWidthDisplay(); }
+      if (storedLastSent) lastSentCount = parseInt(storedLastSent, 10); 
+      updateUI(); renderList();
+    }
+    
+    function saveStoredData() {
+      const bName = document.getElementById('buyer-name'); if (bName) localStorage.setItem('apollo_buyer_name', bName.value);
+      const bPhone = document.getElementById('buyer-phone'); if (bPhone) localStorage.setItem('apollo_buyer_phone', bPhone.value);
+      const wType = document.getElementById('wood-type'); if (wType) localStorage.setItem('apollo_wood_type', wType.value);
+      const pPrice = document.getElementById('price'); if (pPrice) localStorage.setItem('apollo_price', pPrice.value);
+      const pLen = document.getElementById('len'); if (pLen) localStorage.setItem('apollo_len', pLen.value);
+      const pThick = document.getElementById('thick'); if (pThick) localStorage.setItem('apollo_thick', pThick.value);
+      localStorage.setItem('apollo_board_history', JSON.stringify(history)); localStorage.setItem('apollo_total_vol', totalVol.toString());
+      localStorage.setItem('apollo_current_width', currentWidthInput); localStorage.setItem('apollo_last_sent', lastSentCount.toString()); 
+    }
+    document.querySelectorAll('#settings-menu input, #settings-menu select').forEach(el => { el.addEventListener('input', saveStoredData); el.addEventListener('change', saveStoredData); });
+    function updateWidthDisplay() { const el = document.getElementById('width-display'); if (el) el.value = currentWidthInput; }
+    function pressKey(key) { if (currentWidthInput.length < 2) { currentWidthInput += key; updateWidthDisplay(); saveStoredData(); playClickSound(); } }
+    function clearWidthInput() { currentWidthInput = ""; updateWidthDisplay(); saveStoredData(); playClickSound(); }
+    function pressBackspace() { currentWidthInput = currentWidthInput.slice(0, -1); updateWidthDisplay(); saveStoredData(); playClickSound(); }
+    function toggleMenu() {
+      const menu = document.getElementById('settings-menu'); const btn = document.getElementById('menu-toggle-btn');
+      if (menu && btn) { if (menu.style.display === 'none') { menu.style.display = 'block'; btn.innerText = '⚙️ Приховати налаштування'; } else { menu.style.display = 'none'; btn.innerText = '⚙️ Налаштування'; } }
+    }
+    function confirmAddBoard() {
+      const buyerEl = document.getElementById('buyer-name'); const buyer = buyerEl ? buyerEl.value : "";
+      if (buyer === "") { alert("Будь ласка, вкажіть ім'я!"); if(document.getElementById('settings-menu').style.display === 'none') toggleMenu(); return; }
+      if (currentWidthInput === "") { alert("Будь ласка, введіть ширину!"); return; }
+      const width = parseInt(currentWidthInput); if (isNaN(width) || width < 1 || width > 99) { alert("Будь ласка, введіть правильну ширину (1-99 см)!"); clearWidthInput(); return; }
+      addBoardFromWidth(width); clearWidthInput();
+    }
+    function getSafeNumber(id) { let el = document.getElementById(id); if (!el || !el.value) return 0; let val = el.value.replace(/[^\d.,]/g, '').replace(',', '.'); return parseFloat(val) || 0; }
+    function addBoardFromWidth(widthCm) {
+      const buyerEl = document.getElementById('buyer-name'); const buyer = buyerEl ? buyerEl.value : "";
+      const woodEl = document.getElementById('wood-type'); const wood = woodEl ? woodEl.value : ""; 
+      const cubePrice = (currentMode === 'income') ? 0 : getSafeNumber('price'); const l = getSafeNumber('len'); const t = getSafeNumber('thick') / 1000; const w = widthCm / 100;
+      if (buyer === "") { alert("Вкажіть ім'я!"); return; } if (wood === "") { alert("Оберіть породу дерева!"); return; }
+      if (currentMode === 'sale' && cubePrice === 0) { alert("Вкажіть ціну за куб!"); return; } if (l === 0 || t === 0) { alert("Вкажіть довжину та товщину дошки!"); return; }
+      const boardVol = l * t * w; const boardPrice = boardVol * cubePrice; 
+      history.push({ buyer: buyer, wood: wood, width: widthCm, length: l, thick: getSafeNumber('thick'), vol: boardVol, cubePrice: cubePrice, price: boardPrice });
+      totalVol += boardVol; updateUI(); renderList(); saveStoredData(); playClickSound(); if(navigator.vibrate) navigator.vibrate(40);
+    }
+    function undo() { if (history.length === 0) return; history.pop(); totalVol = history.reduce((sum, board) => sum + board.vol, 0); if (totalVol < 0.001) totalVol = 0; updateUI(); renderList(); saveStoredData(); playClickSound(); }
+    function deleteBoard(index) { if (confirm("Точно видалити цю дошку зі списку?")) { history.splice(index, 1); updateUI(); renderList(); saveStoredData(); } }
+    function updateUI() {
+      totalVol = history.reduce((sum, board) => sum + board.vol, 0); totalVol = Math.max(0, totalVol);
+      const volEl = document.getElementById('vol'); if(volEl) volEl.innerText = totalVol.toFixed(3);
+      const totalSum = history.reduce((sum, board) => sum + board.price, 0); const sumEl = document.getElementById('sum'); 
+      if (sumEl) {
+        sumEl.innerText = Math.max(0, Math.round(totalSum)).toLocaleString('uk-UA');
+        const sumParent = document.getElementById('sum-container');
+        if (sumParent) sumParent.style.display = (currentMode === 'income') ? 'none' : 'block';
+      }
+      const countEl = document.getElementById('count'); if(countEl) countEl.innerText = history.length;
+      const subStatsContainer = document.getElementById('sub-stats'); if (!subStatsContainer) return;
+      if (history.length === 0) { subStatsContainer.innerHTML = ''; return; }
+      const groups = {};
+      history.forEach(b => {
+        const priceLabel = Math.round(b.cubePrice || 0);
+        const key = (currentMode === 'income') ? `${b.wood} ${b.thick} мм` : `${b.wood} ${b.thick} мм (${priceLabel} грн/м³)`;
+        if (!groups[key]) groups[key] = { vol: 0, sum: 0, count: 0 };
+        groups[key].vol += b.vol; groups[key].sum += b.price; groups[key].count++;
+      });
+      let subHtml = '';
+      for (const [name, data] of Object.entries(groups)) {
+        const sumHtml = (currentMode === 'income') ? '' : `<div><span>${Math.max(0, Math.round(data.sum)).toLocaleString('uk-UA')}</span> грн</div>`;
+        subHtml += `<div class="sub-stat-row"><div>${name}:</div><div><span>${Math.max(0, data.vol).toFixed(3)}</span> м³</div>${sumHtml}<div><span>${data.count}</span> шт</div></div>`;
+      }
+      subStatsContainer.innerHTML = subHtml;
+    }
 
-Залежно від того, як саме реалізована ця іконка, ось найімовірніші причини:
+    function toggleList() { const modal = document.getElementById('list-modal'); if(modal) modal.style.display = modal.style.display === 'block' ? 'none' : 'block'; }
+    
+    function renderList() {
+      const listObj = document.getElementById('list-modal'); if (!listObj) return;
+      const listHTML = [...history].reverse().map((b, i) => {
+        const realIndex = history.length - 1 - i; 
+        const priceText = (currentMode === 'income') ? '' : `(${Math.round(b.price)} грн / по ${Math.round(b.cubePrice || 0)} грн за куб)`;
+        return `
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 10px; border-bottom: 1px solid #444; background: rgba(0,0,0,0.2); margin-bottom: 6px; border-radius: 8px;">
+            <div style="flex-grow: 1;">
+               <div style="font-weight: bold; color: #fff; font-size: 16px;">Дошка ${realIndex + 1} (${b.wood}): ${b.length}м × ${b.thick}мм × ${b.width}см = <b>${b.vol.toFixed(3)} м³</b></div>
+               <div style="color: #4CAF50; font-size: 14px; margin-top: 4px;">${priceText}</div>
+            </div>
+            <button onclick="deleteBoard(${realIndex})" style="background: #d32f2f; color: white; border: none; width: 48px; height: 48px; border-radius: 10px; font-size: 22px; cursor: pointer; display: flex; justify-content: center; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.3); margin-left: 10px;">🗑️</button>
+          </div>
+        `;
+      }).join('');
+      listObj.innerHTML = listHTML;
+    }
 
-*   **Якщо це SVG:** Проблема в координатах тегу `<path>`. Параметри команди дуги (`A`) або кривої Безьє (`C`/`Q`) не ідеально стикуються з координатами прямих ліній (`L` або `H`/`V`), через що радіус ламається.
-*   **Якщо це CSS:** Якщо цей негативний простір (виріз) зроблено через накладання псевдоелемента з `border-radius`, використання `mask-image`, `clip-path` або `radial-gradient`, то, ймовірно, є похибка в частки пікселя при позиціюванні, або радіус заокруглення математично не збігається з шириною сусідніх елементів.
+    // === НОВИЙ СЦЕНАРІЙ З ВИБОРОМ БАНКІВ ===
+    function initiateSend() {
+      if(history.length === 0) { alert("Список порожній! Спочатку додайте дошки."); return; }
+      const buyerEl = document.getElementById('buyer-name');
+      const buyer = buyerEl ? buyerEl.value : "";
+      if (buyer === "") { alert("Будь ласка, вкажіть ім'я перед надсиланням!"); if(document.getElementById('settings-menu').style.display === 'none') toggleMenu(); return; }
 
-Скинеш шматок коду (SVG або HTML/CSS), яким ти малюєш цю іконку, щоб я міг вирахувати точні значення та виправити цей злам?
+      if (currentMode === 'sale') {
+         document.getElementById('payment-modal').style.display = 'flex';
+      } else {
+         executeSend('Немає (Прихід)');
+      }
+    }
+
+    function selectPayment(method) {
+      document.getElementById('payment-modal').style.display = 'none';
+      executeSend(method);
+    }
+
+    function openBankSelection() {
+       document.getElementById('payment-modal').style.display = 'none';
+       document.getElementById('qr-modal').style.display = 'none';
+       document.getElementById('bank-modal').style.display = 'flex';
+    }
+
+    function goBackToPayment() {
+       document.getElementById('bank-modal').style.display = 'none';
+       document.getElementById('payment-modal').style.display = 'flex';
+    }
+
+    function goBackToPaymentFromQR() {
+       document.getElementById('qr-modal').style.display = 'none';
+       document.getElementById('payment-modal').style.display = 'flex';
+    }
+
+    function selectBank(bankName) {
+       document.getElementById('bank-modal').style.display = 'none';
+       selectedQRBank = bankName; 
+       
+       let totalSum = Math.round(history.reduce((sum, board) => sum + board.price, 0));
+       document.getElementById('qr-sum').innerText = totalSum.toLocaleString('uk-UA');
+       document.getElementById('qr-bank-title').innerText = "Оплата: " + bankName;
+
+       let finalLink = "";
+
+       if (bankName === 'Monobank') {
+           finalLink = "https://send.monobank.ua/4o577nB2ji?a=" + totalSum; 
+       } else if (bankName === 'PrivatBank') {
+           finalLink = "https://www.privat24.ua/send/468tr"; 
+       } else if (bankName === 'ПУМБ') {
+           finalLink = "https://mobile-app.pumb.ua/1Lrvk"; 
+       }
+       
+       document.getElementById('qr-container').innerHTML = ""; 
+       new QRCode(document.getElementById("qr-container"), {
+          text: finalLink,
+          width: 250,
+          height: 250,
+          colorDark : "#000000",
+          colorLight : "#ffffff",
+          correctLevel : QRCode.CorrectLevel.H
+       });
+
+       document.getElementById('qr-modal').style.display = 'flex';
+    }
+
+    function confirmQRPayment() {
+       document.getElementById('qr-modal').style.display = 'none';
+       executeSend('На картку (' + selectedQRBank + ')'); 
+    }
+
+    async function executeSend(paymentMethod) {
+      try {
+        showLoader("Відправлення...");
+        const result = await theoryAutoSend(false, false, paymentMethod);
+
+        if (result === true) {
+           document.getElementById('loader-content').innerHTML = '<div style="font-size: 50px; margin-bottom:10px;">✅</div><div id="loader-text" style="color: white; font-size: 22px; font-weight: bold;">Успішно!</div>';
+           setTimeout(() => { hideLoader(); finishSending(); }, 1500);
+        } else if (result === 'timeout') {
+           document.getElementById('loader-content').innerHTML = '<div style="font-size: 50px; margin-bottom:10px;">⚠️</div><div id="loader-text" style="color: #f39c12; font-size: 22px; font-weight: bold;">Слабкий інтернет!</div><div style="color: #ccc; font-size: 14px; text-align: center; margin-top: 10px;">Перевірте Гугл Диск.<br>Дані могли відправитись.</div>';
+           setTimeout(() => { hideLoader(); finishSending(); }, 4500);
+        } else {
+           document.getElementById('loader-content').innerHTML = '<div style="font-size: 50px; margin-bottom:10px;">❌</div><div id="loader-text" style="color: #ff5252; font-size: 22px; font-weight: bold;">Помилка мережі! Дані збережено на планшет.</div>';
+           setTimeout(() => { hideLoader(); }, 3000);
+        }
+      } catch (err) {
+        alert("Знайдено помилку: " + err.message);
+        hideLoader();
+      }
+    }
+
+    function finishSending() {
+       downloadCSV();
+       setTimeout(() => { resetAndGoHome(); }, 500);
+    }
+
+    async function theoryAutoSend(isSilent = false, isTrash = false, paymentMethod = "Не вказано") {
+      if (history.length === 0) return true;
+      const buyerEl = document.getElementById('buyer-name'); let buyer = buyerEl ? buyerEl.value : "Невідомий";
+      if (buyer === "") buyer = "Невідомий";
+      if (isTrash) buyer = "СКАСОВАНО_" + buyer;
+
+      const phoneEl = document.getElementById('buyer-phone'); let phone = phoneEl ? phoneEl.value.trim() : "Не вказано";
+      const csvContent = formatCSVData();
+      const wood = [...new Set(history.map(b => b.wood))].join(', ') || "Не вказана";
+      let calculatedSum = Math.round(history.reduce((sum, board) => sum + board.price, 0));
+      let calculatedVol = history.reduce((sum, board) => sum + board.vol, 0).toFixed(3); 
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+      try {
+        await fetch(BACKEND_URL, {
+          method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ 
+            data: csvContent, woodName: wood, buyerName: buyer, phone: phone, 
+            totalSum: calculatedSum, totalVol: calculatedVol, action: 'syncFileSync', mode: currentMode, isTrash: isTrash,
+            paymentMethod: paymentMethod
+          }),
+          signal: controller.signal 
+        });
+        clearTimeout(timeoutId); 
+        if (!isTrash) { lastSentCount = history.length; saveStoredData(); }
+        return true; 
+      } catch (error) {
+        clearTimeout(timeoutId);
+        if (error.name === 'AbortError') return 'timeout'; 
+        return false; 
+      }
+    }
+
+    function downloadCSV() {
+      const buyerEl = document.getElementById('buyer-name'); const buyer = buyerEl ? buyerEl.value : "Без імені";
+      const csvContent = formatCSVData();
+      const date = new Date().toISOString().slice(0, 10); const time = new Date().toTimeString().slice(0, 8).replace(/:/g, '-');
+      const buyerSafe = buyer.replace(/\s+/g, '_'); 
+      const prefix = currentMode === 'income' ? 'ПРИХІД_' : 'ТОЧКОВКА_';
+      const fileName = `${prefix}${date}_${buyerSafe}_${time}.csv`;
+      const link = document.createElement("a"); link.setAttribute("href", encodeURI(csvContent)); link.setAttribute("download", fileName);
+      document.body.appendChild(link); link.click(); document.body.removeChild(link);
+    }
+
+    function getSortedHistory() { return [...history].sort((a, b) => { if (a.wood < b.wood) return -1; if (a.wood > b.wood) return 1; return 0; }); }
+
+    function formatCSVData() {
+      const buyerEl = document.getElementById('buyer-name'); const buyer = buyerEl ? buyerEl.value : "Без імені";
+      const phoneEl = document.getElementById('buyer-phone'); let phone = phoneEl ? phoneEl.value.trim() : "Не вказано";
+      if(phone === "") phone = "Не вказано"; 
+      const sortedHistory = getSortedHistory();
+      const date = new Date().toISOString().slice(0, 10); const time = new Date().toTimeString().slice(0, 8);
+      const isIncome = (currentMode === 'income'); const personLabel = isIncome ? "Постачальник" : "Покупець";
+      const c = isIncome ? ",,,," : ",,,,,,";
+
+      let csvContent = `data:text/csv;charset=utf-8,\uFEFF`;
+      if (!isIncome) { csvContent += `Телефон: ${phone}${c}\n`; }
+      csvContent += `${personLabel}: ${buyer}${c}\n`; csvContent += `Дата: ${date} Час: ${time}${c}\n`; csvContent += `---${c}\n`; 
+      
+      let grandVolTotal = 0; let grandSumTotal = 0; let woodCount = 0;
+      const groupedData = {};
+      sortedHistory.forEach(board => {
+        const priceLabel = Math.round(board.cubePrice || 0);
+        const groupName = isIncome ? board.wood : `${board.wood} (ціна: ${priceLabel} грн/м3)`;
+        if (!groupedData[groupName]) groupedData[groupName] = [];
+        groupedData[groupName].push(board);
+      });
+      const sortedGroups = Object.keys(groupedData).sort();
+      let summaryLines = "";
+      
+      sortedGroups.forEach(groupName => {
+        const boards = groupedData[groupName];
+        let woodVolTotal = 0; let woodSumTotal = 0; 
+        const pureWoodName = boards[0].wood; const groupPrice = Math.round(boards[0].cubePrice || 0).toString();
+        csvContent += `Порода: ${groupName}${c}\n`;
+        if (isIncome) { csvContent += "Номер,Довжина (м),Товщина (мм),Ширина (см),Об'єм (м3)\n"; } 
+        else { csvContent += "Номер,Довжина (м),Товщина (мм),Ширина (см),Об'єм (м3),Ціна за куб,Сума\n"; }
+        
+        woodCount = 0;
+        boards.forEach((b) => {
+          woodCount++;
+          let volString = parseFloat(b.vol.toFixed(6)); let cubePriceString = Math.round(b.cubePrice || 0).toString(); 
+          let roundedBoardPrice = Number(b.price.toFixed(2)); let priceString = roundedBoardPrice.toFixed(2);
+          if (isIncome) { csvContent += `${woodCount},${b.length},${b.thick},${b.width},${volString}\n`; } 
+          else { csvContent += `${woodCount},${b.length},${b.thick},${b.width},${volString},${cubePriceString},${priceString}\n`; }
+          woodVolTotal += b.vol; woodSumTotal += roundedBoardPrice;
+        });
+        csvContent += `---${c}\n`;
+        let woodVolString = woodVolTotal.toFixed(3); let woodSumString = Math.round(woodSumTotal).toString();
+        if (isIncome) { summaryLines += `Всього: ${pureWoodName},,,,${woodVolString}\n`; } 
+        else { summaryLines += `Всього: ${pureWoodName},,,,${woodVolString},${groupPrice},${woodSumString}\n`; }
+        grandVolTotal += woodVolTotal; grandSumTotal += woodSumTotal;
+      });
+      let grandVolString = grandVolTotal.toFixed(3); let grandSumString = Math.round(grandSumTotal).toString(); 
+      csvContent += summaryLines; csvContent += `---${c}\n`;
+      if (isIncome) { summaryLines; }
+      else { csvContent += `ЗАГАЛОМ:,,,,${grandVolString},,${grandSumString}\n`; }
+      return csvContent;
+    }
+    
+    function setupFormatting() {
+      const fields = [{ id: 'price', unit: 'грн' }, { id: 'len', unit: 'м' }, { id: 'thick', unit: 'мм' }];
+      fields.forEach(f => {
+        const el = document.getElementById(f.id); if(!el) return;
+        const applyFormat = () => { let val = el.value.replace(/[^\d.,]/g, '').trim(); if (val !== '') el.value = val + ' ' + f.unit; };
+        el.addEventListener('focus', function() { this.value = this.value.replace(/[^\d.,]/g, '').trim(); });
+        el.addEventListener('blur', applyFormat); applyFormat();
+      });
+    }
+
+    function setupExtraListeners() {
+      const bName = document.getElementById('buyer-name'); const bPhone = document.getElementById('buyer-phone');
+      if (bName && bPhone) {
+        bName.addEventListener('input', function() {
+          if (this.value.toLowerCase().includes('столярка')) { if (bPhone.value !== '0685386959') { bPhone.value = '0685386959'; saveStoredData(); } }
+        });
+      }
+    }
+    
+    setupFormatting(); setupExtraListeners(); initApp();
+  </script>
+</body>
+</html>
