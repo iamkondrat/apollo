@@ -107,8 +107,8 @@
     
     /* ПриватБанк (Зелений, геометрія логотипу) */
     .icon-privat { background: #71B436; }
-    .icon-privat::before { content: ''; position: absolute; bottom: -1px; left: -1px; width: 75%; height: 75%; background: #fff; border-top-right-radius: 100%; }
-    .icon-privat::after { content: ''; position: absolute; bottom: 0; left: 0; width: 42%; height: 42%; background: #111; }
+    .icon-privat::before { content: ''; display: block; position: absolute; bottom: 0; left: 0; width: 26px; height: 26px; background: #fff; border-radius: 0 100% 0 0; }
+    .icon-privat::after { content: ''; display: block; position: absolute; bottom: 0; left: 0; width: 12px; height: 12px; background: #111; border-radius: 0; }
     
     /* ПУМБ (Червоний квадрат з текстом) */
     .icon-pumb { background: #E3000F; color: #fff; font-size: 9px; letter-spacing: 0.5px; }
@@ -273,7 +273,7 @@
   </div> 
 
   <script>
-    const APP_VERSION = "2.9"; 
+    const APP_VERSION = "2.10"; 
     if (localStorage.getItem("apollo_version") !== APP_VERSION) {
       localStorage.setItem("apollo_version", APP_VERSION);
       window.location.reload(true); 
