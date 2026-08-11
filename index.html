@@ -105,10 +105,12 @@
     /* Монобанк (Темний, круглий, текст mono) */
     .icon-mono { background: #1a1a1a; color: #fff; font-size: 11px; letter-spacing: -0.5px; }
     
-    /* ПриватБанк (Зелений, геометрія логотипу) */
-    .icon-privat { background: #71B436; }
-    .icon-privat::before { content: ''; display: block; position: absolute; bottom: 0; left: 0; width: 26px; height: 26px; background: #fff; border-radius: 0 100% 0 0; }
-    .icon-privat::after { content: ''; display: block; position: absolute; bottom: 0; left: 0; width: 12px; height: 12px; background: #111; border-radius: 0; }
+    /* ПриватБанк (Ідеальний векторний SVG-код) */
+    .icon-privat { 
+      background-color: #71B436; 
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 34 34'%3E%3Cpath d='M0,34 L26,34 A26,26 0 0,0 0,8 Z' fill='%23fff'/%3E%3Crect x='0' y='22' width='12' height='12' fill='%23111'/%3E%3C/svg%3E");
+    }
+    .icon-privat::before, .icon-privat::after { display: none !important; }
     
     /* ПУМБ (Червоний квадрат з текстом) */
     .icon-pumb { background: #E3000F; color: #fff; font-size: 9px; letter-spacing: 0.5px; }
@@ -273,7 +275,7 @@
   </div> 
 
   <script>
-    const APP_VERSION = "2.10"; 
+    const APP_VERSION = "2.11"; 
     if (localStorage.getItem("apollo_version") !== APP_VERSION) {
       localStorage.setItem("apollo_version", APP_VERSION);
       window.location.reload(true); 
