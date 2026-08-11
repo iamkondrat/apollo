@@ -239,7 +239,7 @@
   </div> 
 
   <script>
-    const APP_VERSION = "2.3"; 
+    const APP_VERSION = "2.4"; 
     if (localStorage.getItem("apollo_version") !== APP_VERSION) {
       localStorage.setItem("apollo_version", APP_VERSION);
       window.location.reload(true); 
@@ -625,7 +625,7 @@
        document.getElementById('qr-sum').innerText = totalSum.toLocaleString('uk-UA');
        
        // === ОСЬ ВАШЕ ПОСИЛАННЯ МОНОБАНКУ ===
-       let monoLink = "https://send.monobank.ua/8qSXKcRata?a=" + totalSum;
+       let monoLink = "https://send.monobank.ua/4o577nB2ji?a=" + totalSum;
        
        new QRCode(document.getElementById("qr-container"), {
           text: monoLink,
