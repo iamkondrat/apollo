@@ -146,10 +146,10 @@
       <button class="pay-btn" style="border-color: #4CAF50;" onclick="selectBank('PrivatBank')">
         <div class="icon-box" style="background: #fff; display: flex; align-items: center; justify-content: center;">
           <svg viewBox="0 0 100 100" style="width: 75%; height: 75%; display: block;">
-            <!-- Біла заливка, товстий зелений контур, дуга в правильний бік -->
+            <!-- Біла заливка, товстий зелений контур -->
             <path d="M5,5 L95,5 L95,95 L55,95 A 50 50 0 0 0 5 45 Z" fill="#ffffff" stroke="#71B436" stroke-width="14" stroke-linejoin="round"/>
-            <!-- Чорний квадрат у самому лівому нижньому кутку, без будь-яких наїздів -->
-            <rect x="10" y="58" width="32" height="32" fill="#111111" />
+            <!-- Чорний квадрат зміщено ще лівіше та нижче -->
+            <rect x="0" y="66" width="34" height="34" fill="#111111" />
           </svg>
         </div> ПриватБанк
       </button>
@@ -291,7 +291,7 @@
   </div> 
 
   <script>
-    const APP_VERSION = "2.24"; 
+    const APP_VERSION = "2.25"; 
     
     document.addEventListener("DOMContentLoaded", () => {
        const verEl = document.getElementById('version-display');
