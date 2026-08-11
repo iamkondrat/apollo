@@ -146,10 +146,10 @@
       <button class="pay-btn" style="border-color: #4CAF50;" onclick="selectBank('PrivatBank')">
         <div class="icon-box" style="background: #fff; display: flex; align-items: center; justify-content: center;">
           <svg viewBox="0 0 100 100" style="width: 75%; height: 75%; display: block;">
-            <!-- Зелена фігура з потовщеним усередину контуром (fill-rule="evenodd") -->
-            <path d="M5,5 L95,5 L95,95 L55,95 A 50 50 0 0 0 5,45 Z M25,25 L75,25 L75,75 L55,75 A 30 30 0 0 0 25,45 Z" fill="#71B436" fill-rule="evenodd"/>
-            <!-- Чорний квадрат у лівому нижньому кутку -->
-            <rect x="0" y="66" width="34" height="34" fill="#111111" />
+            <!-- Біла серцевина, товстий зелений контур, плавна дуга -->
+            <path d="M 12,50 L 12,12 L 88,12 L 88,88 L 50,88 A 38 38 0 0 1 12,50 Z" fill="#ffffff" stroke="#71B436" stroke-width="18" stroke-linejoin="round"/>
+            <!-- Чорний квадрат, захищений товстою білою рамкою-гумкою, яка зрізає будь-які наїзди -->
+            <rect x="8" y="66" width="24" height="24" fill="#111111" stroke="#ffffff" stroke-width="6" stroke-linejoin="miter" />
           </svg>
         </div> ПриватБанк
       </button>
@@ -291,7 +291,7 @@
   </div> 
 
   <script>
-    const APP_VERSION = "2.26"; 
+    const APP_VERSION = "2.28"; 
     
     document.addEventListener("DOMContentLoaded", () => {
        const verEl = document.getElementById('version-display');
