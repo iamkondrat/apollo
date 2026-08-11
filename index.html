@@ -146,10 +146,10 @@
       <button class="pay-btn" style="border-color: #4CAF50;" onclick="selectBank('PrivatBank')">
         <div class="icon-box" style="background: #fff; display: flex; align-items: center; justify-content: center;">
           <svg viewBox="0 0 100 100" style="width: 75%; height: 75%; display: block;">
-            <!-- Зелений контур, біла заливка, плавна дуга -->
-            <path d="M5,5 L95,5 L95,95 L55,95 A 50 50 0 0 1 5 45 Z" fill="#ffffff" stroke="#71B436" stroke-width="10" stroke-linejoin="miter"/>
-            <!-- Збільшений чорний квадратик -->
-            <rect x="15" y="55" width="32" height="32" fill="#111111" />
+            <!-- Біла заливка повної фігури, товстий зелений контур, вигнута в інший бік дуга -->
+            <path d="M5,5 L95,5 L95,95 L55,95 A 50 50 0 0 0 5 45 Z" fill="#ffffff" stroke="#71B436" stroke-width="14" stroke-linejoin="round"/>
+            <!-- Збільшений чорний квадрат -->
+            <rect x="15" y="55" width="34" height="34" fill="#111111" />
           </svg>
         </div> ПриватБанк
       </button>
@@ -291,7 +291,7 @@
   </div> 
 
   <script>
-    const APP_VERSION = "2.22"; 
+    const APP_VERSION = "2.23"; 
     
     document.addEventListener("DOMContentLoaded", () => {
        const verEl = document.getElementById('version-display');
@@ -501,28 +501,54 @@
       totalVol = history.reduce((sum, board) => sum + board.vol, 0); totalVol = Math.max(0, totalVol);
       const volEl = document.getElementById('vol'); if(volEl) volEl.innerText = totalVol.toFixed(3);
       const totalSum = history.reduce((sum, board) => sum + board.price, 0); const sumEl = document.getElementById('sum'); 
-      if (sumEl) { sumEl.innerText = Math.max(0, Math.round(totalSum)).toLocaleString('uk-UA'); const sumParent = document.getElementById('sum-container'); if (sumParent) sumParent.style.display = (currentMode === 'income') ? 'none' : 'block'; }
+      if (sumEl) {
+        sumEl.innerText = Math.max(0, Math.round(totalSum)).toLocaleString('uk-UA');
+        const sumParent = document.getElementById('sum-container');
+        if (sumParent) sumParent.style.display = (currentMode === 'income') ? 'none' : 'block';
+      }
       const countEl = document.getElementById('count'); if(countEl) countEl.innerText = history.length;
       const subStatsContainer = document.getElementById('sub-stats'); if (!subStatsContainer) return;
       if (history.length === 0) { subStatsContainer.innerHTML = ''; return; }
       const groups = {};
-      history.forEach(b => { const priceLabel = Math.round(b.cubePrice || 0); const key = (currentMode === 'income') ? `${b.wood} ${b.thick} мм` : `${b.wood} ${b.thick} мм (${priceLabel} грн/м³)`; if (!groups[key]) groups[key] = { vol: 0, sum: 0, count: 0 }; groups[key].vol += b.vol; groups[key].sum += b.price; groups[key].count++; });
-      let subHtml = ''; for (const [name, data] of Object.entries(groups)) { const sumHtml = (currentMode === 'income') ? '' : `<div><span>${Math.max(0, Math.round(data.sum)).toLocaleString('uk-UA')}</span> грн</div>`; subHtml += `<div class="sub-stat-row"><div>${name}:</div><div><span>${Math.max(0, data.vol).toFixed(3)}</span> м³</div>${sumHtml}<div><span>${data.count}</span> шт</div></div>`; }
+      history.forEach(b => {
+        const priceLabel = Math.round(b.cubePrice || 0);
+        const key = (currentMode === 'income') ? `${b.wood} ${b.thick} мм` : `${b.wood} ${b.thick} мм (${priceLabel} грн/м³)`;
+        if (!groups[key]) groups[key] = { vol: 0, sum: 0, count: 0 };
+        groups[key].vol += b.vol; groups[key].sum += b.price; groups[key].count++;
+      });
+      let subHtml = '';
+      for (const [name, data] of Object.entries(groups)) {
+        const sumHtml = (currentMode === 'income') ? '' : `<div><span>${Math.max(0, Math.round(data.sum)).toLocaleString('uk-UA')}</span> грн</div>`;
+        subHtml += `<div class="sub-stat-row"><div>${name}:</div><div><span>${Math.max(0, data.vol).toFixed(3)}</span> м³</div>${sumHtml}<div><span>${data.count}</span> шт</div></div>`;
+      }
       subStatsContainer.innerHTML = subHtml;
     }
+
     function toggleList() { const modal = document.getElementById('list-modal'); if(modal) modal.style.display = modal.style.display === 'block' ? 'none' : 'block'; }
+    
     function renderList() {
       const listObj = document.getElementById('list-modal'); if (!listObj) return;
       const listHTML = [...history].reverse().map((b, i) => {
-        const realIndex = history.length - 1 - i; const priceText = (currentMode === 'income') ? '' : `(${Math.round(b.price)} грн / по ${Math.round(b.cubePrice || 0)} грн за куб)`;
-        return `<div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 10px; border-bottom: 1px solid #444; background: rgba(0,0,0,0.2); margin-bottom: 6px; border-radius: 8px;"><div style="flex-grow: 1;"><div style="font-weight: bold; color: #fff; font-size: 16px;">Дошка ${realIndex + 1} (${b.wood}): ${b.length}м × ${b.thick}мм × ${b.width}см = <b>${b.vol.toFixed(3)} м³</b></div><div style="color: #4CAF50; font-size: 14px; margin-top: 4px;">${priceText}</div></div><button onclick="deleteBoard(${realIndex})" style="background: #d32f2f; color: white; border: none; width: 48px; height: 48px; border-radius: 10px; font-size: 22px; cursor: pointer; display: flex; justify-content: center; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.3); margin-left: 10px;">🗑️</button></div>`;
-      }).join(''); listObj.innerHTML = listHTML;
+        const realIndex = history.length - 1 - i; 
+        const priceText = (currentMode === 'income') ? '' : `(${Math.round(b.price)} грн / по ${Math.round(b.cubePrice || 0)} грн за куб)`;
+        return `
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 10px; border-bottom: 1px solid #444; background: rgba(0,0,0,0.2); margin-bottom: 6px; border-radius: 8px;">
+            <div style="flex-grow: 1;">
+               <div style="font-weight: bold; color: #fff; font-size: 16px;">Дошка ${realIndex + 1} (${b.wood}): ${b.length}м × ${b.thick}мм × ${b.width}см = <b>${b.vol.toFixed(3)} м³</b></div>
+               <div style="color: #4CAF50; font-size: 14px; margin-top: 4px;">${priceText}</div>
+            </div>
+            <button onclick="deleteBoard(${realIndex})" style="background: #d32f2f; color: white; border: none; width: 48px; height: 48px; border-radius: 10px; font-size: 22px; cursor: pointer; display: flex; justify-content: center; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.3); margin-left: 10px;">🗑️</button>
+          </div>
+        `;
+      }).join('');
+      listObj.innerHTML = listHTML;
     }
 
     // === НОВИЙ СЦЕНАРІЙ З ВИБОРОМ БАНКІВ ===
     function initiateSend() {
       if(history.length === 0) { alert("Список порожній! Спочатку додайте дошки."); return; }
-      const buyerEl = document.getElementById('buyer-name'); const buyer = buyerEl ? buyerEl.value : "";
+      const buyerEl = document.getElementById('buyer-name');
+      const buyer = buyerEl ? buyerEl.value : "";
       if (buyer === "") { alert("Будь ласка, вкажіть ім'я перед надсиланням!"); if(document.getElementById('settings-menu').style.display === 'none') toggleMenu(); return; }
 
       if (currentMode === 'sale') {
@@ -534,7 +560,7 @@
 
     function selectPayment(method) {
       document.getElementById('payment-modal').style.display = 'none';
-      executeSend(method); 
+      executeSend(method);
     }
 
     function openBankSelection() {
@@ -563,18 +589,22 @@
 
        let finalLink = "";
 
-       // === ТУТ ТРЕБА ВСТАВИТИ ТВОЇ ПОСИЛАННЯ ДЛЯ ПРИВАТУ ТА ПУМБУ ===
        if (bankName === 'Monobank') {
            finalLink = "https://send.monobank.ua/4o577nB2ji?a=" + totalSum; 
        } else if (bankName === 'PrivatBank') {
-           finalLink = "https://www.privat24.ua/send/468tr"; // ТУТ ВСТАВ ПОСИЛАННЯ НА КОНВЕРТ ПРИВАТУ
+           finalLink = "https://www.privat24.ua/send/468tr"; 
        } else if (bankName === 'ПУМБ') {
-           finalLink = "https://mobile-app.pumb.ua/1Lrvk"; // ТУТ ВСТАВ ПОСИЛАННЯ НА МАНІБОКС ПУМБ
+           finalLink = "https://mobile-app.pumb.ua/1Lrvk"; 
        }
        
        document.getElementById('qr-container').innerHTML = ""; 
        new QRCode(document.getElementById("qr-container"), {
-          text: finalLink, width: 250, height: 250, colorDark : "#000000", colorLight : "#ffffff", correctLevel : QRCode.CorrectLevel.H
+          text: finalLink,
+          width: 250,
+          height: 250,
+          colorDark : "#000000",
+          colorLight : "#ffffff",
+          correctLevel : QRCode.CorrectLevel.H
        });
 
        document.getElementById('qr-modal').style.display = 'flex';
@@ -600,71 +630,117 @@
            document.getElementById('loader-content').innerHTML = '<div style="font-size: 50px; margin-bottom:10px;">❌</div><div id="loader-text" style="color: #ff5252; font-size: 22px; font-weight: bold;">Помилка мережі! Дані збережено на планшет.</div>';
            setTimeout(() => { hideLoader(); }, 3000);
         }
-      } catch (err) { alert("Знайдено помилку: " + err.message); hideLoader(); }
+      } catch (err) {
+        alert("Знайдено помилку: " + err.message);
+        hideLoader();
+      }
     }
 
-    function finishSending() { downloadCSV(); setTimeout(() => { resetAndGoHome(); }, 500); }
+    function finishSending() {
+       downloadCSV();
+       setTimeout(() => { resetAndGoHome(); }, 500);
+    }
 
     async function theoryAutoSend(isSilent = false, isTrash = false, paymentMethod = "Не вказано") {
       if (history.length === 0) return true;
       const buyerEl = document.getElementById('buyer-name'); let buyer = buyerEl ? buyerEl.value : "Невідомий";
-      if (buyer === "") buyer = "Невідомий"; if (isTrash) buyer = "СКАСОВАНО_" + buyer;
+      if (buyer === "") buyer = "Невідомий";
+      if (isTrash) buyer = "СКАСОВАНО_" + buyer;
+
       const phoneEl = document.getElementById('buyer-phone'); let phone = phoneEl ? phoneEl.value.trim() : "Не вказано";
-      const csvContent = formatCSVData(); const wood = [...new Set(history.map(b => b.wood))].join(', ') || "Не вказана";
+      const csvContent = formatCSVData();
+      const wood = [...new Set(history.map(b => b.wood))].join(', ') || "Не вказана";
       let calculatedSum = Math.round(history.reduce((sum, board) => sum + board.price, 0));
       let calculatedVol = history.reduce((sum, board) => sum + board.vol, 0).toFixed(3); 
-      const controller = new AbortController(); const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000);
 
       try {
         await fetch(BACKEND_URL, {
           method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify({ data: csvContent, woodName: wood, buyerName: buyer, phone: phone, totalSum: calculatedSum, totalVol: calculatedVol, action: 'syncFileSync', mode: currentMode, isTrash: isTrash, paymentMethod: paymentMethod }),
+          body: JSON.stringify({ 
+            data: csvContent, woodName: wood, buyerName: buyer, phone: phone, 
+            totalSum: calculatedSum, totalVol: calculatedVol, action: 'syncFileSync', mode: currentMode, isTrash: isTrash,
+            paymentMethod: paymentMethod
+          }),
           signal: controller.signal 
         });
-        clearTimeout(timeoutId); if (!isTrash) { lastSentCount = history.length; saveStoredData(); } return true; 
-      } catch (error) { clearTimeout(timeoutId); if (error.name === 'AbortError') return 'timeout'; return false; }
+        clearTimeout(timeoutId); 
+        if (!isTrash) { lastSentCount = history.length; saveStoredData(); }
+        return true; 
+      } catch (error) {
+        clearTimeout(timeoutId);
+        if (error.name === 'AbortError') return 'timeout'; 
+        return false; 
+      }
     }
 
     function downloadCSV() {
       const buyerEl = document.getElementById('buyer-name'); const buyer = buyerEl ? buyerEl.value : "Без імені";
-      const csvContent = formatCSVData(); const date = new Date().toISOString().slice(0, 10); const time = new Date().toTimeString().slice(0, 8).replace(/:/g, '-');
-      const buyerSafe = buyer.replace(/\s+/g, '_'); const prefix = currentMode === 'income' ? 'ПРИХІД_' : 'ТОЧКОВКА_';
+      const csvContent = formatCSVData();
+      const date = new Date().toISOString().slice(0, 10); const time = new Date().toTimeString().slice(0, 8).replace(/:/g, '-');
+      const buyerSafe = buyer.replace(/\s+/g, '_'); 
+      const prefix = currentMode === 'income' ? 'ПРИХІД_' : 'ТОЧКОВКА_';
       const fileName = `${prefix}${date}_${buyerSafe}_${time}.csv`;
       const link = document.createElement("a"); link.setAttribute("href", encodeURI(csvContent)); link.setAttribute("download", fileName);
       document.body.appendChild(link); link.click(); document.body.removeChild(link);
     }
+
     function getSortedHistory() { return [...history].sort((a, b) => { if (a.wood < b.wood) return -1; if (a.wood > b.wood) return 1; return 0; }); }
 
     function formatCSVData() {
       const buyerEl = document.getElementById('buyer-name'); const buyer = buyerEl ? buyerEl.value : "Без імені";
       const phoneEl = document.getElementById('buyer-phone'); let phone = phoneEl ? phoneEl.value.trim() : "Не вказано";
-      if(phone === "") phone = "Не вказано"; const sortedHistory = getSortedHistory();
+      if(phone === "") phone = "Не вказано"; 
+      const sortedHistory = getSortedHistory();
       const date = new Date().toISOString().slice(0, 10); const time = new Date().toTimeString().slice(0, 8);
       const isIncome = (currentMode === 'income'); const personLabel = isIncome ? "Постачальник" : "Покупець";
       const c = isIncome ? ",,,," : ",,,,,,";
+
       let csvContent = `data:text/csv;charset=utf-8,\uFEFF`;
       if (!isIncome) { csvContent += `Телефон: ${phone}${c}\n`; }
       csvContent += `${personLabel}: ${buyer}${c}\n`; csvContent += `Дата: ${date} Час: ${time}${c}\n`; csvContent += `---${c}\n`; 
-      let grandVolTotal = 0; let grandSumTotal = 0; let woodCount = 0; const groupedData = {};
-      sortedHistory.forEach(board => { const priceLabel = Math.round(board.cubePrice || 0); const groupName = isIncome ? board.wood : `${board.wood} (ціна: ${priceLabel} грн/м3)`; if (!groupedData[groupName]) groupedData[groupName] = []; groupedData[groupName].push(board); });
-      const sortedGroups = Object.keys(groupedData).sort(); let summaryLines = "";
+      
+      let grandVolTotal = 0; let grandSumTotal = 0; let woodCount = 0;
+      const groupedData = {};
+      sortedHistory.forEach(board => {
+        const priceLabel = Math.round(board.cubePrice || 0);
+        const groupName = isIncome ? board.wood : `${board.wood} (ціна: ${priceLabel} грн/м3)`;
+        if (!groupedData[groupName]) groupedData[groupName] = [];
+        groupedData[groupName].push(board);
+      });
+      const sortedGroups = Object.keys(groupedData).sort();
+      let summaryLines = "";
+      
       sortedGroups.forEach(groupName => {
-        const boards = groupedData[groupName]; let woodVolTotal = 0; let woodSumTotal = 0; const pureWoodName = boards[0].wood; const groupPrice = Math.round(boards[0].cubePrice || 0).toString();
+        const boards = groupedData[groupName];
+        let woodVolTotal = 0; let woodSumTotal = 0; 
+        const pureWoodName = boards[0].wood; const groupPrice = Math.round(boards[0].cubePrice || 0).toString();
         csvContent += `Порода: ${groupName}${c}\n`;
-        if (isIncome) { csvContent += "Номер,Довжина (м),Товщина (мм),Ширина (см),Об'єм (м3)\n"; } else { csvContent += "Номер,Довжина (м),Товщина (мм),Ширина (см),Об'єм (м3),Ціна за куб,Сума\n"; }
+        if (isIncome) { csvContent += "Номер,Довжина (м),Товщина (мм),Ширина (см),Об'єм (м3)\n"; } 
+        else { csvContent += "Номер,Довжина (м),Товщина (мм),Ширина (см),Об'єм (м3),Ціна за куб,Сума\n"; }
+        
         woodCount = 0;
         boards.forEach((b) => {
-          woodCount++; let volString = parseFloat(b.vol.toFixed(6)); let cubePriceString = Math.round(b.cubePrice || 0).toString(); let roundedBoardPrice = Number(b.price.toFixed(2)); let priceString = roundedBoardPrice.toFixed(2);
-          if (isIncome) { csvContent += `${woodCount},${b.length},${b.thick},${b.width},${volString}\n`; } else { csvContent += `${woodCount},${b.length},${b.thick},${b.width},${volString},${cubePriceString},${priceString}\n`; }
+          woodCount++;
+          let volString = parseFloat(b.vol.toFixed(6)); let cubePriceString = Math.round(b.cubePrice || 0).toString(); 
+          let roundedBoardPrice = Number(b.price.toFixed(2)); let priceString = roundedBoardPrice.toFixed(2);
+          if (isIncome) { csvContent += `${woodCount},${b.length},${b.thick},${b.width},${volString}\n`; } 
+          else { csvContent += `${woodCount},${b.length},${b.thick},${b.width},${volString},${cubePriceString},${priceString}\n`; }
           woodVolTotal += b.vol; woodSumTotal += roundedBoardPrice;
         });
-        csvContent += `---${c}\n`; let woodVolString = woodVolTotal.toFixed(3); let woodSumString = Math.round(woodSumTotal).toString();
-        if (isIncome) { summaryLines += `Всього: ${pureWoodName},,,,${woodVolString}\n`; } else { summaryLines += `Всього: ${pureWoodName},,,,${woodVolString},${groupPrice},${woodSumString}\n`; }
+        csvContent += `---${c}\n`;
+        let woodVolString = woodVolTotal.toFixed(3); let woodSumString = Math.round(woodSumTotal).toString();
+        if (isIncome) { summaryLines += `Всього: ${pureWoodName},,,,${woodVolString}\n`; } 
+        else { summaryLines += `Всього: ${pureWoodName},,,,${woodVolString},${groupPrice},${woodSumString}\n`; }
         grandVolTotal += woodVolTotal; grandSumTotal += woodSumTotal;
       });
       let grandVolString = grandVolTotal.toFixed(3); let grandSumString = Math.round(grandSumTotal).toString(); 
       csvContent += summaryLines; csvContent += `---${c}\n`;
-      if (isIncome) { csvContent += `ЗАГАЛОМ:,,,,${grandVolString}\n`; } else { csvContent += `ЗАГАЛОМ:,,,,${grandVolString},,${grandSumString}\n`; } return csvContent;
+      if (isIncome) { csvContent += `ЗАГАЛОМ:,,,,${grandVolString}\n`; } 
+      else { csvContent += `ЗАГАЛОМ:,,,,${grandVolString},,${grandSumString}\n`; }
+      return csvContent;
     }
     
     function setupFormatting() {
@@ -679,8 +755,13 @@
 
     function setupExtraListeners() {
       const bName = document.getElementById('buyer-name'); const bPhone = document.getElementById('buyer-phone');
-      if (bName && bPhone) { bName.addEventListener('input', function() { if (this.value.toLowerCase().includes('столярка')) { if (bPhone.value !== '0685386959') { bPhone.value = '0685386959'; saveStoredData(); } } }); }
+      if (bName && bPhone) {
+        bName.addEventListener('input', function() {
+          if (this.value.toLowerCase().includes('столярка')) { if (bPhone.value !== '0685386959') { bPhone.value = '0685386959'; saveStoredData(); } }
+        });
+      }
     }
+    
     setupFormatting(); setupExtraListeners(); initApp();
   </script>
 </body>
