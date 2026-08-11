@@ -178,6 +178,7 @@
     </div>
   </div>
 
+  <!-- ГОЛОВНЕ МЕНЮ З ВІДОБРАЖЕННЯМ ВЕРСІЇ -->
   <div id="start-menu">
     <div class="logo-container">
       <img src="logo.png?v=2" alt="Аполло Пиломатеріали" class="app-logo">
@@ -202,6 +203,10 @@
         <div style="color: #888; font-size: 14px; text-align: center;">Завантаження...</div>
       </div>
     </div>
+    
+    <!-- ТУТ ВІДОБРАЖАЄТЬСЯ ВЕРСІЯ ДОДАТКУ -->
+    <div id="version-display" style="margin-top: auto; padding-top: 30px; padding-bottom: 10px; font-size: 12px; color: #666; text-align: center; width: 100%;"></div>
+
   </div>
 
   <div id="loading-overlay">
@@ -282,7 +287,14 @@
   </div> 
 
   <script>
-    const APP_VERSION = "2.12"; 
+    const APP_VERSION = "2.13"; 
+    
+    // Вставляємо версію в HTML
+    document.addEventListener("DOMContentLoaded", () => {
+       const verEl = document.getElementById('version-display');
+       if (verEl) verEl.innerText = "Версія: " + APP_VERSION;
+    });
+
     if (localStorage.getItem("apollo_version") !== APP_VERSION) {
       localStorage.setItem("apollo_version", APP_VERSION);
       window.location.reload(true); 
@@ -312,6 +324,10 @@
 
     function initApp() {
       const storedMode = localStorage.getItem('apollo_mode');
+      
+      const verEl = document.getElementById('version-display');
+      if (verEl) verEl.innerText = "Версія: " + APP_VERSION;
+
       if (storedMode) {
         loadStoredData();
       } else {
