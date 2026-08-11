@@ -93,18 +93,25 @@
     .modal-box { background: #1e1e1e; padding: 25px; border-radius: 16px; width: 90%; max-width: 350px; display: flex; flex-direction: column; gap: 12px; border: 1px solid #333; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
     .modal-box h3 { margin: 0 0 15px 0; text-align: center; color: #fff; font-size: 20px;}
     
-    /* ЄДИНИЙ ГАРМОНІЙНИЙ СТИЛЬ КНОПОК ОПЛАТИ */
     .pay-btn { padding: 12px 16px; font-size: 18px; font-weight: bold; border: 1px solid #444; border-radius: 12px; cursor: pointer; color: white; transition: 0.2s; background: #2c2c2c; display: flex; align-items: center; justify-content: flex-start; gap: 15px; }
     .pay-btn:active { transform: scale(0.98); background: #444; }
     .pay-btn.centered { justify-content: center; padding: 16px; }
     .pay-btn.cancel { background: #d32f2f; border-color: #b71c1c; margin-top: 10px; }
     .pay-btn.success { background: #27ae60; border-color: #1e8449; }
     
-    /* СТИЛЬНІ ІКОНКИ (ЯК У ДОДАТКАХ) */
-    .icon-box { width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 18px; flex-shrink: 0; font-family: Arial, sans-serif; box-shadow: 0 2px 5px rgba(0,0,0,0.2);}
-    .icon-mono { background: #000; color: #fff; font-size: 24px; padding-bottom: 2px;}
-    .icon-privat { background: #71B436; color: #fff; }
-    .icon-pumb { background: #E3000F; color: #fff; font-size: 11px; }
+    /* === КРУТІ CSS ІКОНКИ БАНКІВ === */
+    .icon-box { width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 18px; flex-shrink: 0; font-family: Arial, sans-serif; position: relative; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.2);}
+    
+    /* Монобанк (Темний, круглий, текст mono) */
+    .icon-mono { background: #1a1a1a; color: #fff; font-size: 11px; letter-spacing: -0.5px; }
+    
+    /* ПриватБанк (Зелений, геометрія логотипу) */
+    .icon-privat { background: #71B436; }
+    .icon-privat::before { content: ''; position: absolute; bottom: -1px; left: -1px; width: 75%; height: 75%; background: #fff; border-top-right-radius: 100%; }
+    .icon-privat::after { content: ''; position: absolute; bottom: 0; left: 0; width: 42%; height: 42%; background: #111; }
+    
+    /* ПУМБ (Червоний квадрат з текстом) */
+    .icon-pumb { background: #E3000F; color: #fff; font-size: 9px; letter-spacing: 0.5px; }
   </style>
 </head>
 <body>
@@ -133,11 +140,11 @@
   <div id="bank-modal" class="overlay-modal">
     <div class="modal-box">
       <h3>На який банк?</h3>
-      <button class="pay-btn" style="border-color: #ea5455;" onclick="selectBank('Monobank')">
-        <div class="icon-box icon-mono">m</div> Monobank
+      <button class="pay-btn" style="border-color: #555;" onclick="selectBank('Monobank')">
+        <div class="icon-box icon-mono">mono</div> Monobank
       </button>
       <button class="pay-btn" style="border-color: #4CAF50;" onclick="selectBank('PrivatBank')">
-        <div class="icon-box icon-privat">П</div> ПриватБанк
+        <div class="icon-box icon-privat"></div> ПриватБанк
       </button>
       <button class="pay-btn" style="border-color: #ff5252;" onclick="selectBank('ПУМБ')">
         <div class="icon-box icon-pumb">ПУМБ</div> ПУМБ
@@ -266,7 +273,7 @@
   </div> 
 
   <script>
-    const APP_VERSION = "2.8"; 
+    const APP_VERSION = "2.9"; 
     if (localStorage.getItem("apollo_version") !== APP_VERSION) {
       localStorage.setItem("apollo_version", APP_VERSION);
       window.location.reload(true); 
@@ -532,9 +539,9 @@
        if (bankName === 'Monobank') {
            finalLink = "https://send.monobank.ua/4o577nB2ji?a=" + totalSum; 
        } else if (bankName === 'PrivatBank') {
-           finalLink = "https://send.privatbank.ua/..."; // ТУТ ВСТАВ ПОСИЛАННЯ НА КОНВЕРТ ПРИВАТУ
+           finalLink = "https://www.privat24.ua/send/468tr"; // ТУТ ВСТАВ ПОСИЛАННЯ НА КОНВЕРТ ПРИВАТУ
        } else if (bankName === 'ПУМБ') {
-           finalLink = "https://pumb.ua/..."; // ТУТ ВСТАВ ПОСИЛАННЯ НА МАНІБОКС ПУМБ
+           finalLink = "https://mobile-app.pumb.ua/1Lrvk"; // ТУТ ВСТАВ ПОСИЛАННЯ НА МАНІБОКС ПУМБ
        }
        
        document.getElementById('qr-container').innerHTML = ""; 
