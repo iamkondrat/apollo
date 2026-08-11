@@ -200,11 +200,7 @@
         </select>
         <input type="text" inputmode="decimal" id="price" placeholder="Ціна за куб (грн)">
         <input type="text" inputmode="decimal" id="len" placeholder="Довжина (м)">
-        <select id="thick">
-          <option value="" disabled selected>Товщина (мм)</option>
-          <option value="30">30 мм</option>
-          <option value="50">50 мм</option>
-        </select>
+        <input type="text" inputmode="decimal" id="thick" placeholder="Товщина (мм)">
       </div>
       <div class="btn-row">
         <button class="action-btn list-btn" onclick="toggleList()">📋 Список дошок</button>
@@ -239,7 +235,7 @@
   </div> 
 
   <script>
-    const APP_VERSION = "2.4"; 
+    const APP_VERSION = "2.5"; 
     if (localStorage.getItem("apollo_version") !== APP_VERSION) {
       localStorage.setItem("apollo_version", APP_VERSION);
       window.location.reload(true); 
@@ -366,8 +362,7 @@
         const lenEl = document.getElementById('len'); if(lenEl && lastBoard.length) lenEl.value = lastBoard.length + " м";
         const thickEl = document.getElementById('thick'); 
         if(thickEl && lastBoard.thick) {
-          let cleanThick = lastBoard.thick.toString().replace(/[^\d]/g, '');
-          if(cleanThick === '30' || cleanThick === '50') thickEl.value = cleanThick;
+          thickEl.value = lastBoard.thick + " мм";
         }
       }
       deleteDraftUI(draftId, true);
@@ -434,7 +429,7 @@
       if (storedWood) { const el = document.getElementById('wood-type'); if(el) el.value = storedWood; }
       if (storedPrice) { const el = document.getElementById('price'); if(el) el.value = storedPrice; }
       if (storedLen) { const el = document.getElementById('len'); if(el) el.value = storedLen; }
-      if (storedThick) { const el = document.getElementById('thick'); if(el) { let cleanThick = storedThick.replace(/[^\d]/g, ''); if(cleanThick === '30' || cleanThick === '50') el.value = cleanThick; } }
+      if (storedThick) { const el = document.getElementById('thick'); if(el) el.value = storedThick; } 
       if (storedHistory) history = JSON.parse(storedHistory);
       if (storedVol) totalVol = parseFloat(storedVol);
       if (storedWidth) { currentWidthInput = storedWidth; updateWidthDisplay(); }
@@ -624,7 +619,6 @@
        let totalSum = Math.round(history.reduce((sum, board) => sum + board.price, 0));
        document.getElementById('qr-sum').innerText = totalSum.toLocaleString('uk-UA');
        
-       // === ОСЬ ВАШЕ ПОСИЛАННЯ МОНОБАНКУ ===
        let monoLink = "https://send.monobank.ua/4o577nB2ji?a=" + totalSum;
        
        new QRCode(document.getElementById("qr-container"), {
@@ -663,7 +657,7 @@
           body: JSON.stringify({ 
             data: csvContent, woodName: wood, buyerName: buyer, phone: phone, 
             totalSum: calculatedSum, totalVol: calculatedVol, action: 'syncFileSync', mode: currentMode, isTrash: isTrash,
-            paymentMethod: paymentMethod // ВІДПРАВЛЯЄМО ВИД ОПЛАТИ НА СЕРВЕР
+            paymentMethod: paymentMethod
           }),
           signal: controller.signal 
         });
@@ -745,7 +739,8 @@
     }
     
     function setupFormatting() {
-      const fields = [{ id: 'price', unit: 'грн' }, { id: 'len', unit: 'м' }];
+      // === ДОДАНО ПОЛЕ 'thick' ДЛЯ АВТОФОРМАТУВАННЯ ===
+      const fields = [{ id: 'price', unit: 'грн' }, { id: 'len', unit: 'м' }, { id: 'thick', unit: 'мм' }];
       fields.forEach(f => {
         const el = document.getElementById(f.id); if(!el) return;
         const applyFormat = () => { let val = el.value.replace(/[^\d.,]/g, '').trim(); if (val !== '') el.value = val + ' ' + f.unit; };
