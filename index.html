@@ -290,7 +290,7 @@
   </div> 
 
   <script>
-    const APP_VERSION = "2.31"; 
+    const APP_VERSION = "2.32"; 
     
     document.addEventListener("DOMContentLoaded", () => {
        const verEl = document.getElementById('version-display');
@@ -662,7 +662,8 @@
           body: JSON.stringify({ 
             data: csvContent, woodName: wood, buyerName: buyer, phone: phone, 
             totalSum: calculatedSum, totalVol: calculatedVol, action: 'syncFileSync', mode: currentMode, isTrash: isTrash,
-            paymentMethod: paymentMethod
+            paymentMethod: paymentMethod,
+            history: history
           }),
           signal: controller.signal 
         });
@@ -726,7 +727,6 @@
         const boards = groupedData[groupName];
         let woodVolTotal = 0; let woodSumTotal = 0; 
         
-        // ВАЖЛИВО ДЛЯ ГУГЛ ДИСКУ: Повертаємо чітку назву породи З ТОВЩИНОЮ в підсумках
         const pureWoodName = `${boards[0].wood} ${boards[0].thick} мм`; 
         const groupPrice = Math.round(boards[0].cubePrice || 0).toString();
         
