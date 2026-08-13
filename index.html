@@ -290,7 +290,7 @@
   </div> 
 
   <script>
-    const APP_VERSION = "2.32"; 
+    const APP_VERSION = "2.33"; 
     
     document.addEventListener("DOMContentLoaded", () => {
        const verEl = document.getElementById('version-display');
@@ -558,7 +558,18 @@
 
     function selectPayment(method) {
       document.getElementById('payment-modal').style.display = 'none';
-      executeSend(method);
+      let invoiceName = "";
+      
+      if (method === 'Б/Г з ПДВ') {
+        const buyerEl = document.getElementById('buyer-name');
+        const defaultName = buyerEl ? buyerEl.value : "";
+        invoiceName = prompt("Введіть назву компанії/ФОП для виставлення рахунку:", defaultName);
+        
+        if (invoiceName === null) return; 
+        if (invoiceName.trim() === "") invoiceName = defaultName;
+      }
+      
+      executeSend(method, invoiceName);
     }
 
     function openBankSelection() {
@@ -610,13 +621,13 @@
 
     function confirmQRPayment() {
        document.getElementById('qr-modal').style.display = 'none';
-       executeSend('На картку (' + selectedQRBank + ')'); 
+       executeSend('На картку (' + selectedQRBank + ')', ""); 
     }
 
-    async function executeSend(paymentMethod) {
+    async function executeSend(paymentMethod, invoiceName = "") {
       try {
         showLoader("Відправлення...");
-        const result = await theoryAutoSend(false, false, paymentMethod);
+        const result = await theoryAutoSend(false, false, paymentMethod, invoiceName);
 
         if (result === true) {
            document.getElementById('loader-content').innerHTML = '<div style="font-size: 50px; margin-bottom:10px;">✅</div><div id="loader-text" style="color: white; font-size: 22px; font-weight: bold;">Успішно!</div>';
@@ -639,7 +650,7 @@
        setTimeout(() => { resetAndGoHome(); }, 500);
     }
 
-    async function theoryAutoSend(isSilent = false, isTrash = false, paymentMethod = "Не вказано") {
+    async function theoryAutoSend(isSilent = false, isTrash = false, paymentMethod = "Не вказано", invoiceName = "") {
       if (history.length === 0) return true;
       const buyerEl = document.getElementById('buyer-name'); let buyer = buyerEl ? buyerEl.value : "Невідомий";
       if (buyer === "") buyer = "Невідомий";
@@ -663,6 +674,7 @@
             data: csvContent, woodName: wood, buyerName: buyer, phone: phone, 
             totalSum: calculatedSum, totalVol: calculatedVol, action: 'syncFileSync', mode: currentMode, isTrash: isTrash,
             paymentMethod: paymentMethod,
+            invoiceName: invoiceName,
             history: history
           }),
           signal: controller.signal 
