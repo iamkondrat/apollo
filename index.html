@@ -129,6 +129,29 @@
     </div>
   </div>
 
+  <!-- ВІКНО ПИТАННЯ ПРО РАХУНОК -->
+  <div id="invoice-ask-modal" class="overlay-modal">
+    <div class="modal-box" style="align-items: center; text-align: center;">
+      <h3 style="margin-bottom: 5px;">Треба виписати рахунок?</h3>
+      <div style="width: 100%; display: flex; gap: 10px; margin-top: 15px;">
+          <button class="pay-btn centered success" style="flex: 1;" onclick="openInvoiceNameModal()">Так</button>
+          <button class="pay-btn centered cancel" style="flex: 1; margin-top: 0;" onclick="skipInvoice()">Ні</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ВІКНО ВВОДУ НАЗВИ КОМПАНІЇ ДЛЯ РАХУНКУ -->
+  <div id="invoice-name-modal" class="overlay-modal">
+    <div class="modal-box">
+      <h3 style="text-align: center; margin-bottom: 10px;">На кого виписати рахунок?</h3>
+      <input type="text" id="invoice-company-name" style="width: 100%; box-sizing: border-box; padding: 12px; background: #333; color: white; border: 1px solid #444; border-radius: 8px; font-size: 16px; outline: none;" placeholder="Введіть назву компанії/ФОП">
+      <div style="display: flex; gap: 10px; margin-top: 15px;">
+        <button class="pay-btn centered success" style="flex: 1;" onclick="confirmInvoiceName()">ОК</button>
+        <button class="pay-btn centered cancel" style="flex: 1; margin-top: 0;" onclick="cancelInvoiceName()">Скасувати</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ПІДМЕНЮ ВИБОРУ БАНКУ -->
   <div id="bank-modal" class="overlay-modal">
     <div class="modal-box">
@@ -254,7 +277,7 @@
           <option value="Берест">Берест</option>
         </select>
         <input type="text" inputmode="decimal" id="price" placeholder="Ціна за куб (грн)">
-        <input type="text" inputmode="decimal" id="len" placeholder="Довжина (м)">
+        <input type="text inputmode="decimal" id="len" placeholder="Довжина (м)">
         <input type="text" inputmode="decimal" id="thick" placeholder="Товщина (мм)">
       </div>
       <div class="btn-row">
@@ -290,7 +313,7 @@
   </div> 
 
   <script>
-    const APP_VERSION = "2.34"; 
+    const APP_VERSION = "2.35"; 
     
     document.addEventListener("DOMContentLoaded", () => {
        const verEl = document.getElementById('version-display');
@@ -310,6 +333,7 @@
     let lastSentCount = 0; 
     let currentMode = 'sale'; 
     let selectedQRBank = ''; 
+    let pendingPaymentMethod = ''; 
 
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     let audioCtx;
@@ -552,24 +576,49 @@
       if (currentMode === 'sale') {
          document.getElementById('payment-modal').style.display = 'flex';
       } else {
-         executeSend('Немає (Прихід)');
+         executeSend('Немає (Прихід)', "", false);
       }
     }
 
     function selectPayment(method) {
       document.getElementById('payment-modal').style.display = 'none';
-      let invoiceName = "";
+      pendingPaymentMethod = method;
       
       if (method === 'Б/Г з ПДВ') {
-        const buyerEl = document.getElementById('buyer-name');
-        const defaultName = buyerEl ? buyerEl.value : "";
-        invoiceName = prompt("Введіть назву компанії/ФОП для виставлення рахунку:", defaultName);
-        
-        if (invoiceName === null) return; 
-        if (invoiceName.trim() === "") invoiceName = defaultName;
+        document.getElementById('invoice-ask-modal').style.display = 'flex';
+      } else {
+        executeSend(method, "", false);
       }
-      
-      executeSend(method, invoiceName);
+    }
+
+    function skipInvoice() {
+      document.getElementById('invoice-ask-modal').style.display = 'none';
+      executeSend(pendingPaymentMethod, "", false);
+    }
+
+    function openInvoiceNameModal() {
+      document.getElementById('invoice-ask-modal').style.display = 'none';
+      const buyerEl = document.getElementById('buyer-name');
+      const defaultName = buyerEl ? buyerEl.value : "";
+      const inputEl = document.getElementById('invoice-company-name');
+      inputEl.value = defaultName;
+      document.getElementById('invoice-name-modal').style.display = 'flex';
+      inputEl.focus();
+    }
+
+    function confirmInvoiceName() {
+      let invoiceName = document.getElementById('invoice-company-name').value.trim();
+      if (invoiceName === "") {
+         const buyerEl = document.getElementById('buyer-name');
+         invoiceName = buyerEl ? buyerEl.value : "Невідомо";
+      }
+      document.getElementById('invoice-name-modal').style.display = 'none';
+      executeSend(pendingPaymentMethod, invoiceName, true);
+    }
+
+    function cancelInvoiceName() {
+       document.getElementById('invoice-name-modal').style.display = 'none';
+       document.getElementById('payment-modal').style.display = 'flex';
     }
 
     function openBankSelection() {
@@ -621,13 +670,13 @@
 
     function confirmQRPayment() {
        document.getElementById('qr-modal').style.display = 'none';
-       executeSend('На картку (' + selectedQRBank + ')', ""); 
+       executeSend('На картку (' + selectedQRBank + ')', "", false); 
     }
 
-    async function executeSend(paymentMethod, invoiceName = "") {
+    async function executeSend(paymentMethod, invoiceName = "", needInvoice = false) {
       try {
         showLoader("Відправлення...");
-        const result = await theoryAutoSend(false, false, paymentMethod, invoiceName);
+        const result = await theoryAutoSend(false, false, paymentMethod, invoiceName, needInvoice);
 
         if (result === true) {
            document.getElementById('loader-content').innerHTML = '<div style="font-size: 50px; margin-bottom:10px;">✅</div><div id="loader-text" style="color: white; font-size: 22px; font-weight: bold;">Успішно!</div>';
@@ -650,7 +699,7 @@
        setTimeout(() => { resetAndGoHome(); }, 500);
     }
 
-    async function theoryAutoSend(isSilent = false, isTrash = false, paymentMethod = "Не вказано", invoiceName = "") {
+    async function theoryAutoSend(isSilent = false, isTrash = false, paymentMethod = "Не вказано", invoiceName = "", needInvoice = false) {
       if (history.length === 0) return true;
       const buyerEl = document.getElementById('buyer-name'); let buyer = buyerEl ? buyerEl.value : "Невідомий";
       if (buyer === "") buyer = "Невідомий";
@@ -675,6 +724,7 @@
             totalSum: calculatedSum, totalVol: calculatedVol, action: 'syncFileSync', mode: currentMode, isTrash: isTrash,
             paymentMethod: paymentMethod,
             invoiceName: invoiceName,
+            needInvoice: needInvoice,
             history: history
           }),
           signal: controller.signal 
@@ -692,10 +742,12 @@
     function downloadCSV() {
       const buyerEl = document.getElementById('buyer-name'); const buyer = buyerEl ? buyerEl.value : "Без імені";
       const csvContent = formatCSVData();
-      const date = new Date().toISOString().slice(0, 10); const time = new Date().toTimeString().slice(0, 8).replace(/:/g, '-');
+      const dateRaw = new Date().toISOString().slice(0, 10); 
+      const dateUa = dateRaw.split('-').reverse().join('.');
+      const time = new Date().toTimeString().slice(0, 8).replace(/:/g, '-');
       const buyerSafe = buyer.replace(/\s+/g, '_'); 
       const prefix = currentMode === 'income' ? 'ПРИХІД_' : 'ТОЧКОВКА_';
-      const fileName = `${prefix}${date}_${buyerSafe}_${time}.csv`;
+      const fileName = `${prefix}${buyerSafe}_${dateUa}_${time}.csv`;
       const link = document.createElement("a"); link.setAttribute("href", encodeURI(csvContent)); link.setAttribute("download", fileName);
       document.body.appendChild(link); link.click(); document.body.removeChild(link);
     }
@@ -715,13 +767,17 @@
       const phoneEl = document.getElementById('buyer-phone'); let phone = phoneEl ? phoneEl.value.trim() : "Не вказано";
       if(phone === "") phone = "Не вказано"; 
       const sortedHistory = getSortedHistory();
-      const date = new Date().toISOString().slice(0, 10); const time = new Date().toTimeString().slice(0, 8);
+      
+      const dateRaw = new Date().toISOString().slice(0, 10); 
+      const dateUa = dateRaw.split('-').reverse().join('.');
+      const time = new Date().toTimeString().slice(0, 8);
+      
       const isIncome = (currentMode === 'income'); const personLabel = isIncome ? "Постачальник" : "Покупець";
       const c = isIncome ? ",,,," : ",,,,,,";
 
       let csvContent = `data:text/csv;charset=utf-8,\uFEFF`;
       if (!isIncome) { csvContent += `Телефон: ${phone}${c}\n`; }
-      csvContent += `${personLabel}: ${buyer}${c}\n`; csvContent += `Дата: ${date} Час: ${time}${c}\n`; csvContent += `---${c}\n`; 
+      csvContent += `${personLabel}: ${buyer}${c}\n`; csvContent += `Дата: ${dateUa} Час: ${time}${c}\n`; csvContent += `---${c}\n`; 
       
       let grandVolTotal = 0; let grandSumTotal = 0; let woodCount = 0;
       const groupedData = {};
