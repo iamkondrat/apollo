@@ -336,7 +336,7 @@
   </div> 
 
   <script>
-    const APP_VERSION = "2.37"; 
+    const APP_VERSION = "2.38"; 
     
     document.addEventListener("DOMContentLoaded", () => {
        const verEl = document.getElementById('version-display');
@@ -638,7 +638,7 @@
       }
       pendingInvoiceName = invoiceName;
       document.getElementById('invoice-name-modal').style.display = 'none';
-      document.getElementById('delivery-ask-modal').style.display = 'flex'; // Переходимо до питання про доставку
+      document.getElementById('delivery-ask-modal').style.display = 'flex'; 
     }
 
     function cancelInvoiceName() {
@@ -774,7 +774,7 @@
             paymentMethod: paymentMethod,
             invoiceName: invoiceName,
             needInvoice: needInvoice,
-            deliveryCost: deliveryCost, // <--- ПЕРЕДАЄМО ВАРТІСТЬ ДОСТАВКИ
+            deliveryCost: deliveryCost,
             history: history
           }),
           signal: controller.signal 
