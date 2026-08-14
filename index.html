@@ -336,7 +336,7 @@
   </div> 
 
   <script>
-    const APP_VERSION = "2.39"; 
+    const APP_VERSION = "2.40"; 
     
     document.addEventListener("DOMContentLoaded", () => {
        const verEl = document.getElementById('version-display');
@@ -532,6 +532,7 @@
       addBoardFromWidth(width); clearWidthInput();
     }
     function getSafeNumber(id) { let el = document.getElementById(id); if (!el || !el.value) return 0; let val = el.value.replace(/[^\d.,]/g, '').replace(',', '.'); return parseFloat(val) || 0; }
+    
     function addBoardFromWidth(widthCm) {
       const buyerEl = document.getElementById('buyer-name'); const buyer = buyerEl ? buyerEl.value : "";
       const woodEl = document.getElementById('wood-type'); const wood = woodEl ? woodEl.value : ""; 
@@ -545,7 +546,6 @@
     function undo() { if (history.length === 0) return; history.pop(); updateUI(); renderList(); saveStoredData(); playClickSound(); }
     function deleteBoard(index) { if (confirm("Точно видалити цю дошку зі списку?")) { history.splice(index, 1); updateUI(); renderList(); saveStoredData(); } }
     
-    // ДОПОМІЖНА ФУНКЦІЯ ДЛЯ ІДЕАЛЬНОЇ МАТЕМАТИКИ
     function getTotals() {
       let groups = {};
       history.forEach(b => {
@@ -559,19 +559,19 @@
       for (let k in groups) {
          let rVol = Number(groups[k].vol.toFixed(3));
          totalV += rVol;
-         totalS += Math.round(rVol * groups[k].price);
+         totalS += Math.round(rVol * groups[k].price * 100) / 100; // Ідеальна точність сум
       }
       return { vol: totalV, sum: totalS };
     }
 
     function updateUI() {
       const totals = getTotals();
-      totalVol = totals.vol; // Оновлюємо глобальну змінну для збереження
+      totalVol = totals.vol;
       
       const volEl = document.getElementById('vol'); if(volEl) volEl.innerText = totals.vol.toFixed(3);
       const sumEl = document.getElementById('sum'); 
       if (sumEl) {
-        sumEl.innerText = totals.sum.toLocaleString('uk-UA');
+        sumEl.innerText = totals.sum.toLocaleString('uk-UA', {minimumFractionDigits: 0, maximumFractionDigits: 2});
         const sumParent = document.getElementById('sum-container');
         if (sumParent) sumParent.style.display = (currentMode === 'income') ? 'none' : 'block';
       }
@@ -592,8 +592,8 @@
       let subHtml = '';
       for (const [name, data] of Object.entries(groups)) {
         let rVol = Number(data.vol.toFixed(3));
-        let gSum = Math.round(rVol * (data.price || 0));
-        const sumHtml = (currentMode === 'income') ? '' : `<div><span>${gSum.toLocaleString('uk-UA')}</span> грн</div>`;
+        let gSum = Math.round(rVol * (data.price || 0) * 100) / 100;
+        const sumHtml = (currentMode === 'income') ? '' : `<div><span>${gSum.toLocaleString('uk-UA', {minimumFractionDigits: 0, maximumFractionDigits: 2})}</span> грн</div>`;
         subHtml += `<div class="sub-stat-row"><div>${name}:</div><div><span>${rVol.toFixed(3)}</span> м³</div>${sumHtml}<div><span>${data.count}</span> шт</div></div>`;
       }
       subStatsContainer.innerHTML = subHtml;
@@ -721,7 +721,7 @@
        const totals = getTotals();
        let totalSum = totals.sum;
        
-       document.getElementById('qr-sum').innerText = totalSum.toLocaleString('uk-UA');
+       document.getElementById('qr-sum').innerText = totalSum.toLocaleString('uk-UA', {minimumFractionDigits: 0, maximumFractionDigits: 2});
        document.getElementById('qr-bank-title').innerText = "Оплата: " + bankName;
 
        let finalLink = "";
@@ -789,10 +789,6 @@
       
       const wood = [...new Set(history.map(b => `${b.wood} ${b.thick} мм`))].join(', ') || "Не вказана";
       
-      const totals = getTotals();
-      let calculatedSum = totals.sum;
-      let calculatedVol = totals.vol.toFixed(3); 
-
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 15000);
 
@@ -801,12 +797,12 @@
           method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify({ 
             data: csvContent, woodName: wood, buyerName: buyer, phone: phone, 
-            totalSum: calculatedSum, totalVol: calculatedVol, action: 'syncFileSync', mode: currentMode, isTrash: isTrash,
+            action: 'syncFileSync', mode: currentMode, isTrash: isTrash,
             paymentMethod: paymentMethod,
             invoiceName: invoiceName,
             needInvoice: needInvoice,
             deliveryCost: deliveryCost,
-            history: history
+            history: history // СЕРВЕР ТЕПЕР САМ РАХУЄ ВСІ СУМИ, МИ ПЕРЕДАЄМО ТІЛЬКИ ІСТОРІЮ
           }),
           signal: controller.signal 
         });
@@ -897,12 +893,11 @@
         });
         csvContent += `---${c}\n`;
         
-        // Ідеальне округлення для підсумків
         let groupRoundedVol = Number(woodVolTotal.toFixed(3));
-        let groupCalculatedSum = Math.round(groupRoundedVol * groupPrice);
+        let groupCalculatedSum = Math.round(groupRoundedVol * groupPrice * 100) / 100;
         
         let woodVolString = groupRoundedVol.toFixed(3); 
-        let woodSumString = groupCalculatedSum.toString();
+        let woodSumString = groupCalculatedSum.toFixed(2);
         
         if (isIncome) { summaryLines += `Всього: ${pureWoodName},,,,${woodVolString}\n`; } 
         else { summaryLines += `Всього: ${pureWoodName},,,,${woodVolString},${groupPrice},${woodSumString}\n`; }
@@ -910,7 +905,7 @@
         grandSumTotal += groupCalculatedSum;
       });
       
-      let grandVolString = grandVolTotal.toFixed(3); let grandSumString = grandSumTotal.toString(); 
+      let grandVolString = grandVolTotal.toFixed(3); let grandSumString = grandSumTotal.toFixed(2); 
       csvContent += summaryLines; csvContent += `---${c}\n`;
       if (isIncome) { csvContent += `ЗАГАЛОМ:,,,,${grandVolString}\n`; } 
       else { csvContent += `ЗАГАЛОМ:,,,,${grandVolString},,${grandSumString}\n`; }
