@@ -106,7 +106,6 @@
       overflow: hidden; padding: 0; background: transparent;
     }
 
-    /* Стилі для ручного виписування рахунку */
     #manual-invoice-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #121212; z-index: 99999; display: none; flex-direction: column; box-sizing: border-box; overflow-y: auto; padding: 15px; }
     .manual-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 15px; }
     .manual-header h2 { margin: 0; font-size: 20px; color: #fff; }
@@ -445,7 +444,7 @@
   </div> 
 
   <script>
-    const APP_VERSION = "2.43"; 
+    const APP_VERSION = "2.44"; 
     
     document.addEventListener("DOMContentLoaded", () => {
        const verEl = document.getElementById('version-display');
@@ -468,7 +467,6 @@
     let pendingPaymentMethod = ''; 
     let pendingInvoiceName = ''; 
 
-    // Глобальний масив позицій для ручного виписування рахунку
     let manualItems = [];
 
     const AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -726,7 +724,6 @@
       let hasDel = document.getElementById('mi-has-delivery').value === 'yes';
       let deliveryCost = hasDel ? (parseFloat(document.getElementById('mi-delivery-sum').value.replace(',', '.')) || 0) : 0;
 
-      // Формуємо історію у форматі, який розуміє наш бекенд
       let formattedHistory = manualItems.map(item => {
         let rowSum = item.vol * item.cubePrice;
         return {
