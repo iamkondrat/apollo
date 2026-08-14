@@ -336,7 +336,7 @@
   </div> 
 
   <script>
-    const APP_VERSION = "2.40"; 
+    const APP_VERSION = "2.41"; 
     
     document.addEventListener("DOMContentLoaded", () => {
        const verEl = document.getElementById('version-display');
@@ -566,7 +566,7 @@
 
     function updateUI() {
       const totals = getTotals();
-      totalVol = totals.vol;
+      totalVol = totals.vol; // Оновлюємо глобальну змінну для збереження
       
       const volEl = document.getElementById('vol'); if(volEl) volEl.innerText = totals.vol.toFixed(3);
       const sumEl = document.getElementById('sum'); 
@@ -790,7 +790,8 @@
       const wood = [...new Set(history.map(b => `${b.wood} ${b.thick} мм`))].join(', ') || "Не вказана";
       
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 15000);
+      // ЗБІЛЬШЕНО ТАЙМЕР ДО 60 СЕКУНД
+      const timeoutId = setTimeout(() => controller.abort(), 60000);
 
       try {
         await fetch(BACKEND_URL, {
@@ -802,7 +803,7 @@
             invoiceName: invoiceName,
             needInvoice: needInvoice,
             deliveryCost: deliveryCost,
-            history: history // СЕРВЕР ТЕПЕР САМ РАХУЄ ВСІ СУМИ, МИ ПЕРЕДАЄМО ТІЛЬКИ ІСТОРІЮ
+            history: history 
           }),
           signal: controller.signal 
         });
