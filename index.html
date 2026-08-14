@@ -336,7 +336,7 @@
   </div> 
 
   <script>
-    const APP_VERSION = "2.41"; 
+    const APP_VERSION = "2.42"; 
     
     document.addEventListener("DOMContentLoaded", () => {
        const verEl = document.getElementById('version-display');
@@ -559,14 +559,14 @@
       for (let k in groups) {
          let rVol = Number(groups[k].vol.toFixed(3));
          totalV += rVol;
-         totalS += Math.round(rVol * groups[k].price * 100) / 100; // Ідеальна точність сум
+         totalS += Math.round(rVol * groups[k].price * 100) / 100; 
       }
       return { vol: totalV, sum: totalS };
     }
 
     function updateUI() {
       const totals = getTotals();
-      totalVol = totals.vol; // Оновлюємо глобальну змінну для збереження
+      totalVol = totals.vol; 
       
       const volEl = document.getElementById('vol'); if(volEl) volEl.innerText = totals.vol.toFixed(3);
       const sumEl = document.getElementById('sum'); 
@@ -632,11 +632,14 @@
       }
     }
 
+    // ===============================
+    // ТУТ ЗМІНЕНО УМОВУ! Тепер "Б/Г без ПДВ" також генерує рахунок
+    // ===============================
     function selectPayment(method) {
       document.getElementById('payment-modal').style.display = 'none';
       pendingPaymentMethod = method;
       
-      if (method === 'Б/Г з ПДВ') {
+      if (method === 'Б/Г з ПДВ' || method === 'Б/Г без ПДВ') {
         document.getElementById('invoice-ask-modal').style.display = 'flex';
       } else {
         executeSend(method, "", false, 0);
@@ -790,7 +793,6 @@
       const wood = [...new Set(history.map(b => `${b.wood} ${b.thick} мм`))].join(', ') || "Не вказана";
       
       const controller = new AbortController();
-      // ЗБІЛЬШЕНО ТАЙМЕР ДО 60 СЕКУНД
       const timeoutId = setTimeout(() => controller.abort(), 60000);
 
       try {
