@@ -147,7 +147,30 @@
       <input type="text" id="invoice-company-name" style="width: 100%; box-sizing: border-box; padding: 12px; background: #333; color: white; border: 1px solid #444; border-radius: 8px; font-size: 16px; outline: none;" placeholder="Введіть назву компанії/ФОП">
       <div style="display: flex; gap: 10px; margin-top: 15px;">
         <button class="pay-btn centered success" style="flex: 1;" onclick="confirmInvoiceName()">ОК</button>
-        <button class="pay-btn centered cancel" style="flex: 1; margin-top: 0;" onclick="cancelInvoiceName()">Скасувати</button>
+        <button class="pay-btn centered cancel" style="flex: 1; margin-top: 0;" onclick="cancelInvoiceName()">Назад</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ВІКНО ПИТАННЯ ПРО ДОСТАВКУ -->
+  <div id="delivery-ask-modal" class="overlay-modal">
+    <div class="modal-box" style="align-items: center; text-align: center;">
+      <h3 style="margin-bottom: 5px;">З доставкою чи без?</h3>
+      <div style="width: 100%; display: flex; gap: 10px; margin-top: 15px;">
+          <button class="pay-btn centered success" style="flex: 1;" onclick="openDeliverySumModal()">З доставкою</button>
+          <button class="pay-btn centered cancel" style="flex: 1; margin-top: 0;" onclick="skipDelivery()">Без</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ВІКНО ВВОДУ СУМИ ДОСТАВКИ -->
+  <div id="delivery-sum-modal" class="overlay-modal">
+    <div class="modal-box">
+      <h3 style="text-align: center; margin-bottom: 10px;">Введіть суму доставки</h3>
+      <input type="text" inputmode="decimal" id="delivery-sum-input" style="width: 100%; box-sizing: border-box; padding: 12px; background: #333; color: white; border: 1px solid #444; border-radius: 8px; font-size: 16px; outline: none;" placeholder="Сума (грн)">
+      <div style="display: flex; gap: 10px; margin-top: 15px;">
+        <button class="pay-btn centered success" style="flex: 1;" onclick="confirmDeliverySum()">ОК</button>
+        <button class="pay-btn centered cancel" style="flex: 1; margin-top: 0;" onclick="cancelDeliverySum()">Назад</button>
       </div>
     </div>
   </div>
@@ -313,7 +336,7 @@
   </div> 
 
   <script>
-    const APP_VERSION = "2.36"; 
+    const APP_VERSION = "2.37"; 
     
     document.addEventListener("DOMContentLoaded", () => {
        const verEl = document.getElementById('version-display');
@@ -334,6 +357,7 @@
     let currentMode = 'sale'; 
     let selectedQRBank = ''; 
     let pendingPaymentMethod = ''; 
+    let pendingInvoiceName = ''; 
 
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     let audioCtx;
@@ -576,7 +600,7 @@
       if (currentMode === 'sale') {
          document.getElementById('payment-modal').style.display = 'flex';
       } else {
-         executeSend('Немає (Прихід)', "", false);
+         executeSend('Немає (Прихід)', "", false, 0);
       }
     }
 
@@ -587,13 +611,13 @@
       if (method === 'Б/Г з ПДВ') {
         document.getElementById('invoice-ask-modal').style.display = 'flex';
       } else {
-        executeSend(method, "", false);
+        executeSend(method, "", false, 0);
       }
     }
 
     function skipInvoice() {
       document.getElementById('invoice-ask-modal').style.display = 'none';
-      executeSend(pendingPaymentMethod, "", false);
+      executeSend(pendingPaymentMethod, "", false, 0);
     }
 
     function openInvoiceNameModal() {
@@ -612,13 +636,38 @@
          const buyerEl = document.getElementById('buyer-name');
          invoiceName = buyerEl ? buyerEl.value : "Невідомо";
       }
+      pendingInvoiceName = invoiceName;
       document.getElementById('invoice-name-modal').style.display = 'none';
-      executeSend(pendingPaymentMethod, invoiceName, true);
+      document.getElementById('delivery-ask-modal').style.display = 'flex'; // Переходимо до питання про доставку
     }
 
     function cancelInvoiceName() {
        document.getElementById('invoice-name-modal').style.display = 'none';
        document.getElementById('payment-modal').style.display = 'flex';
+    }
+
+    function skipDelivery() {
+       document.getElementById('delivery-ask-modal').style.display = 'none';
+       executeSend(pendingPaymentMethod, pendingInvoiceName, true, 0);
+    }
+
+    function openDeliverySumModal() {
+       document.getElementById('delivery-ask-modal').style.display = 'none';
+       document.getElementById('delivery-sum-modal').style.display = 'flex';
+       document.getElementById('delivery-sum-input').value = "";
+       document.getElementById('delivery-sum-input').focus();
+    }
+
+    function confirmDeliverySum() {
+       let val = document.getElementById('delivery-sum-input').value.replace(/[^\d.,]/g, '').replace(',', '.');
+       let delSum = parseFloat(val) || 0;
+       document.getElementById('delivery-sum-modal').style.display = 'none';
+       executeSend(pendingPaymentMethod, pendingInvoiceName, true, delSum);
+    }
+
+    function cancelDeliverySum() {
+       document.getElementById('delivery-sum-modal').style.display = 'none';
+       document.getElementById('delivery-ask-modal').style.display = 'flex';
     }
 
     function openBankSelection() {
@@ -670,13 +719,13 @@
 
     function confirmQRPayment() {
        document.getElementById('qr-modal').style.display = 'none';
-       executeSend('На картку (' + selectedQRBank + ')', "", false); 
+       executeSend('На картку (' + selectedQRBank + ')', "", false, 0); 
     }
 
-    async function executeSend(paymentMethod, invoiceName = "", needInvoice = false) {
+    async function executeSend(paymentMethod, invoiceName = "", needInvoice = false, deliveryCost = 0) {
       try {
         showLoader("Відправлення...");
-        const result = await theoryAutoSend(false, false, paymentMethod, invoiceName, needInvoice);
+        const result = await theoryAutoSend(false, false, paymentMethod, invoiceName, needInvoice, deliveryCost);
 
         if (result === true) {
            document.getElementById('loader-content').innerHTML = '<div style="font-size: 50px; margin-bottom:10px;">✅</div><div id="loader-text" style="color: white; font-size: 22px; font-weight: bold;">Успішно!</div>';
@@ -699,7 +748,7 @@
        setTimeout(() => { resetAndGoHome(); }, 500);
     }
 
-    async function theoryAutoSend(isSilent = false, isTrash = false, paymentMethod = "Не вказано", invoiceName = "", needInvoice = false) {
+    async function theoryAutoSend(isSilent = false, isTrash = false, paymentMethod = "Не вказано", invoiceName = "", needInvoice = false, deliveryCost = 0) {
       if (history.length === 0) return true;
       const buyerEl = document.getElementById('buyer-name'); let buyer = buyerEl ? buyerEl.value : "Невідомий";
       if (buyer === "") buyer = "Невідомий";
@@ -725,6 +774,7 @@
             paymentMethod: paymentMethod,
             invoiceName: invoiceName,
             needInvoice: needInvoice,
+            deliveryCost: deliveryCost, // <--- ПЕРЕДАЄМО ВАРТІСТЬ ДОСТАВКИ
             history: history
           }),
           signal: controller.signal 
