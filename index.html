@@ -398,6 +398,7 @@
 
     <div id="settings-menu">
       <div class="inputs">
+        <!-- ТУТ ЗРОБЛЕНО DATALIST ДЛЯ ІМЕН КЛІЄНТІВ -->
         <input list="buyer-list" type="text" id="buyer-name" placeholder="Покупець">
         <datalist id="buyer-list"></datalist>
 
@@ -416,7 +417,7 @@
           <option value="Берест">Берест</option>
         </select>
         <input type="text" inputmode="decimal" id="price" placeholder="Ціна за куб (грн)">
-        <input type="text" inputmode="decimal" id="len" placeholder="Довжина (м)">
+        <input type="text inputmode="decimal" id="len" placeholder="Довжина (м)">
         <input type="text" inputmode="decimal" id="thick" placeholder="Товщина (мм)">
       </div>
       <div class="btn-row">
@@ -451,7 +452,7 @@
   </div> 
 
   <script>
-    const APP_VERSION = "2.48"; 
+    const APP_VERSION = "2.49"; 
     
     document.addEventListener("DOMContentLoaded", () => {
        const verEl = document.getElementById('version-display');
@@ -954,7 +955,6 @@
       let boardVol = l * t * w; 
       let boardPrice = boardVol * cubePrice; 
 
-      // Якщо режим повернення, робимо значення мінусовими
       if (currentMode === 'return') {
         boardVol = -Math.abs(boardVol);
         boardPrice = -Math.abs(boardPrice);
@@ -979,7 +979,6 @@
       for (let k in groups) {
          let rVol = Number(groups[k].vol.toFixed(3));
          totalV += rVol;
-         // Сума рахується з урахуванням мінусового об'єму
          totalS += Math.round(rVol * groups[k].price * 100) / 100; 
       }
       return { vol: totalV, sum: totalS };
@@ -1049,7 +1048,7 @@
       if (currentMode === 'sale') {
          document.getElementById('payment-modal').style.display = 'flex';
       } else if (currentMode === 'return') {
-         executeSend('Немає (Повернення)', "", false, 0); // Повернення надсилається одразу
+         executeSend('Немає (Повернення)', "", false, 0); 
       } else {
          executeSend('Немає (Прихід)', "", false, 0);
       }
@@ -1349,10 +1348,38 @@
     }
 
     function setupExtraListeners() {
-      const bName = document.getElementById('buyer-name'); const bPhone = document.getElementById('buyer-phone');
+      const bName = document.getElementById('buyer-name'); 
+      const bPhone = document.getElementById('buyer-phone');
+      
       if (bName && bPhone) {
+        // Коли вводимо або вибираємо ім'я -> підтягуємо телефон
         bName.addEventListener('input', function() {
-          if (this.value.toLowerCase().includes('столярка')) { if (bPhone.value !== '0685386959') { bPhone.value = '0685386959'; saveStoredData(); } }
+          let currentName = this.value.trim().toLowerCase();
+          if (currentName.includes('столярка')) { 
+             if (bPhone.value !== '0685386959') { bPhone.value = '0685386959'; saveStoredData(); } 
+          } else {
+             const foundClient = clientsList.find(c => c.name.toLowerCase() === currentName);
+             if (foundClient && foundClient.phone && foundClient.phone.length > 5) {
+                bPhone.value = foundClient.phone;
+                saveStoredData();
+             }
+          }
+        });
+
+        // Коли вводимо телефон -> підтягуємо ім'я
+        bPhone.addEventListener('input', function() {
+          let currentPhoneClean = this.value.replace(/[^\d]/g, '');
+          if (currentPhoneClean.length >= 9) {
+            let last9 = currentPhoneClean.slice(-9);
+            const foundClient = clientsList.find(c => {
+               let cPhoneClean = c.phone.replace(/[^\d]/g, '');
+               return cPhoneClean.length >= 9 && cPhoneClean.slice(-9) === last9;
+            });
+            if (foundClient) {
+               bName.value = foundClient.name;
+               saveStoredData();
+            }
+          }
         });
       }
     }
