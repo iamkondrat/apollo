@@ -27,14 +27,15 @@
     .logo-container { width: 100%; margin: 10px 0 25px 0; display: flex; justify-content: center; align-items: center; }
     .app-logo { width: 240px; height: auto; display: block; }
 
-    .mode-btn { width: 100%; max-width: 400px; padding: 22px; margin-bottom: 15px; font-size: 20px; font-weight: bold; color: white; border: none; border-radius: 12px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 5px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); position: relative; z-index: 10; }
+    .mode-btn { width: 100%; max-width: 400px; padding: 18px; margin-bottom: 12px; font-size: 18px; font-weight: bold; color: white; border: none; border-radius: 12px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 5px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); position: relative; z-index: 10; }
     .mode-btn.sale { background: #27ae60; } .mode-btn.sale:active { background: #1e8449; transform: scale(0.98); }
     .mode-btn.income { background: #2980b9; } .mode-btn.income:active { background: #1f618d; transform: scale(0.98); }
-    .mode-btn.manual-invoice { background: #8e44ad; } .mode-btn.manual-invoice:active { background: #6c3483; transform: scale(0.98); }
     .mode-btn.return-mode { background: #c0392b; } .mode-btn.return-mode:active { background: #922b21; transform: scale(0.98); }
-    .mode-sub { font-size: 13px; font-weight: normal; opacity: 0.9; }
+    .mode-btn.manual-invoice { background: #8e44ad; } .mode-btn.manual-invoice:active { background: #6c3483; transform: scale(0.98); }
+    .mode-btn.manual-waybill { background: #d35400; } .mode-btn.manual-waybill:active { background: #a04000; transform: scale(0.98); }
+    .mode-sub { font-size: 12px; font-weight: normal; opacity: 0.9; text-align: center; }
     
-    .drafts-container { width: 100%; max-width: 400px; margin-top: 10px; background: #1e1e1e; padding: 15px; border-radius: 12px; border: 1px solid #333; box-sizing: border-box; }
+    .drafts-container { width: 100%; max-width: 400px; margin-top: 5px; background: #1e1e1e; padding: 15px; border-radius: 12px; border: 1px solid #333; box-sizing: border-box; }
     .drafts-header { font-size: 18px; font-weight: bold; margin-bottom: 15px; color: #f39c12; display: flex; justify-content: space-between; align-items: center;}
     .draft-card { background: #2a2a2a; border-left: 4px solid #555; padding: 12px; border-radius: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
     .draft-card.draft-sale { border-left-color: #27ae60; }
@@ -116,7 +117,7 @@
 </head>
 <body>
 
-  <!-- МЕНЮ ВИБОРУ ОПЛАТИ (Для продажу) -->
+  <!-- МЕНЮ ВИБОРУ ОПЛАТИ -->
   <div id="payment-modal" class="overlay-modal">
     <div class="modal-box">
       <h3>Оберіть вид оплати</h3>
@@ -147,11 +148,11 @@
     </div>
   </div>
 
-  <!-- НОВЕ: ВІКНО ПИТАННЯ ПРО НАКЛАДНУ (ДЛЯ ГОТІВКИ/КАРТКИ) -->
+  <!-- ВІКНО ПИТАННЯ ПРО НАКЛАДНУ (ДЛЯ ГОТІВКИ/КАРТКИ) -->
   <div id="waybill-ask-modal" class="overlay-modal">
     <div class="modal-box" style="align-items: center; text-align: center;">
       <h3 style="margin-bottom: 5px;">Виписати накладну?</h3>
-      <p style="color: #aaa; font-size: 13px; margin: 0 0 15px 0;">(З печаткою та підписом)</p>
+      <p style="color: #aaa; font-size: 13px; margin: 0 0 15px 0;">(З фірмовим підписом)</p>
       <div style="width: 100%; display: flex; gap: 10px;">
           <button class="pay-btn centered success" style="flex: 1;" onclick="confirmWaybill(true)">Так</button>
           <button class="pay-btn centered cancel" style="flex: 1; margin-top: 0;" onclick="confirmWaybill(false)">Ні</button>
@@ -159,11 +160,11 @@
     </div>
   </div>
 
-  <!-- ВІКНО ВВОДУ НАЗВИ КОМПАНІЇ ДЛЯ РАХУНКУ -->
+  <!-- ВІКНО ВВОДУ НАЗВИ КОМПАНІЇ -->
   <div id="invoice-name-modal" class="overlay-modal">
     <div class="modal-box">
-      <h3 style="text-align: center; margin-bottom: 10px;">На кого виписати рахунок?</h3>
-      <input type="text" id="invoice-company-name" style="width: 100%; box-sizing: border-box; padding: 12px; background: #333; color: white; border: 1px solid #444; border-radius: 8px; font-size: 16px; outline: none;" placeholder="Введіть назву компанії/ФОП">
+      <h3 style="text-align: center; margin-bottom: 10px;" id="name-modal-title">На кого виписати рахунок?</h3>
+      <input type="text" id="invoice-company-name" style="width: 100%; box-sizing: border-box; padding: 12px; background: #333; color: white; border: 1px solid #444; border-radius: 8px; font-size: 16px; outline: none;" placeholder="Введіть назву / ФОП">
       <div style="display: flex; gap: 10px; margin-top: 15px;">
         <button class="pay-btn centered success" style="flex: 1;" onclick="confirmInvoiceName()">ОК</button>
         <button class="pay-btn centered cancel" style="flex: 1; margin-top: 0;" onclick="cancelInvoiceName()">Назад</button>
@@ -262,10 +263,16 @@
       <span class="mode-sub">(Прийняти товар назад)</span>
     </button>
 
-    <button class="mode-btn manual-invoice" onclick="openManualInvoiceModal()">
-      📄 ВИПИСАТИ РАХУНОК
-      <span class="mode-sub">(Створити рахунок наперед)</span>
-    </button>
+    <div style="display: flex; gap: 10px; width: 100%; max-width: 400px;">
+      <button class="mode-btn manual-invoice" style="flex: 1;" onclick="openManualScreen('invoice')">
+        📄 РАХУНОК
+        <span class="mode-sub">(Наперед)</span>
+      </button>
+      <button class="mode-btn manual-waybill" style="flex: 1;" onclick="openManualScreen('waybill')">
+        📝 НАКЛАДНА
+        <span class="mode-sub">(Наперед)</span>
+      </button>
+    </div>
 
     <div class="drafts-container">
       <div class="drafts-header">
@@ -280,15 +287,15 @@
     <div id="version-display" style="margin-top: auto; padding-top: 30px; padding-bottom: 10px; font-size: 12px; color: #666; text-align: center; width: 100%;"></div>
   </div>
 
-  <!-- ЕКРАН РУЧНОГО ВИПИСУВАННЯ РАХУНКУ -->
+  <!-- ЕКРАН РУЧНИХ ДОКУМЕНТІВ (Спільний для Рахунку і Накладної) -->
   <div id="manual-invoice-screen">
     <div class="manual-header">
-      <h2>📄 Виписування рахунку наперед</h2>
-      <button onclick="closeManualInvoiceScreen()" style="background: #d32f2f; color: white; border: none; padding: 8px 15px; border-radius: 8px; font-weight: bold; cursor: pointer;">✕ Закрити</button>
+      <h2 id="manual-screen-title">📄 Документ наперед</h2>
+      <button onclick="closeManualScreen()" style="background: #d32f2f; color: white; border: none; padding: 8px 15px; border-radius: 8px; font-weight: bold; cursor: pointer;">✕ Закрити</button>
     </div>
 
     <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 15px;">
-      <div>
+      <div id="manual-payment-block">
         <label style="font-size: 13px; color: #aaa;">Тип оплати / компанія:</label>
         <select id="mi-payment-type" style="margin-top: 5px;">
           <option value="Б/Г з ПДВ">Б/Г з ПДВ (ТОВ «Аполло»)</option>
@@ -296,7 +303,7 @@
         </select>
       </div>
       <div>
-        <label style="font-size: 13px; color: #aaa;">На кого виписати (Платник):</label>
+        <label style="font-size: 13px; color: #aaa;" id="manual-buyer-label">На кого виписати (Платник):</label>
         <input type="text" id="mi-buyer-name" placeholder="Назва компанії або ФОП" style="margin-top: 5px;">
       </div>
     </div>
@@ -325,10 +332,10 @@
       <strong id="mi-grand-total" style="color: #4CAF50; font-size: 20px;">0 грн</strong>
     </div>
 
-    <button onclick="previewManualInvoice()" class="action-btn" style="background: #27ae60; padding: 16px; font-size: 18px; margin-top: auto;">👀 Попередній перегляд рахунку</button>
+    <button id="manual-preview-btn" onclick="previewManualDocument()" class="action-btn" style="background: #27ae60; padding: 16px; font-size: 18px; margin-top: auto;">👀 Попередній перегляд</button>
   </div>
 
-  <!-- МОДАЛЬНЕ ВІКНО ДОДАВАННЯ ПОЗИЦІЇ (Для ручного рахунку) -->
+  <!-- МОДАЛЬНЕ ВІКНО ДОДАВАННЯ ПОЗИЦІЇ -->
   <div id="mi-item-modal" class="overlay-modal">
     <div class="modal-box">
       <h3 id="mi-modal-title">Додати позицію</h3>
@@ -370,10 +377,10 @@
   <!-- МОДАЛЬНЕ ВІКНО ПОПЕРЕДНЬОГО ПЕРЕГЛЯДУ -->
   <div id="mi-preview-modal" class="overlay-modal" style="background: rgba(0,0,0,0.92);">
     <div class="modal-box" style="max-width: 500px; max-height: 90vh; overflow-y: auto; background: #fff; color: #000; padding: 20px;">
-      <h3 style="text-align: center; color: #000; margin-bottom: 5px;">📄 Попередній перегляд рахунку</h3>
+      <h3 id="preview-modal-header" style="text-align: center; color: #000; margin-bottom: 5px;">📄 Попередній перегляд</h3>
       <div id="mi-preview-content" style="font-family: Arial, sans-serif; font-size: 13px; text-align: left; background: #fff; padding: 10px; border: 1px solid #ccc;"></div>
       <div style="display: flex; gap: 10px; margin-top: 15px;">
-        <button class="pay-btn centered success" style="flex: 1; background: #27ae60;" onclick="confirmAndSendManualInvoice()">💾 Зберегти і відправити</button>
+        <button class="pay-btn centered success" style="flex: 1; background: #27ae60;" onclick="confirmAndSendManual()">💾 Зберегти і відправити</button>
         <button class="pay-btn centered cancel" style="flex: 1; background: #e67e22; margin-top: 0;" onclick="closePreviewModal()">✏️ Змінити</button>
       </div>
     </div>
@@ -480,6 +487,7 @@
     let pendingPaymentMethod = ''; 
     let pendingInvoiceName = ''; 
 
+    let manualDocType = 'invoice'; // 'invoice' або 'waybill'
     let manualItems = [];
     let clientsList = [];
 
@@ -577,17 +585,37 @@
       updateUI(); 
     }
 
-    function openManualInvoiceModal() {
+    // --- ЛОГІКА РУЧНИХ ДОКУМЕНТІВ (РАХУНОК ТА НАКЛАДНА) ---
+    function openManualScreen(type) {
+      manualDocType = type;
       manualItems = [];
       document.getElementById('mi-buyer-name').value = "";
       document.getElementById('mi-has-delivery').value = "no";
       document.getElementById('mi-delivery-sum').value = "";
       document.getElementById('mi-delivery-sum').style.display = 'none';
+      
+      const titleEl = document.getElementById('manual-screen-title');
+      const payBlock = document.getElementById('manual-payment-block');
+      const buyerLabel = document.getElementById('manual-buyer-label');
+      const previewBtn = document.getElementById('manual-preview-btn');
+
+      if (type === 'waybill') {
+        titleEl.innerText = "📝 Виписування накладної наперед";
+        payBlock.style.display = 'none';
+        buyerLabel.innerText = "Для назви файлу (Платник):";
+        previewBtn.innerText = "👀 Попередній перегляд накладної";
+      } else {
+        titleEl.innerText = "📄 Виписування рахунку наперед";
+        payBlock.style.display = 'block';
+        buyerLabel.innerText = "На кого виписати (Платник):";
+        previewBtn.innerText = "👀 Попередній перегляд рахунку";
+      }
+
       renderManualItemsList();
       document.getElementById('manual-invoice-screen').style.display = 'flex';
     }
 
-    function closeManualInvoiceScreen() {
+    function closeManualScreen() {
       document.getElementById('manual-invoice-screen').style.display = 'none';
     }
 
@@ -689,19 +717,17 @@
       document.getElementById('mi-grand-total').innerText = grandTotal.toLocaleString('uk-UA', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + " грн";
     }
 
-    function previewManualInvoice() {
+    function previewManualDocument() {
       if (manualItems.length === 0) {
-        alert("Додайте хоча б одну позицію до рахунку!");
+        alert("Додайте хоча б одну позицію!");
         return;
       }
       let buyerName = document.getElementById('mi-buyer-name').value.trim();
       if (buyerName === "") {
-        alert("Вкажіть назву компанії або ФОП!");
+        alert("Вкажіть назву компанії/Платника!");
         return;
       }
 
-      let paymentType = document.getElementById('mi-payment-type').value;
-      let isKrok = (paymentType === 'Б/Г без ПДВ');
       let hasDel = document.getElementById('mi-has-delivery').value === 'yes';
       let deliveryVal = hasDel ? (parseFloat(document.getElementById('mi-delivery-sum').value.replace(',', '.')) || 0) : 0;
 
@@ -710,61 +736,110 @@
 
       let tableRows = '';
       let totalBaseSum = 0;
-      manualItems.forEach((item, idx) => {
-        let usedPrice = isKrok ? (item.cubePrice / 0.94) : item.cubePrice;
-        let baseRowSum = Math.round(item.vol * usedPrice * 100) / 100;
-        
-        let inflatedDel = isKrok ? (deliveryVal / 0.94) : deliveryVal;
-        let propDel = (totalVol > 0 && inflatedDel > 0) ? (inflatedDel * (item.vol / totalVol)) : 0;
-        
-        let finalRowSum = Math.round((baseRowSum + propDel) * 100) / 100;
-        totalBaseSum += finalRowSum;
-        let dispPrice = finalRowSum / item.vol;
 
-        tableRows += `
-          <tr>
-            <td style="border: 1px solid #000; padding: 4px; text-align: center;">${idx + 1}</td>
-            <td style="border: 1px solid #000; padding: 4px;">Дошка ${item.wood} ${item.thick} мм</td>
-            <td style="border: 1px solid #000; padding: 4px; text-align: center;">м3</td>
-            <td style="border: 1px solid #000; padding: 4px; text-align: center;">${item.vol.toFixed(3).replace('.', ',')}</td>
-            <td style="border: 1px solid #000; padding: 4px; text-align: center;">${dispPrice.toFixed(2).replace('.', ',')}</td>
-            <td style="border: 1px solid #000; padding: 4px; text-align: center;">${finalRowSum.toFixed(2).replace('.', ',')}</td>
-          </tr>
+      if (manualDocType === 'invoice') {
+        document.getElementById('preview-modal-header').innerText = "📄 Попередній перегляд рахунку";
+        let paymentType = document.getElementById('mi-payment-type').value;
+        let isKrok = (paymentType === 'Б/Г без ПДВ');
+
+        manualItems.forEach((item, idx) => {
+          let usedPrice = isKrok ? (item.cubePrice / 0.94) : item.cubePrice;
+          let baseRowSum = Math.round(item.vol * usedPrice * 100) / 100;
+          let inflatedDel = isKrok ? (deliveryVal / 0.94) : deliveryVal;
+          let propDel = (totalVol > 0 && inflatedDel > 0) ? (inflatedDel * (item.vol / totalVol)) : 0;
+          let finalRowSum = Math.round((baseRowSum + propDel) * 100) / 100;
+          totalBaseSum += finalRowSum;
+          let dispPrice = finalRowSum / item.vol;
+
+          tableRows += `
+            <tr>
+              <td style="border: 1px solid #000; padding: 4px; text-align: center;">${idx + 1}</td>
+              <td style="border: 1px solid #000; padding: 4px;">Дошка ${item.wood} ${item.thick} мм</td>
+              <td style="border: 1px solid #000; padding: 4px; text-align: center;">м3</td>
+              <td style="border: 1px solid #000; padding: 4px; text-align: center;">${item.vol.toFixed(3).replace('.', ',')}</td>
+              <td style="border: 1px solid #000; padding: 4px; text-align: center;">${dispPrice.toFixed(2).replace('.', ',')}</td>
+              <td style="border: 1px solid #000; padding: 4px; text-align: center;">${finalRowSum.toFixed(2).replace('.', ',')}</td>
+            </tr>
+          `;
+        });
+
+        let totalsHtml = isKrok ? `
+          <tr><td style="text-align: right; padding: 4px;" colspan="5"><b>Всього без ПДВ:</b></td><td style="border: 1px solid #000; text-align: center; padding: 4px;">${totalBaseSum.toFixed(2).replace('.', ',')}</td></tr>
+          <tr><td style="text-align: right; padding: 4px;" colspan="5"><b>ПДВ:</b></td><td style="border: 1px solid #000; text-align: center; padding: 4px;">-</td></tr>
+          <tr><td style="text-align: right; padding: 4px;" colspan="5"><b>ПІДСУМОК:</b></td><td style="border: 1px solid #000; text-align: center; padding: 4px;"><b>${totalBaseSum.toFixed(2).replace('.', ',')}</b></td></tr>
+        ` : `
+          <tr><td style="text-align: right; padding: 4px;" colspan="5"><b>Всього без ПДВ:</b></td><td style="border: 1px solid #000; text-align: center; padding: 4px;">${totalBaseSum.toFixed(2).replace('.', ',')}</td></tr>
+          <tr><td style="text-align: right; padding: 4px;" colspan="5"><b>ПДВ 20%:</b></td><td style="border: 1px solid #000; text-align: center; padding: 4px;">${(totalBaseSum * 0.2).toFixed(2).replace('.', ',')}</td></tr>
+          <tr><td style="text-align: right; padding: 4px;" colspan="5"><b>ПІДСУМОК:</b></td><td style="border: 1px solid #000; text-align: center; padding: 4px;"><b>${(totalBaseSum * 1.2).toFixed(2).replace('.', ',')}</b></td></tr>
         `;
-      });
 
-      let totalsHtml = isKrok ? `
-        <tr><td style="text-align: right; padding: 4px;" colspan="5"><b>Всього без ПДВ:</b></td><td style="border: 1px solid #000; text-align: center; padding: 4px;">${totalBaseSum.toFixed(2).replace('.', ',')}</td></tr>
-        <tr><td style="text-align: right; padding: 4px;" colspan="5"><b>ПДВ:</b></td><td style="border: 1px solid #000; text-align: center; padding: 4px;">-</td></tr>
-        <tr><td style="text-align: right; padding: 4px;" colspan="5"><b>ПІДСУМОК:</b></td><td style="border: 1px solid #000; text-align: center; padding: 4px;"><b>${totalBaseSum.toFixed(2).replace('.', ',')}</b></td></tr>
-      ` : `
-        <tr><td style="text-align: right; padding: 4px;" colspan="5"><b>Всього без ПДВ:</b></td><td style="border: 1px solid #000; text-align: center; padding: 4px;">${totalBaseSum.toFixed(2).replace('.', ',')}</td></tr>
-        <tr><td style="text-align: right; padding: 4px;" colspan="5"><b>ПДВ 20%:</b></td><td style="border: 1px solid #000; text-align: center; padding: 4px;">${(totalBaseSum * 0.2).toFixed(2).replace('.', ',')}</td></tr>
-        <tr><td style="text-align: right; padding: 4px;" colspan="5"><b>ПІДСУМОК:</b></td><td style="border: 1px solid #000; text-align: center; padding: 4px;"><b>${(totalBaseSum * 1.2).toFixed(2).replace('.', ',')}</b></td></tr>
-      `;
+        document.getElementById('mi-preview-content').innerHTML = `
+          <div style="font-size: 12px; color: #333;">
+            <div style="font-weight: bold; margin-bottom: 5px;">Постачальник: ${isKrok ? 'ПП "Торговий дім "КРОК"' : 'ТОВ "Аполло"'}</div>
+            <div style="margin-bottom: 15px;"><b>Платник:</b> ${buyerName}</div>
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 10px;">
+              <thead>
+                <tr style="background: #eee;">
+                  <th style="border: 1px solid #000; padding: 4px;">№</th>
+                  <th style="border: 1px solid #000; padding: 4px;">Найменування</th>
+                  <th style="border: 1px solid #000; padding: 4px;">Од</th>
+                  <th style="border: 1px solid #000; padding: 4px;">К-сть</th>
+                  <th style="border: 1px solid #000; padding: 4px;">Ціна</th>
+                  <th style="border: 1px solid #000; padding: 4px;">Сума</th>
+                </tr>
+              </thead>
+              <tbody>${tableRows}</tbody>
+            </table>
+            <table style="width: 100%; border-collapse: collapse;">${totalsHtml}</table>
+          </div>
+        `;
+      } 
+      else {
+        // НАКЛАДНА
+        document.getElementById('preview-modal-header').innerText = "📝 Попередній перегляд накладної";
+        manualItems.forEach((item, idx) => {
+          let baseRowSum = Math.round(item.vol * item.cubePrice * 100) / 100;
+          let propDel = (totalVol > 0 && deliveryVal > 0) ? (deliveryVal * (item.vol / totalVol)) : 0;
+          let finalRowSum = Math.round((baseRowSum + propDel) * 100) / 100;
+          totalBaseSum += finalRowSum;
+          let dispPrice = finalRowSum / item.vol;
 
-      let previewHtml = `
-        <div style="font-size: 12px; color: #333;">
-          <div style="font-weight: bold; margin-bottom: 5px;">Постачальник: ${isKrok ? 'ПП "Торговий дім "КРОК"' : 'ТОВ "Аполло"'}</div>
-          <div style="margin-bottom: 15px;"><b>Платник:</b> ${buyerName}</div>
-          <table style="width: 100%; border-collapse: collapse; margin-bottom: 10px;">
-            <thead>
-              <tr style="background: #eee;">
-                <th style="border: 1px solid #000; padding: 4px;">№</th>
-                <th style="border: 1px solid #000; padding: 4px;">Найменування</th>
-                <th style="border: 1px solid #000; padding: 4px;">Од</th>
-                <th style="border: 1px solid #000; padding: 4px;">К-сть</th>
-                <th style="border: 1px solid #000; padding: 4px;">Ціна</th>
-                <th style="border: 1px solid #000; padding: 4px;">Сума</th>
-              </tr>
-            </thead>
-            <tbody>${tableRows}</tbody>
-          </table>
-          <table style="width: 100%; border-collapse: collapse;">${totalsHtml}</table>
-        </div>
-      `;
+          tableRows += `
+            <tr>
+              <td style="border-bottom: 1px solid #ddd; padding: 4px; text-align: center;">${idx + 1}</td>
+              <td style="border-bottom: 1px solid #ddd; padding: 4px; font-weight: bold;">Дошка ${item.wood} ${item.thick} мм</td>
+              <td style="border-bottom: 1px solid #ddd; padding: 4px; text-align: center;">м3</td>
+              <td style="border-bottom: 1px solid #ddd; padding: 4px; text-align: center;">${item.vol.toFixed(3).replace('.', ',')}</td>
+              <td style="border-bottom: 1px solid #ddd; padding: 4px; text-align: center;">${dispPrice.toFixed(2).replace('.', ',')}</td>
+              <td style="border-bottom: 1px solid #ddd; padding: 4px; text-align: right;">${finalRowSum.toFixed(2).replace('.', ',')}</td>
+            </tr>
+          `;
+        });
 
-      document.getElementById('mi-preview-content').innerHTML = previewHtml;
+        document.getElementById('mi-preview-content').innerHTML = `
+          <div style="font-size: 12px; color: #15222E; background: #fff; padding: 10px;">
+            <div style="text-align: right; margin-bottom: 10px;">
+              <span style="font-size: 10px; font-weight: bold; color: #A67C52; text-transform: uppercase;">Внутрішні перевезення</span><br>
+              <h2 style="margin: 0;">НАКЛАДНА</h2>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 15px; font-weight: bold;">
+               <div>Постачальник: ТОВ "Аполло"</div>
+               <div>Одержувач: ТОВ "Аполло"</div>
+            </div>
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 10px;">
+              <thead>
+                <tr style="background: #15222E; color: white;">
+                  <th style="padding: 4px;">№</th><th style="padding: 4px;">Найменування</th><th style="padding: 4px;">Од</th><th style="padding: 4px;">К-сть</th><th style="padding: 4px;">Ціна</th><th style="padding: 4px;">Сума</th>
+                </tr>
+              </thead>
+              <tbody>${tableRows}</tbody>
+            </table>
+            <div style="text-align: right; font-size: 14px; font-weight: bold; color: #A67C52;">
+              ПІДСУМОК: ${totalBaseSum.toFixed(2).replace('.', ',')} грн
+            </div>
+          </div>
+        `;
+      }
       document.getElementById('mi-preview-modal').style.display = 'flex';
     }
 
@@ -772,52 +847,49 @@
       document.getElementById('mi-preview-modal').style.display = 'none';
     }
 
-    async function confirmAndSendManualInvoice() {
+    async function confirmAndSendManual() {
       closePreviewModal();
-      showLoader("Генерація та відправка рахунку...");
+      showLoader("Генерація та відправка документа...");
 
       let buyerName = document.getElementById('mi-buyer-name').value.trim();
-      let paymentMethod = document.getElementById('mi-payment-type').value;
       let hasDel = document.getElementById('mi-has-delivery').value === 'yes';
       let deliveryCost = hasDel ? (parseFloat(document.getElementById('mi-delivery-sum').value.replace(',', '.')) || 0) : 0;
 
       let formattedHistory = manualItems.map(item => {
         let rowSum = item.vol * item.cubePrice;
-        return {
-          buyer: buyerName,
-          wood: item.wood,
-          thick: item.thick,
-          width: 0,
-          length: 1,
-          vol: item.vol,
-          cubePrice: item.cubePrice,
-          price: rowSum
-        };
+        return { buyer: buyerName, wood: item.wood, thick: item.thick, width: 0, length: 1, vol: item.vol, cubePrice: item.cubePrice, price: rowSum };
       });
 
       let woodNames = [...new Set(manualItems.map(i => `${i.wood} ${i.thick} мм`))].join(', ');
 
-      try {
-        await fetch(BACKEND_URL, {
-          method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify({
-            action: 'syncFileSync',
-            mode: 'sale',
-            isTrash: false,
-            buyerName: buyerName,
-            phone: "Не вказано",
-            woodName: woodNames,
-            paymentMethod: paymentMethod,
-            invoiceName: buyerName,
-            needInvoice: true,
-            deliveryCost: deliveryCost,
-            history: formattedHistory
-          })
-        });
+      let reqBody = {
+        action: 'syncFileSync',
+        isTrash: false,
+        buyerName: buyerName,
+        phone: "Не вказано",
+        woodName: woodNames,
+        invoiceName: buyerName,
+        deliveryCost: deliveryCost,
+        history: formattedHistory
+      };
 
+      if (manualDocType === 'invoice') {
+        reqBody.mode = 'sale';
+        reqBody.paymentMethod = document.getElementById('mi-payment-type').value;
+        reqBody.needInvoice = true;
+        reqBody.needWaybill = false;
+      } else {
+        reqBody.mode = 'manual_waybill';
+        reqBody.paymentMethod = "Накладна (без оплати)";
+        reqBody.needInvoice = false;
+        reqBody.needWaybill = true;
+      }
+
+      try {
+        await fetch(BACKEND_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(reqBody) });
         hideLoader();
-        alert("✅ Рахунок успішно виписано, збережено на Диск та надіслано в Telegram!");
-        closeManualInvoiceScreen();
+        alert(`✅ ${manualDocType === 'invoice' ? 'Рахунок' : 'Накладну'} успішно виписано, збережено на Диск та надіслано в Telegram!`);
+        closeManualScreen();
       } catch (err) {
         hideLoader();
         alert("Помилка відправки: " + err.message);
@@ -1260,6 +1332,7 @@
       let prefix = 'ТОЧКОВКА_';
       if (currentMode === 'income') prefix = 'ПРИХІД_';
       if (currentMode === 'return') prefix = 'ПОВЕРНЕННЯ_';
+      if (currentMode === 'manual_waybill') prefix = 'НАКЛАДНА_НАПЕРЕД_';
 
       const fileName = `${prefix}${buyerSafe}_${dateUa}_${time}.csv`;
       const link = document.createElement("a"); link.setAttribute("href", encodeURI(csvContent)); link.setAttribute("download", fileName);
