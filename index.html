@@ -152,7 +152,7 @@
   <div id="waybill-ask-modal" class="overlay-modal">
     <div class="modal-box" style="align-items: center; text-align: center;">
       <h3 style="margin-bottom: 5px;">Виписати накладну?</h3>
-      <p style="color: #aaa; font-size: 13px; margin: 0 0 15px 0;">(З фірмовим підписом)</p>
+    
       <div style="width: 100%; display: flex; gap: 10px;">
           <button class="pay-btn centered success" style="flex: 1;" onclick="confirmWaybill(true)">Так</button>
           <button class="pay-btn centered cancel" style="flex: 1; margin-top: 0;" onclick="confirmWaybill(false)">Ні</button>
@@ -600,12 +600,12 @@
       const previewBtn = document.getElementById('manual-preview-btn');
 
       if (type === 'waybill') {
-        titleEl.innerText = "📝 Виписування накладної наперед";
+        titleEl.innerText = "📝 Накладна";
         payBlock.style.display = 'none';
-        buyerLabel.innerText = "Для назви файлу (Платник):";
+        buyerLabel.innerText = "На кого виписати (Покупець):";
         previewBtn.innerText = "👀 Попередній перегляд накладної";
       } else {
-        titleEl.innerText = "📄 Виписування рахунку наперед";
+        titleEl.innerText = "📄 Рахунок";
         payBlock.style.display = 'block';
         buyerLabel.innerText = "На кого виписати (Платник):";
         previewBtn.innerText = "👀 Попередній перегляд рахунку";
