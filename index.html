@@ -652,12 +652,12 @@
       const previewBtn = document.getElementById('manual-preview-btn');
 
       if (type === 'waybill') {
-        titleEl.innerText = "📝 Виписування накладної наперед";
+        titleEl.innerText = "📝 Накладна";
         payBlock.style.display = 'none';
-        buyerLabel.innerText = "Для назви файлу (Платник):";
+        buyerLabel.innerText = "Покупець:";
         previewBtn.innerText = "👀 Попередній перегляд накладної";
       } else {
-        titleEl.innerText = "📄 Виписування рахунку наперед";
+        titleEl.innerText = "📄 Рахунок";
         payBlock.style.display = 'block';
         buyerLabel.innerText = "На кого виписати (Платник):";
         previewBtn.innerText = "👀 Попередній перегляд рахунку";
