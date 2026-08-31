@@ -72,6 +72,7 @@
     .list-btn { background: #f57c00; margin-top: 0; } .list-btn:active { background: #e65100; }
     .export-btn { background: #1976d2; margin-top: 0; flex: 2; } .export-btn:active { background: #1565c0; }
     .reset-btn { background: #555; margin-top: 10px; } .reset-btn:active { background: #444; }
+    .force-update-btn { background: #8e44ad; width: 100%; margin-bottom: 15px; } .force-update-btn:active { background: #6c3483; }
     
     .width-input-area { padding: 15px; background: rgba(0,0,0,0.2); border-bottom: 1px solid #333; display: flex; align-items: center; gap: 10px; box-sizing: border-box; }
     .width-display { flex: 1; padding: 15px; background: #2c2c2c; color: white; border: 1px solid #444; border-radius: 8px; font-size: 20px; font-weight: bold; outline: none; text-align: center; cursor: default; }
@@ -88,7 +89,7 @@
 
     #list-modal { display: none; background: #2c2c2c; padding: 15px; border-radius: 8px; margin-top: 15px; max-height: 250px; overflow-y: auto; font-size: 14px; }
     
-    #loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.9); z-index: 99999999; display: none; justify-content: center; align-items: center; flex-direction: column; }
+    #loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.9); z-index: 99999998; display: none; justify-content: center; align-items: center; flex-direction: column; }
     .spinner { border: 6px solid #333; border-top: 6px solid #4CAF50; border-radius: 50%; width: 60px; height: 60px; animation: spin 1s linear infinite; margin: 0 auto 15px auto; }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     #loader-text { font-size: 22px; font-weight: bold; color: white; text-align: center; margin-top: 10px; }
@@ -283,8 +284,8 @@
       </div>
       <div style="display: flex; gap: 10px; flex-direction: column;">
         <div style="display: flex; gap: 10px;">
-          <button class="pay-btn centered" style="flex:1; background: #1976d2; border-color: #1565c0; font-size:14px; padding: 10px;" onclick="convertArchive('invoice')">📄 Виписати рахунок</button>
-          <button class="pay-btn centered" style="flex:1; background: #d35400; border-color: #a04000; font-size:14px; padding: 10px;" onclick="convertArchive('waybill')">📝 Виписати накладну</button>
+          <button class="pay-btn centered" style="flex:1; background: #1976d2; border-color: #1565c0; font-size:14px; padding: 10px;" onclick="convertArchive('invoice')">📄 Виписати Рахунок</button>
+          <button class="pay-btn centered" style="flex:1; background: #d35400; border-color: #a04000; font-size:14px; padding: 10px;" onclick="convertArchive('waybill')">📝 Виписати Накладну</button>
         </div>
         <button class="pay-btn centered cancel" style="padding: 10px; margin-top: 0;" onclick="closeArchiveDetail()">Назад</button>
       </div>
@@ -323,7 +324,6 @@
       </button>
     </div>
 
-    <!-- КНОПКА ІСТОРІЇ АРХІВУ -->
     <button class="mode-btn archive-btn" style="width: 100%; max-width: 400px;" onclick="openArchiveModal()">
       🕒 ІСТОРІЯ ЗАМІРІВ
       <span class="mode-sub">(Останні відвантаження)</span>
@@ -342,6 +342,7 @@
     <div id="version-display" style="margin-top: auto; padding-top: 30px; padding-bottom: 10px; font-size: 12px; color: #666; text-align: center; width: 100%;"></div>
   </div>
 
+  <!-- ЕКРАН РУЧНИХ ДОКУМЕНТІВ -->
   <div id="manual-invoice-screen">
     <div class="manual-header">
       <h2 id="manual-screen-title">📄 Документ наперед</h2>
@@ -517,6 +518,8 @@
     </div>
 
     <div id="settings-menu">
+      <button class="action-btn force-update-btn" onclick="forceUpdateApp()">🔄 Оновити додаток (Скинути кеш)</button>
+      
       <div class="inputs">
         <input list="buyer-list" type="text" id="buyer-name" placeholder="Покупець">
         <datalist id="buyer-list"></datalist>
@@ -537,7 +540,7 @@
         </select>
         <input type="text" inputmode="decimal" id="price" placeholder="Ціна за куб (грн)">
         <input type="text" inputmode="decimal" id="len" placeholder="Довжина (м)">
-        <input type="text inputmode="decimal" id="thick" placeholder="Товщина (мм)">
+        <input type="text" inputmode="decimal" id="thick" placeholder="Товщина (мм)">
       </div>
       <div class="btn-row">
         <button class="action-btn list-btn" onclick="toggleList()">📋 Список дошок</button>
@@ -571,7 +574,7 @@
   </div> 
 
   <script>
-    const APP_VERSION = "2.57"; 
+    const APP_VERSION = "2.58"; 
     
     document.addEventListener("DOMContentLoaded", () => {
        const verEl = document.getElementById('version-display');
@@ -598,6 +601,8 @@
     let manualItems = [];
     let clientsList = [];
     let manualItemMode = 'board';
+    
+    let isUpdateAvailable = false;
 
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     let audioCtx;
@@ -610,6 +615,27 @@
       gainNode.gain.setValueAtTime(1, audioCtx.currentTime); gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
       osc.connect(gainNode); gainNode.connect(audioCtx.destination);
       osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+    }
+
+    function forceUpdateApp() {
+      window.location.href = window.location.pathname + '?t=' + new Date().getTime();
+    }
+    
+    // --- ФОНОВА ПЕРЕВІРКА ОНОВЛЕНЬ ---
+    async function checkAutoUpdate() {
+        try {
+            let res = await fetch(window.location.pathname + "?_t=" + new Date().getTime(), {cache: "no-store"});
+            let text = await res.text();
+            let match = text.match(/const APP_VERSION = "([\d\.]+)";/);
+            if (match && match[1] && match[1] !== APP_VERSION) {
+                isUpdateAvailable = true;
+                if (history.length === 0 && manualItems.length === 0 && document.getElementById('start-menu').style.display !== 'none') {
+                    forceUpdateApp();
+                } else {
+                    document.getElementById('version-display').innerHTML = `Версія: ${APP_VERSION} <span style="color:#f39c12;">(Доступне оновлення 🔄)</span>`;
+                }
+            }
+        } catch (e) {}
     }
 
     // КАСТОМНІ АЛЕРТИ ТА КОНФІРМИ
@@ -653,11 +679,15 @@
         document.getElementById('main-app').style.display = 'none';
         fetchDrafts();
       }
+      
+      // Запускаємо перевірку оновлень кожні 5 хвилин
+      setInterval(checkAutoUpdate, 5 * 60 * 1000);
+      setTimeout(checkAutoUpdate, 2000);
     }
 
     async function fetchClientsList() {
       try {
-        const res = await fetch(BACKEND_URL + "?action=getClients");
+        const res = await fetch(BACKEND_URL + "?action=getClients&_t=" + new Date().getTime());
         const data = await res.json();
         if (data.status === 'ok' && data.clients) {
           clientsList = data.clients;
@@ -727,7 +757,7 @@
        document.getElementById('archive-list-modal').style.display = 'flex';
        document.getElementById('archive-list-container').innerHTML = '<div style="text-align:center; color:#888; margin-top:20px;">Завантаження з серверу...</div>';
        try {
-         let res = await fetch(BACKEND_URL + "?action=getArchive");
+         let res = await fetch(BACKEND_URL + "?action=getArchive&_t=" + new Date().getTime());
          let data = await res.json();
          if (data.status === 'ok' && data.archive && data.archive.length > 0) {
             loadedArchive = data.archive;
@@ -835,7 +865,6 @@
        
        openManualScreen(type);
        
-       // Вставляємо ім'я
        let rawName = arch.buyer || '';
        if(rawName.startsWith("СКАСОВАНО_")) rawName = rawName.replace("СКАСОВАНО_", "");
        document.getElementById('mi-buyer-name').value = rawName;
@@ -844,7 +873,7 @@
     // --- ЛОГІКА РУЧНИХ ДОКУМЕНТІВ ---
     function openManualScreen(type) {
       manualDocType = type;
-      if (manualItems.length === 0) { // Очищаємо тільки якщо відкрили вручну, а не через конвертацію
+      if (manualItems.length === 0) { 
          document.getElementById('mi-buyer-name').value = "";
       }
       document.getElementById('mi-has-delivery').value = "no";
@@ -1249,12 +1278,11 @@
       }
     }
 
-    // --- ЗВИЧАЙНА РОБОТА І ЧЕРНЕТКИ ---
     let loadedDrafts = []; 
     async function fetchDrafts() {
       const listDiv = document.getElementById('drafts-list'); listDiv.innerHTML = '<div style="color: #888; text-align: center;">Завантаження списку...</div>';
       try {
-        const res = await fetch(BACKEND_URL + "?action=loadDrafts"); const data = await res.json();
+        const res = await fetch(BACKEND_URL + "?action=loadDrafts&_t=" + new Date().getTime()); const data = await res.json();
         if (data.drafts && data.drafts.length > 0) {
           loadedDrafts = data.drafts; let html = '';
           data.drafts.forEach(d => {
@@ -1333,6 +1361,10 @@
       document.getElementById('wood-type').value = ""; document.getElementById('price').value = ""; 
       document.getElementById('len').value = ""; document.getElementById('thick').value = ""; 
       clearWidthInput(); document.getElementById('start-menu').style.display = 'flex'; document.getElementById('main-app').style.display = 'none'; fetchDrafts();
+      
+      if (isUpdateAvailable) {
+         forceUpdateApp();
+      }
     }
 
     function showLoader(text) { document.getElementById('loading-overlay').style.display = 'flex'; document.getElementById('loader-content').innerHTML = `<div class="spinner"></div><div id="loader-text">${text}</div>`; }
