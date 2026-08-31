@@ -33,6 +33,7 @@
     .mode-btn.return-mode { background: #c0392b; } .mode-btn.return-mode:active { background: #922b21; transform: scale(0.98); }
     .mode-btn.manual-invoice { background: #8e44ad; } .mode-btn.manual-invoice:active { background: #6c3483; transform: scale(0.98); }
     .mode-btn.manual-waybill { background: #d35400; } .mode-btn.manual-waybill:active { background: #a04000; transform: scale(0.98); }
+    .mode-btn.archive-btn { background: #34495e; margin-top: 5px; } .mode-btn.archive-btn:active { background: #2c3e50; transform: scale(0.98); }
     .mode-sub { font-size: 12px; font-weight: normal; opacity: 0.9; text-align: center; }
     
     .drafts-container { width: 100%; max-width: 400px; margin-top: 5px; background: #1e1e1e; padding: 15px; border-radius: 12px; border: 1px solid #333; box-sizing: border-box; }
@@ -92,7 +93,7 @@
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     #loader-text { font-size: 22px; font-weight: bold; color: white; text-align: center; margin-top: 10px; }
 
-    .overlay-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 99999998; display: none; justify-content: center; align-items: center; }
+    .overlay-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 99999990; display: none; justify-content: center; align-items: center; }
     .modal-box { background: #1e1e1e; padding: 25px; border-radius: 16px; width: 90%; max-width: 350px; display: flex; flex-direction: column; gap: 12px; border: 1px solid #333; box-shadow: 0 10px 30px rgba(0,0,0,0.5); position: relative; z-index: 99999999; }
     .modal-box h3 { margin: 0 0 15px 0; text-align: center; color: #fff; font-size: 20px;}
     
@@ -109,7 +110,7 @@
       overflow: hidden; padding: 0; background: transparent;
     }
 
-    #manual-invoice-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #121212; z-index: 9999999; display: none; flex-direction: column; box-sizing: border-box; overflow-y: auto; padding: 15px; }
+    #manual-invoice-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #121212; z-index: 9999990; display: none; flex-direction: column; box-sizing: border-box; overflow-y: auto; padding: 15px; }
     .manual-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 15px; }
     .manual-header h2 { margin: 0; font-size: 20px; color: #fff; }
     .item-card { background: #222; border: 1px solid #444; padding: 12px; border-radius: 10px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
@@ -118,9 +119,33 @@
     .type-toggle { display: flex; border-radius: 8px; overflow: hidden; border: 1px solid #4CAF50; margin-bottom: 15px; }
     .type-toggle button { flex: 1; padding: 10px; border: none; font-size: 14px; font-weight: bold; cursor: pointer; color: white; background: #222; transition: 0.2s; }
     .type-toggle button.active { background: #4CAF50; color: black; }
+    
+    /* СТИЛІ АРХІВУ */
+    .archive-item { background: #2a2a2a; border-left: 4px solid #3498db; padding: 12px; border-radius: 8px; cursor: pointer; transition: background 0.2s; }
+    .archive-item:active { background: #333; transform: scale(0.98); }
   </style>
 </head>
 <body>
+
+  <!-- КАСТОМНІ АЛЕРТИ ТА КОНФІРМИ -->
+  <div id="custom-alert-modal" class="overlay-modal" style="z-index: 999999999;">
+    <div class="modal-box" style="align-items: center; text-align: center;">
+      <h3 id="custom-alert-title" style="margin-bottom: 5px; color: #f39c12;">Увага</h3>
+      <p id="custom-alert-message" style="color: #ccc; margin-top: 10px; margin-bottom: 20px; font-size: 16px; line-height: 1.4;"></p>
+      <button class="pay-btn centered success" style="width: 100%;" onclick="closeCustomAlert()">ОК, зрозуміло</button>
+    </div>
+  </div>
+
+  <div id="custom-confirm-modal" class="overlay-modal" style="z-index: 999999999;">
+    <div class="modal-box" style="align-items: center; text-align: center;">
+      <h3 id="custom-confirm-title" style="margin-bottom: 5px; color: #f39c12;">Підтвердження</h3>
+      <p id="custom-confirm-message" style="color: #ccc; margin-top: 10px; margin-bottom: 20px; font-size: 16px; line-height: 1.4; white-space: pre-line;"></p>
+      <div style="width: 100%; display: flex; gap: 10px;">
+          <button class="pay-btn centered success" style="flex: 1;" id="custom-confirm-yes">Так</button>
+          <button class="pay-btn centered cancel" style="flex: 1; margin-top: 0;" id="custom-confirm-no">Ні</button>
+      </div>
+    </div>
+  </div>
 
   <!-- МЕНЮ ВИБОРУ ОПЛАТИ -->
   <div id="payment-modal" class="overlay-modal">
@@ -155,6 +180,7 @@
   <div id="waybill-ask-modal" class="overlay-modal">
     <div class="modal-box" style="align-items: center; text-align: center;">
       <h3 style="margin-bottom: 5px;">Виписати накладну?</h3>
+      <p style="color: #aaa; font-size: 13px; margin: 0 0 15px 0;">(З фірмовим підписом)</p>
       <div style="width: 100%; display: flex; gap: 10px;">
           <button class="pay-btn centered success" style="flex: 1;" onclick="confirmWaybill(true)">Так</button>
           <button class="pay-btn centered cancel" style="flex: 1; margin-top: 0;" onclick="confirmWaybill(false)">Ні</button>
@@ -239,6 +265,34 @@
     </div>
   </div>
 
+  <!-- МОДАЛЬНІ ВІКНА АРХІВУ (ІСТОРІЇ) -->
+  <div id="archive-list-modal" class="overlay-modal">
+    <div class="modal-box" style="max-height: 80vh; max-width: 400px; width: 95%;">
+      <h3 style="margin-top: 0;">🕒 Історія замірів</h3>
+      <div id="archive-list-container" style="overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 10px; max-height: 60vh;">
+         <div style="text-align:center; color:#888;">Завантаження...</div>
+      </div>
+      <button class="pay-btn centered cancel" style="margin-top: 15px;" onclick="closeArchiveModal()">Закрити</button>
+    </div>
+  </div>
+
+  <div id="archive-detail-modal" class="overlay-modal" style="z-index: 999999999;">
+    <div class="modal-box" style="max-width: 400px; width: 95%;">
+      <h3 id="archive-detail-title" style="margin-bottom: 5px; word-break: break-word;"></h3>
+      <p id="archive-detail-date" style="color: #aaa; font-size: 13px; text-align: center; margin-top: 0;"></p>
+      <div id="archive-detail-content" style="background: #222; padding: 15px; border-radius: 8px; font-size: 14px; margin-bottom: 15px; max-height: 40vh; overflow-y: auto;">
+      </div>
+      <div style="display: flex; gap: 10px; flex-direction: column;">
+        <div style="display: flex; gap: 10px;">
+          <button class="pay-btn centered" style="flex:1; background: #1976d2; border-color: #1565c0; font-size:14px; padding: 10px;" onclick="convertArchive('invoice')">📄 В Рахунок</button>
+          <button class="pay-btn centered" style="flex:1; background: #d35400; border-color: #a04000; font-size:14px; padding: 10px;" onclick="convertArchive('waybill')">📝 В Накладну</button>
+        </div>
+        <button class="pay-btn centered cancel" style="padding: 10px; margin-top: 0;" onclick="closeArchiveDetail()">Назад</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ГОЛОВНЕ МЕНЮ -->
   <div id="start-menu">
     <div class="logo-container">
       <img src="logo.png?v=2" alt="Аполло Пиломатеріали" class="app-logo">
@@ -269,6 +323,12 @@
         <span class="mode-sub">(Наперед)</span>
       </button>
     </div>
+
+    <!-- КНОПКА ІСТОРІЇ АРХІВУ -->
+    <button class="mode-btn archive-btn" style="width: 100%; max-width: 400px;" onclick="openArchiveModal()">
+      🕒 ІСТОРІЯ ЗАМІРІВ
+      <span class="mode-sub">(Останні відвантаження)</span>
+    </button>
 
     <div class="drafts-container">
       <div class="drafts-header">
@@ -330,7 +390,6 @@
     <button id="manual-preview-btn" onclick="previewManualDocument()" class="action-btn" style="background: #27ae60; padding: 16px; font-size: 18px; margin-top: auto;">👀 Попередній перегляд</button>
   </div>
 
-  <!-- МОДАЛЬНЕ ВІКНО ДОДАВАННЯ ПОЗИЦІЇ (ОНОВЛЕНЕ) -->
   <div id="mi-item-modal" class="overlay-modal">
     <div class="modal-box">
       <h3 id="mi-modal-title">Додати позицію</h3>
@@ -341,7 +400,6 @@
          <button id="toggle-linear" onclick="setManualItemMode('linear')">Хвоя / Брус (м.п.)</button>
       </div>
 
-      <!-- БЛОК: ДОШКА (м3) -->
       <div id="block-board">
         <div>
           <label style="font-size: 13px; color: #aaa;">Порода дерева:</label>
@@ -372,7 +430,6 @@
         </div>
       </div>
 
-      <!-- БЛОК: ХВОЯ (м.п.) -->
       <div id="block-linear" style="display: none;">
          <div>
            <label style="font-size: 13px; color: #aaa;">Тип (Брус, Рейка, тощо):</label>
@@ -515,7 +572,7 @@
   </div> 
 
   <script>
-    const APP_VERSION = "2.53"; 
+    const APP_VERSION = "2.55"; 
     
     document.addEventListener("DOMContentLoaded", () => {
        const verEl = document.getElementById('version-display');
@@ -554,6 +611,33 @@
       gainNode.gain.setValueAtTime(1, audioCtx.currentTime); gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
       osc.connect(gainNode); gainNode.connect(audioCtx.destination);
       osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+    }
+
+    // КАСТОМНІ АЛЕРТИ ТА КОНФІРМИ
+    function customAlert(message, title = "⚠️ Увага") {
+      document.getElementById('custom-alert-title').innerHTML = title;
+      document.getElementById('custom-alert-message').innerText = message;
+      document.getElementById('custom-alert-modal').style.display = 'flex';
+    }
+    function closeCustomAlert() {
+      document.getElementById('custom-alert-modal').style.display = 'none';
+    }
+
+    function customConfirm(message, title = "❓ Підтвердження") {
+      return new Promise((resolve) => {
+        document.getElementById('custom-confirm-title').innerHTML = title;
+        document.getElementById('custom-confirm-message').innerText = message;
+        document.getElementById('custom-confirm-modal').style.display = 'flex';
+        
+        document.getElementById('custom-confirm-yes').onclick = () => {
+          document.getElementById('custom-confirm-modal').style.display = 'none';
+          resolve(true);
+        };
+        document.getElementById('custom-confirm-no').onclick = () => {
+          document.getElementById('custom-confirm-modal').style.display = 'none';
+          resolve(false);
+        };
+      });
     }
 
     async function initApp() {
@@ -637,11 +721,133 @@
       updateUI(); 
     }
 
+    // --- ЛОГІКА ІСТОРІЇ (АРХІВУ) ---
+    let loadedArchive = [];
+    
+    async function openArchiveModal() {
+       document.getElementById('archive-list-modal').style.display = 'flex';
+       document.getElementById('archive-list-container').innerHTML = '<div style="text-align:center; color:#888; margin-top:20px;">Завантаження з серверу...</div>';
+       try {
+         let res = await fetch(BACKEND_URL + "?action=getArchive");
+         let data = await res.json();
+         if (data.status === 'ok' && data.archive && data.archive.length > 0) {
+            loadedArchive = data.archive;
+            renderArchiveList();
+         } else {
+            document.getElementById('archive-list-container').innerHTML = '<div style="text-align:center; color:#888; margin-top:20px;">Архів порожній</div>';
+         }
+       } catch(e) {
+         document.getElementById('archive-list-container').innerHTML = '<div style="text-align:center; color:#ff5252; margin-top:20px;">Помилка завантаження</div>';
+       }
+    }
+    
+    function closeArchiveModal() { document.getElementById('archive-list-modal').style.display = 'none'; }
+    
+    function renderArchiveList() {
+       let html = '';
+       loadedArchive.forEach((item, index) => {
+          html += `
+            <div class="archive-item" onclick="showArchiveDetail(${index})">
+               <div style="font-weight: bold; font-size: 16px; color: #fff; margin-bottom: 4px;">${item.buyer || 'Без імені'}</div>
+               <div style="display: flex; justify-content: space-between; font-size: 13px; color: #aaa;">
+                  <span>${item.date.substring(0, 16)}</span>
+                  <span style="color: #4CAF50; font-weight:bold;">${item.info}</span>
+               </div>
+            </div>
+          `;
+       });
+       document.getElementById('archive-list-container').innerHTML = html;
+    }
+
+    let currentArchiveIndex = -1;
+    function showArchiveDetail(index) {
+       currentArchiveIndex = index;
+       let arch = loadedArchive[index];
+       document.getElementById('archive-detail-title').innerText = arch.buyer || 'Без імені';
+       document.getElementById('archive-detail-date').innerText = arch.date;
+       
+       let hData = [];
+       try { hData = JSON.parse(arch.historyData); } catch(e){}
+       
+       let groups = {};
+       hData.forEach(b => {
+         let isLin = b.isLinear === true;
+         let key = isLin ? `lin_${b.wood}_${b.thick}_${b.width}` : `brd_${b.wood}_${b.thick}`;
+         if (!groups[key]) {
+           groups[key] = {
+              name: isLin ? `${b.wood} ${b.thick}х${b.width} мм` : `Дошка ${b.wood} ${b.thick} мм`,
+              unit: isLin ? 'м.п.' : 'м³',
+              qty: 0
+           }
+         }
+         groups[key].qty += parseFloat(b.vol || 0);
+       });
+
+       let html = '';
+       for(let k in groups) {
+          html += `<div style="display:flex; justify-content:space-between; margin-bottom: 8px; border-bottom: 1px solid #333; padding-bottom: 8px;">
+            <span style="color:#ddd; flex:1;">${groups[k].name}</span>
+            <span style="color:#4CAF50; font-weight:bold; white-space: nowrap; margin-left: 10px;">${groups[k].qty.toFixed(3)} ${groups[k].unit}</span>
+          </div>`;
+       }
+       
+       document.getElementById('archive-detail-content').innerHTML = html;
+       document.getElementById('archive-detail-modal').style.display = 'flex';
+    }
+
+    function closeArchiveDetail() {
+       document.getElementById('archive-detail-modal').style.display = 'none';
+    }
+
+    function convertArchive(type) {
+       if(currentArchiveIndex === -1) return;
+       let arch = loadedArchive[currentArchiveIndex];
+       let hData = [];
+       try { hData = JSON.parse(arch.historyData); } catch(e){}
+
+       let groups = {};
+       hData.forEach(b => {
+         let isLin = b.isLinear === true;
+         let priceLabel = Math.round(Math.abs(b.cubePrice) || 0);
+         let key = isLin ? `lin_${b.wood}_${b.thick}_${b.width}_${priceLabel}` : `brd_${b.wood}_${b.thick}_${priceLabel}`;
+
+         if (!groups[key]) {
+           groups[key] = {
+             type: isLin ? 'linear' : 'board',
+             wood: b.wood,
+             thick: b.thick,
+             width: b.width || 0,
+             price: Math.abs(b.cubePrice) || 0,
+             qty: 0
+           };
+         }
+         groups[key].qty += parseFloat(b.vol || 0);
+       });
+
+       manualItems = [];
+       for(let k in groups) {
+         if(groups[k].qty > 0) {
+           manualItems.push(groups[k]);
+         }
+       }
+
+       closeArchiveDetail();
+       closeArchiveModal();
+       
+       openManualScreen(type);
+       
+       // Вставляємо ім'я
+       let rawName = arch.buyer || '';
+       if(rawName.startsWith("СКАСОВАНО_")) rawName = rawName.replace("СКАСОВАНО_", "");
+       document.getElementById('mi-buyer-name').value = rawName;
+    }
+
     // --- ЛОГІКА РУЧНИХ ДОКУМЕНТІВ ---
     function openManualScreen(type) {
       manualDocType = type;
-      manualItems = [];
-      document.getElementById('mi-buyer-name').value = "";
+      if (manualItems.length === 0) { // Очищаємо тільки якщо відкрили вручну, а не через конвертацію
+         document.getElementById('mi-buyer-name').value = "";
+      }
       document.getElementById('mi-has-delivery').value = "no";
       document.getElementById('mi-delivery-sum').value = "";
       document.getElementById('mi-delivery-sum').style.display = 'none';
@@ -652,12 +858,12 @@
       const previewBtn = document.getElementById('manual-preview-btn');
 
       if (type === 'waybill') {
-        titleEl.innerText = "📝 Накладна";
+        titleEl.innerText = "📝 Виписування накладної наперед";
         payBlock.style.display = 'none';
-        buyerLabel.innerText = "Покупець:";
+        buyerLabel.innerText = "Для назви файлу (Платник):";
         previewBtn.innerText = "👀 Попередній перегляд накладної";
       } else {
-        titleEl.innerText = "📄 Рахунок";
+        titleEl.innerText = "📄 Виписування рахунку наперед";
         payBlock.style.display = 'block';
         buyerLabel.innerText = "На кого виписати (Платник):";
         previewBtn.innerText = "👀 Попередній перегляд рахунку";
@@ -667,7 +873,10 @@
       document.getElementById('manual-invoice-screen').style.display = 'flex';
     }
 
-    function closeManualScreen() { document.getElementById('manual-invoice-screen').style.display = 'none'; }
+    function closeManualScreen() { 
+      document.getElementById('manual-invoice-screen').style.display = 'none'; 
+      manualItems = []; 
+    }
 
     function setManualItemMode(mode) {
        manualItemMode = mode;
@@ -705,7 +914,7 @@
 
     function openAddItemModal(index = -1) {
       document.getElementById('mi-edit-index').value = index;
-      document.getElementById('lin-preview-total').style.display = 'none'; // Ховаємо прев'ю
+      document.getElementById('lin-preview-total').style.display = 'none'; 
 
       if (index === -1) {
         document.getElementById('mi-modal-title').innerText = "Додати позицію";
@@ -753,7 +962,7 @@
         let vol = parseFloat(document.getElementById('mi-item-vol').value.replace(',', '.')) || 0;
         let cubePrice = parseFloat(document.getElementById('mi-item-price').value.replace(',', '.')) || 0;
         
-        if (thick <= 0 || vol <= 0 || cubePrice <= 0) { alert("Заповніть усі поля для дошки!"); return; }
+        if (thick <= 0 || vol <= 0 || cubePrice <= 0) { customAlert("Заповніть усі поля для дошки!"); return; }
         itemObj = { type: 'board', wood: wood, thick: thick, width: 0, qty: vol, price: cubePrice };
       } else {
         let name = document.getElementById('mi-lin-name').value.trim();
@@ -761,18 +970,18 @@
         let width = parseFloat(document.getElementById('mi-lin-width').value.replace(',', '.')) || 0;
         let price = parseFloat(document.getElementById('mi-lin-price').value.replace(',', '.')) || 0;
         
-        if (name === "" || thick <= 0 || width <= 0 || price <= 0) { alert("Заповніть усі обов'язкові поля для хвої!"); return; }
+        if (name === "" || thick <= 0 || width <= 0 || price <= 0) { customAlert("Заповніть усі обов'язкові поля для хвої!"); return; }
 
         let calcType = document.querySelector('input[name="lin-calc"]:checked').value;
         let totalLen = 0;
         if (calcType === 'pieces') {
            let pLen = parseFloat(document.getElementById('mi-lin-piece-len').value.replace(',', '.')) || 0;
            let pQty = parseInt(document.getElementById('mi-lin-pieces-qty').value) || 0;
-           if (pLen <= 0 || pQty <= 0) { alert("Введіть довжину 1 шт. та кількість!"); return; }
+           if (pLen <= 0 || pQty <= 0) { customAlert("Введіть довжину 1 шт. та кількість!"); return; }
            totalLen = pLen * pQty;
         } else {
            totalLen = parseFloat(document.getElementById('mi-lin-total-len').value.replace(',', '.')) || 0;
-           if (totalLen <= 0) { alert("Введіть загальну довжину!"); return; }
+           if (totalLen <= 0) { customAlert("Введіть загальну довжину!"); return; }
         }
         itemObj = { type: 'linear', wood: name, thick: thick, width: width, qty: totalLen, price: price };
       }
@@ -799,11 +1008,13 @@
         let rowSum = item.qty * item.price;
         let title = item.type === 'linear' ? `${item.wood} ${item.thick}х${item.width} мм` : `Дошка ${item.wood} ${item.thick} мм`;
         let unit = item.type === 'linear' ? 'м.п.' : 'м³';
+        
+        let warningIcon = item.price === 0 ? '<span style="color:#e74c3c; font-size:16px; margin-right:5px;" title="Ціна не вказана!">⚠️</span>' : '';
 
         html += `
           <div class="item-card">
             <div>
-              <div style="font-weight: bold; font-size: 15px;">${title}</div>
+              <div style="font-weight: bold; font-size: 15px; display:flex; align-items:center;">${warningIcon}${title}</div>
               <div style="color: #aaa; font-size: 13px; margin-top: 3px;">${item.qty.toFixed(3)} ${unit} × ${item.price} грн = <strong style="color: #4CAF50;">${rowSum.toFixed(2)} грн</strong></div>
             </div>
             <div style="display: flex; gap: 8px;">
@@ -835,9 +1046,15 @@
     }
 
     function previewManualDocument() {
-      if (manualItems.length === 0) { alert("Додайте хоча б одну позицію!"); return; }
+      if (manualItems.length === 0) { customAlert("Додайте хоча б одну позицію!"); return; }
       let buyerName = document.getElementById('mi-buyer-name').value.trim();
-      if (buyerName === "") { alert("Вкажіть назву компанії/Платника!"); return; }
+      if (buyerName === "") { customAlert("Вкажіть назву компанії/Платника!"); return; }
+      
+      let zeroPriceItems = manualItems.filter(i => i.price <= 0);
+      if (zeroPriceItems.length > 0) {
+         customAlert("Деякі позиції мають нульову ціну! Натисніть ✏️ та вкажіть ціну перед відправкою.", "⚠️ Увага: Нульова ціна");
+         return;
+      }
 
       let hasDel = document.getElementById('mi-has-delivery').value === 'yes';
       let deliveryVal = hasDel ? (parseFloat(document.getElementById('mi-delivery-sum').value.replace(',', '.')) || 0) : 0;
@@ -1025,14 +1242,15 @@
       try {
         await fetch(BACKEND_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(reqBody) });
         hideLoader();
-        alert(`✅ ${manualDocType === 'invoice' ? 'Рахунок' : 'Накладну'} успішно виписано, збережено на Диск та надіслано в Telegram!`);
+        customAlert(`✅ ${manualDocType === 'invoice' ? 'Рахунок' : 'Накладну'} успішно виписано, збережено на Диск та надіслано в Telegram!`, "Успішно");
         closeManualScreen();
       } catch (err) {
         hideLoader();
-        alert("Помилка відправки: " + err.message);
+        customAlert("Помилка відправки: " + err.message, "❌ Помилка");
       }
     }
 
+    // --- ЗВИЧАЙНА РОБОТА І ЧЕРНЕТКИ ---
     let loadedDrafts = []; 
     async function fetchDrafts() {
       const listDiv = document.getElementById('drafts-list'); listDiv.innerHTML = '<div style="color: #888; text-align: center;">Завантаження списку...</div>';
@@ -1073,11 +1291,14 @@
     }
 
     async function deleteDraftUI(draftId, isResuming = false) {
-      if (!isResuming && !confirm("Точно видалити цю чернетку з бази?")) return;
+      if (!isResuming) {
+        const confirmed = await customConfirm("Точно видалити цю чернетку з бази?");
+        if (!confirmed) return;
+      }
       if (!isResuming) document.getElementById('drafts-list').innerHTML = '<div style="color: #888; text-align: center;">Видалення...</div>';
       try { await fetch(BACKEND_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action: 'deleteDraft', draftId: draftId }) });
         if (!isResuming) setTimeout(fetchDrafts, 1000); 
-      } catch (err) { if (!isResuming) alert("Помилка видалення чернетки"); }
+      } catch (err) { if (!isResuming) customAlert("Помилка видалення чернетки", "❌ Помилка"); }
     }
 
     async function pauseAndSaveDraft() {
@@ -1086,13 +1307,22 @@
       const bName = document.getElementById('buyer-name').value || "Без імені"; const bPhone = document.getElementById('buyer-phone').value || "";
       try { await fetch(BACKEND_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: 'saveDraft', mode: currentMode, buyerName: bName, phone: bPhone, boardsHistory: history }) });
         hideLoader(); resetAndGoHome();
-      } catch (err) { hideLoader(); alert("Помилка збереження чернетки! Перевірте інтернет."); }
+      } catch (err) { hideLoader(); customAlert("Помилка збереження чернетки! Перевірте інтернет.", "❌ Помилка"); }
     }
 
     async function resetAll() {
-      let msg = "Увага! Ви впевнені, що хочете видалити всі заміри та вийти в Головне меню?";
-      if (history.length > 0 && history.length !== lastSentCount) msg = "⚠️ У вас є НЕВІДПРАВЛЕНІ дані!\nТочно хочете скасувати їх?";
-      if (confirm(msg)) { if (history.length > 0 && history.length !== lastSentCount) { showLoader("Відправка в скасоване..."); await theoryAutoSend(true, true); } resetAndGoHome(); hideLoader(); }
+      let msg = "Ви впевнені, що хочете видалити всі заміри та вийти в Головне меню?";
+      if (history.length > 0 && history.length !== lastSentCount) msg = "У вас є НЕВІДПРАВЛЕНІ дані!\nТочно хочете скасувати їх?";
+      
+      const confirmed = await customConfirm(msg);
+      if (confirmed) { 
+          if (history.length > 0 && history.length !== lastSentCount) { 
+              showLoader("Відправка в скасоване..."); 
+              await theoryAutoSend(true, true); 
+          } 
+          resetAndGoHome(); 
+          hideLoader(); 
+      }
     }
 
     function resetAndGoHome() {
@@ -1150,9 +1380,9 @@
     }
     function confirmAddBoard() {
       const buyerEl = document.getElementById('buyer-name'); const buyer = buyerEl ? buyerEl.value : "";
-      if (buyer === "") { alert("Будь ласка, вкажіть ім'я!"); if(document.getElementById('settings-menu').style.display === 'none') toggleMenu(); return; }
-      if (currentWidthInput === "") { alert("Будь ласка, введіть ширину!"); return; }
-      const width = parseInt(currentWidthInput); if (isNaN(width) || width < 1 || width > 99) { alert("Будь ласка, введіть правильну ширину (1-99 см)!"); clearWidthInput(); return; }
+      if (buyer === "") { customAlert("Будь ласка, вкажіть ім'я!"); if(document.getElementById('settings-menu').style.display === 'none') toggleMenu(); return; }
+      if (currentWidthInput === "") { customAlert("Будь ласка, введіть ширину!"); return; }
+      const width = parseInt(currentWidthInput); if (isNaN(width) || width < 1 || width > 99) { customAlert("Будь ласка, введіть правильну ширину (1-99 см)!"); clearWidthInput(); return; }
       addBoardFromWidth(width); clearWidthInput();
     }
     function getSafeNumber(id) { let el = document.getElementById(id); if (!el || !el.value) return 0; let val = el.value.replace(/[^\d.,]/g, '').replace(',', '.'); return parseFloat(val) || 0; }
@@ -1161,8 +1391,8 @@
       const buyerEl = document.getElementById('buyer-name'); const buyer = buyerEl ? buyerEl.value : "";
       const woodEl = document.getElementById('wood-type'); const wood = woodEl ? woodEl.value : ""; 
       const cubePrice = (currentMode === 'income') ? 0 : getSafeNumber('price'); const l = getSafeNumber('len'); const t = getSafeNumber('thick') / 1000; const w = widthCm / 100;
-      if (buyer === "") { alert("Вкажіть ім'я!"); return; } if (wood === "") { alert("Оберіть породу дерева!"); return; }
-      if ((currentMode === 'sale' || currentMode === 'return') && cubePrice === 0) { alert("Вкажіть ціну за куб!"); return; } if (l === 0 || t === 0) { alert("Вкажіть довжину та товщину дошки!"); return; }
+      if (buyer === "") { customAlert("Вкажіть ім'я!"); return; } if (wood === "") { customAlert("Оберіть породу дерева!"); return; }
+      if ((currentMode === 'sale' || currentMode === 'return') && cubePrice === 0) { customAlert("Вкажіть ціну за куб!"); return; } if (l === 0 || t === 0) { customAlert("Вкажіть довжину та товщину дошки!"); return; }
       
       let boardVol = l * t * w; 
       let boardPrice = boardVol * cubePrice; 
@@ -1176,7 +1406,16 @@
       updateUI(); renderList(); saveStoredData(); playClickSound(); if(navigator.vibrate) navigator.vibrate(40);
     }
     function undo() { if (history.length === 0) return; history.pop(); updateUI(); renderList(); saveStoredData(); playClickSound(); }
-    function deleteBoard(index) { if (confirm("Точно видалити цю дошку зі списку?")) { history.splice(index, 1); updateUI(); renderList(); saveStoredData(); } }
+    
+    async function deleteBoard(index) { 
+      const confirmed = await customConfirm("Точно видалити цю дошку зі списку?");
+      if (confirmed) { 
+         history.splice(index, 1); 
+         updateUI(); 
+         renderList(); 
+         saveStoredData(); 
+      } 
+    }
     
     function getTotals() {
       let totalV = 0;
@@ -1252,10 +1491,10 @@
     }
 
     function initiateSend() {
-      if(history.length === 0) { alert("Список порожній! Спочатку додайте дошки."); return; }
+      if(history.length === 0) { customAlert("Список порожній! Спочатку додайте дошки."); return; }
       const buyerEl = document.getElementById('buyer-name');
       const buyer = buyerEl ? buyerEl.value : "";
-      if (buyer === "") { alert("Будь ласка, вкажіть ім'я перед надсиланням!"); if(document.getElementById('settings-menu').style.display === 'none') toggleMenu(); return; }
+      if (buyer === "") { customAlert("Будь ласка, вкажіть ім'я перед надсиланням!"); if(document.getElementById('settings-menu').style.display === 'none') toggleMenu(); return; }
 
       if (currentMode === 'sale') {
          document.getElementById('payment-modal').style.display = 'flex';
@@ -1410,7 +1649,7 @@
            setTimeout(() => { hideLoader(); }, 3000);
         }
       } catch (err) {
-        alert("Знайдено помилку: " + err.message);
+        customAlert("Знайдено помилку: " + err.message, "❌ Помилка");
         hideLoader();
       }
     }
