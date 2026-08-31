@@ -122,6 +122,7 @@
 </head>
 <body>
 
+  <!-- МЕНЮ ВИБОРУ ОПЛАТИ -->
   <div id="payment-modal" class="overlay-modal">
     <div class="modal-box">
       <h3>Оберіть вид оплати</h3>
@@ -393,9 +394,18 @@
                <label style="font-size: 13px; color: #fff;"><input type="radio" name="lin-calc" value="pieces" checked onchange="toggleLinCalc()"> Поштучно</label>
                <label style="font-size: 13px; color: #fff;"><input type="radio" name="lin-calc" value="total" onchange="toggleLinCalc()"> Заг. довжина</label>
             </div>
-            <div id="lin-calc-pieces" style="display: flex; gap: 10px;">
-               <div style="flex:1"><label style="font-size: 13px; color: #aaa;">Довж. 1шт (м):</label><input type="text" inputmode="decimal" id="mi-lin-piece-len" placeholder="напр. 4.5"></div>
-               <div style="flex:1"><label style="font-size: 13px; color: #aaa;">К-сть (шт):</label><input type="text" inputmode="numeric" id="mi-lin-pieces-qty" placeholder="напр. 20"></div>
+            <div id="lin-calc-pieces" style="display: flex; flex-direction: column; gap: 5px;">
+               <div style="display: flex; gap: 10px;">
+                   <div style="flex:1">
+                       <label style="font-size: 13px; color: #aaa;">Довж. 1шт (м):</label>
+                       <input type="text" inputmode="decimal" id="mi-lin-piece-len" placeholder="напр. 4.5" oninput="calcLinTotalPreview()">
+                   </div>
+                   <div style="flex:1">
+                       <label style="font-size: 13px; color: #aaa;">К-сть (шт):</label>
+                       <input type="text" inputmode="numeric" id="mi-lin-pieces-qty" placeholder="напр. 20" oninput="calcLinTotalPreview()">
+                   </div>
+               </div>
+               <div id="lin-preview-total" style="text-align: right; color: #4CAF50; font-weight: bold; font-size: 14px; margin-top: 5px; display: none;"></div>
             </div>
             <div id="lin-calc-total" style="display: none;">
                <label style="font-size: 13px; color: #aaa;">Загальна довжина (м.п.):</label>
@@ -471,7 +481,7 @@
         </select>
         <input type="text" inputmode="decimal" id="price" placeholder="Ціна за куб (грн)">
         <input type="text" inputmode="decimal" id="len" placeholder="Довжина (м)">
-        <input type="text" inputmode="decimal" id="thick" placeholder="Товщина (мм)">
+        <input type="text inputmode="decimal" id="thick" placeholder="Товщина (мм)">
       </div>
       <div class="btn-row">
         <button class="action-btn list-btn" onclick="toggleList()">📋 Список дошок</button>
@@ -505,7 +515,7 @@
   </div> 
 
   <script>
-    const APP_VERSION = "2.52"; 
+    const APP_VERSION = "2.53"; 
     
     document.addEventListener("DOMContentLoaded", () => {
        const verEl = document.getElementById('version-display');
@@ -680,8 +690,23 @@
        document.getElementById('lin-calc-total').style.display = (type === 'total') ? 'block' : 'none';
     }
 
+    function calcLinTotalPreview() {
+       let pLen = parseFloat(document.getElementById('mi-lin-piece-len').value.replace(',', '.')) || 0;
+       let pQty = parseInt(document.getElementById('mi-lin-pieces-qty').value) || 0;
+       let previewDiv = document.getElementById('lin-preview-total');
+       
+       if (pLen > 0 && pQty > 0) {
+           previewDiv.style.display = 'block';
+           previewDiv.innerText = "= " + (pLen * pQty).toFixed(2) + " м.п.";
+       } else {
+           previewDiv.style.display = 'none';
+       }
+    }
+
     function openAddItemModal(index = -1) {
       document.getElementById('mi-edit-index').value = index;
+      document.getElementById('lin-preview-total').style.display = 'none'; // Ховаємо прев'ю
+
       if (index === -1) {
         document.getElementById('mi-modal-title').innerText = "Додати позицію";
         document.getElementById('mi-item-thick').value = "";
