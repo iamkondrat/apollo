@@ -113,11 +113,15 @@
     .manual-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 15px; }
     .manual-header h2 { margin: 0; font-size: 20px; color: #fff; }
     .item-card { background: #222; border: 1px solid #444; padding: 12px; border-radius: 10px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+
+    /* СТИЛІ ПЕРЕМИКАЧА ДОШКА/ХВОЯ */
+    .type-toggle { display: flex; border-radius: 8px; overflow: hidden; border: 1px solid #4CAF50; margin-bottom: 15px; }
+    .type-toggle button { flex: 1; padding: 10px; border: none; font-size: 14px; font-weight: bold; cursor: pointer; color: white; background: #222; transition: 0.2s; }
+    .type-toggle button.active { background: #4CAF50; color: black; }
   </style>
 </head>
 <body>
 
-  <!-- МЕНЮ ВИБОРУ ОПЛАТИ -->
   <div id="payment-modal" class="overlay-modal">
     <div class="modal-box">
       <h3>Оберіть вид оплати</h3>
@@ -137,7 +141,6 @@
     </div>
   </div>
 
-  <!-- ВІКНО ПИТАННЯ ПРО ОФІЦІЙНИЙ РАХУНОК (ДЛЯ Б/Г) -->
   <div id="invoice-ask-modal" class="overlay-modal">
     <div class="modal-box" style="align-items: center; text-align: center;">
       <h3 style="margin-bottom: 5px;">Треба виписати рахунок?</h3>
@@ -148,11 +151,9 @@
     </div>
   </div>
 
-  <!-- ВІКНО ПИТАННЯ ПРО НАКЛАДНУ (ДЛЯ ГОТІВКИ/КАРТКИ) -->
   <div id="waybill-ask-modal" class="overlay-modal">
     <div class="modal-box" style="align-items: center; text-align: center;">
       <h3 style="margin-bottom: 5px;">Виписати накладну?</h3>
-    
       <div style="width: 100%; display: flex; gap: 10px;">
           <button class="pay-btn centered success" style="flex: 1;" onclick="confirmWaybill(true)">Так</button>
           <button class="pay-btn centered cancel" style="flex: 1; margin-top: 0;" onclick="confirmWaybill(false)">Ні</button>
@@ -160,7 +161,6 @@
     </div>
   </div>
 
-  <!-- ВІКНО ВВОДУ НАЗВИ КОМПАНІЇ -->
   <div id="invoice-name-modal" class="overlay-modal">
     <div class="modal-box">
       <h3 style="text-align: center; margin-bottom: 10px;" id="name-modal-title">На кого виписати рахунок?</h3>
@@ -172,7 +172,6 @@
     </div>
   </div>
 
-  <!-- ВІКНО ПИТАННЯ ПРО ДОСТАВКУ -->
   <div id="delivery-ask-modal" class="overlay-modal">
     <div class="modal-box" style="align-items: center; text-align: center;">
       <h3 style="margin-bottom: 5px;">З доставкою чи без?</h3>
@@ -183,7 +182,6 @@
     </div>
   </div>
 
-  <!-- ВІКНО ВВОДУ СУМИ ДОСТАВКИ -->
   <div id="delivery-sum-modal" class="overlay-modal">
     <div class="modal-box">
       <h3 style="text-align: center; margin-bottom: 10px;">Введіть суму доставки</h3>
@@ -195,7 +193,6 @@
     </div>
   </div>
 
-  <!-- ПІДМЕНЮ ВИБОРУ БАНКУ -->
   <div id="bank-modal" class="overlay-modal">
     <div class="modal-box">
       <h3>На який банк?</h3>
@@ -228,7 +225,6 @@
     </div>
   </div>
 
-  <!-- ВІКНО З QR КОДОМ -->
   <div id="qr-modal" class="overlay-modal">
     <div class="modal-box" style="align-items: center; text-align: center;">
       <h3 id="qr-bank-title" style="margin-bottom: 5px;">Оплата на картку</h3>
@@ -242,7 +238,6 @@
     </div>
   </div>
 
-  <!-- ГОЛОВНЕ МЕНЮ -->
   <div id="start-menu">
     <div class="logo-container">
       <img src="logo.png?v=2" alt="Аполло Пиломатеріали" class="app-logo">
@@ -287,7 +282,6 @@
     <div id="version-display" style="margin-top: auto; padding-top: 30px; padding-bottom: 10px; font-size: 12px; color: #666; text-align: center; width: 100%;"></div>
   </div>
 
-  <!-- ЕКРАН РУЧНИХ ДОКУМЕНТІВ (Спільний для Рахунку і Накладної) -->
   <div id="manual-invoice-screen">
     <div class="manual-header">
       <h2 id="manual-screen-title">📄 Документ наперед</h2>
@@ -335,46 +329,93 @@
     <button id="manual-preview-btn" onclick="previewManualDocument()" class="action-btn" style="background: #27ae60; padding: 16px; font-size: 18px; margin-top: auto;">👀 Попередній перегляд</button>
   </div>
 
-  <!-- МОДАЛЬНЕ ВІКНО ДОДАВАННЯ ПОЗИЦІЇ -->
+  <!-- МОДАЛЬНЕ ВІКНО ДОДАВАННЯ ПОЗИЦІЇ (ОНОВЛЕНЕ) -->
   <div id="mi-item-modal" class="overlay-modal">
     <div class="modal-box">
       <h3 id="mi-modal-title">Додати позицію</h3>
       <input type="hidden" id="mi-edit-index" value="-1">
-      <div>
-        <label style="font-size: 13px; color: #aaa;">Порода дерева:</label>
-        <select id="mi-item-wood" style="margin-top: 5px;">
-          <option value="Сосна">Сосна</option>
-          <option value="Вільха">Вільха</option>
-          <option value="Липа">Липа</option>
-          <option value="Дуб">Дуб</option>
-          <option value="Ясен">Ясен</option>
-          <option value="Бук">Бук</option>
-          <option value="Клен">Клен</option>
-          <option value="Черешня">Черешня</option>
-          <option value="Горіх">Горіх</option>
-          <option value="Берест">Берест</option>
-        </select>
+      
+      <div class="type-toggle">
+         <button id="toggle-board" class="active" onclick="setManualItemMode('board')">Дошка (м³)</button>
+         <button id="toggle-linear" onclick="setManualItemMode('linear')">Хвоя / Брус (м.п.)</button>
       </div>
-      <div>
-        <label style="font-size: 13px; color: #aaa;">Товщина (мм):</label>
-        <input type="text" inputmode="decimal" id="mi-item-thick" placeholder="напр. 50" style="margin-top: 5px;">
+
+      <!-- БЛОК: ДОШКА (м3) -->
+      <div id="block-board">
+        <div>
+          <label style="font-size: 13px; color: #aaa;">Порода дерева:</label>
+          <select id="mi-item-wood" style="margin-top: 5px;">
+            <option value="Сосна">Сосна</option>
+            <option value="Вільха">Вільха</option>
+            <option value="Липа">Липа</option>
+            <option value="Дуб">Дуб</option>
+            <option value="Ясен">Ясен</option>
+            <option value="Бук">Бук</option>
+            <option value="Клен">Клен</option>
+            <option value="Черешня">Черешня</option>
+            <option value="Горіх">Горіх</option>
+            <option value="Берест">Берест</option>
+          </select>
+        </div>
+        <div style="margin-top: 10px;">
+          <label style="font-size: 13px; color: #aaa;">Товщина (мм):</label>
+          <input type="text" inputmode="decimal" id="mi-item-thick" placeholder="напр. 50" style="margin-top: 5px;">
+        </div>
+        <div style="margin-top: 10px;">
+          <label style="font-size: 13px; color: #aaa;">Об'єм (м³): <small style="color:#888;">(через кому або крапку)</small></label>
+          <input type="text" inputmode="decimal" id="mi-item-vol" placeholder="напр. 0.5 або 0,5" style="margin-top: 5px;">
+        </div>
+        <div style="margin-top: 10px;">
+          <label style="font-size: 13px; color: #aaa;">Ціна за 1 м³ (грн):</label>
+          <input type="text" inputmode="decimal" id="mi-item-price" placeholder="напр. 15000" style="margin-top: 5px;">
+        </div>
       </div>
-      <div>
-        <label style="font-size: 13px; color: #aaa;">Об'єм (м³): <small style="color:#888;">(через кому або крапку)</small></label>
-        <input type="text" inputmode="decimal" id="mi-item-vol" placeholder="напр. 0.5 або 0,5" style="margin-top: 5px;">
+
+      <!-- БЛОК: ХВОЯ (м.п.) -->
+      <div id="block-linear" style="display: none;">
+         <div>
+           <label style="font-size: 13px; color: #aaa;">Тип (Брус, Рейка, тощо):</label>
+           <input type="text" id="mi-lin-name" placeholder="напр. Брус" style="margin-top: 5px;">
+         </div>
+         <div style="display: flex; gap: 10px; margin-top: 10px;">
+           <div style="flex:1">
+             <label style="font-size: 13px; color: #aaa;">Товщ. (мм):</label>
+             <input type="text" inputmode="decimal" id="mi-lin-thick" placeholder="напр. 50">
+           </div>
+           <div style="flex:1">
+             <label style="font-size: 13px; color: #aaa;">Ширина (мм):</label>
+             <input type="text" inputmode="decimal" id="mi-lin-width" placeholder="напр. 100">
+           </div>
+         </div>
+         
+         <div style="margin-top: 15px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+            <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+               <label style="font-size: 13px; color: #fff;"><input type="radio" name="lin-calc" value="pieces" checked onchange="toggleLinCalc()"> Поштучно</label>
+               <label style="font-size: 13px; color: #fff;"><input type="radio" name="lin-calc" value="total" onchange="toggleLinCalc()"> Заг. довжина</label>
+            </div>
+            <div id="lin-calc-pieces" style="display: flex; gap: 10px;">
+               <div style="flex:1"><label style="font-size: 13px; color: #aaa;">Довж. 1шт (м):</label><input type="text" inputmode="decimal" id="mi-lin-piece-len" placeholder="напр. 4.5"></div>
+               <div style="flex:1"><label style="font-size: 13px; color: #aaa;">К-сть (шт):</label><input type="text" inputmode="numeric" id="mi-lin-pieces-qty" placeholder="напр. 20"></div>
+            </div>
+            <div id="lin-calc-total" style="display: none;">
+               <label style="font-size: 13px; color: #aaa;">Загальна довжина (м.п.):</label>
+               <input type="text" inputmode="decimal" id="mi-lin-total-len" placeholder="напр. 90">
+            </div>
+         </div>
+
+         <div style="margin-top: 10px;">
+           <label style="font-size: 13px; color: #aaa;">Ціна за 1 м.п. (грн):</label>
+           <input type="text" inputmode="decimal" id="mi-lin-price" placeholder="напр. 45" style="margin-top: 5px;">
+         </div>
       </div>
-      <div>
-        <label style="font-size: 13px; color: #aaa;">Ціна за куб (грн):</label>
-        <input type="text" inputmode="decimal" id="mi-item-price" placeholder="напр. 15000" style="margin-top: 5px;">
-      </div>
-      <div style="display: flex; gap: 10px; margin-top: 10px;">
+
+      <div style="display: flex; gap: 10px; margin-top: 15px;">
         <button class="pay-btn centered success" style="flex: 1;" onclick="saveManualItem()">Зберегти</button>
         <button class="pay-btn centered cancel" style="flex: 1; margin-top: 0;" onclick="closeAddItemModal()">Скасувати</button>
       </div>
     </div>
   </div>
 
-  <!-- МОДАЛЬНЕ ВІКНО ПОПЕРЕДНЬОГО ПЕРЕГЛЯДУ -->
   <div id="mi-preview-modal" class="overlay-modal" style="background: rgba(0,0,0,0.92);">
     <div class="modal-box" style="max-width: 500px; max-height: 90vh; overflow-y: auto; background: #fff; color: #000; padding: 20px;">
       <h3 id="preview-modal-header" style="text-align: center; color: #000; margin-bottom: 5px;">📄 Попередній перегляд</h3>
@@ -464,7 +505,7 @@
   </div> 
 
   <script>
-    const APP_VERSION = "2.51"; 
+    const APP_VERSION = "2.52"; 
     
     document.addEventListener("DOMContentLoaded", () => {
        const verEl = document.getElementById('version-display');
@@ -487,9 +528,10 @@
     let pendingPaymentMethod = ''; 
     let pendingInvoiceName = ''; 
 
-    let manualDocType = 'invoice'; // 'invoice' або 'waybill'
+    let manualDocType = 'invoice'; 
     let manualItems = [];
     let clientsList = [];
+    let manualItemMode = 'board';
 
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     let audioCtx;
@@ -585,7 +627,7 @@
       updateUI(); 
     }
 
-    // --- ЛОГІКА РУЧНИХ ДОКУМЕНТІВ (РАХУНОК ТА НАКЛАДНА) ---
+    // --- ЛОГІКА РУЧНИХ ДОКУМЕНТІВ ---
     function openManualScreen(type) {
       manualDocType = type;
       manualItems = [];
@@ -600,12 +642,12 @@
       const previewBtn = document.getElementById('manual-preview-btn');
 
       if (type === 'waybill') {
-        titleEl.innerText = "📝 Накладна";
+        titleEl.innerText = "📝 Виписування накладної наперед";
         payBlock.style.display = 'none';
-        buyerLabel.innerText = "На кого виписати (Покупець):";
+        buyerLabel.innerText = "Для назви файлу (Платник):";
         previewBtn.innerText = "👀 Попередній перегляд накладної";
       } else {
-        titleEl.innerText = "📄 Рахунок";
+        titleEl.innerText = "📄 Виписування рахунку наперед";
         payBlock.style.display = 'block';
         buyerLabel.innerText = "На кого виписати (Платник):";
         previewBtn.innerText = "👀 Попередній перегляд рахунку";
@@ -615,8 +657,27 @@
       document.getElementById('manual-invoice-screen').style.display = 'flex';
     }
 
-    function closeManualScreen() {
-      document.getElementById('manual-invoice-screen').style.display = 'none';
+    function closeManualScreen() { document.getElementById('manual-invoice-screen').style.display = 'none'; }
+
+    function setManualItemMode(mode) {
+       manualItemMode = mode;
+       if (mode === 'board') {
+          document.getElementById('toggle-board').classList.add('active');
+          document.getElementById('toggle-linear').classList.remove('active');
+          document.getElementById('block-board').style.display = 'block';
+          document.getElementById('block-linear').style.display = 'none';
+       } else {
+          document.getElementById('toggle-linear').classList.add('active');
+          document.getElementById('toggle-board').classList.remove('active');
+          document.getElementById('block-linear').style.display = 'block';
+          document.getElementById('block-board').style.display = 'none';
+       }
+    }
+
+    function toggleLinCalc() {
+       const type = document.querySelector('input[name="lin-calc"]:checked').value;
+       document.getElementById('lin-calc-pieces').style.display = (type === 'pieces') ? 'flex' : 'none';
+       document.getElementById('lin-calc-total').style.display = (type === 'total') ? 'block' : 'none';
     }
 
     function openAddItemModal(index = -1) {
@@ -626,49 +687,79 @@
         document.getElementById('mi-item-thick').value = "";
         document.getElementById('mi-item-vol').value = "";
         document.getElementById('mi-item-price').value = "";
+        document.getElementById('mi-lin-name').value = "";
+        document.getElementById('mi-lin-thick').value = "";
+        document.getElementById('mi-lin-width').value = "";
+        document.getElementById('mi-lin-piece-len').value = "";
+        document.getElementById('mi-lin-pieces-qty').value = "";
+        document.getElementById('mi-lin-total-len').value = "";
+        document.getElementById('mi-lin-price').value = "";
       } else {
         document.getElementById('mi-modal-title').innerText = "Редагувати позицію";
         let item = manualItems[index];
-        document.getElementById('mi-item-wood').value = item.wood;
-        document.getElementById('mi-item-thick').value = item.thick;
-        document.getElementById('mi-item-vol').value = item.vol;
-        document.getElementById('mi-item-price').value = item.cubePrice;
+        setManualItemMode(item.type);
+        if (item.type === 'board') {
+           document.getElementById('mi-item-wood').value = item.wood;
+           document.getElementById('mi-item-thick').value = item.thick;
+           document.getElementById('mi-item-vol').value = item.qty;
+           document.getElementById('mi-item-price').value = item.price;
+        } else {
+           document.getElementById('mi-lin-name').value = item.wood;
+           document.getElementById('mi-lin-thick').value = item.thick;
+           document.getElementById('mi-lin-width').value = item.width;
+           document.getElementById('mi-lin-price').value = item.price;
+           document.querySelector('input[name="lin-calc"][value="total"]').checked = true;
+           toggleLinCalc();
+           document.getElementById('mi-lin-total-len').value = item.qty;
+        }
       }
       document.getElementById('mi-item-modal').style.display = 'flex';
     }
 
-    function closeAddItemModal() {
-      document.getElementById('mi-item-modal').style.display = 'none';
-    }
+    function closeAddItemModal() { document.getElementById('mi-item-modal').style.display = 'none'; }
 
     function saveManualItem() {
-      let wood = document.getElementById('mi-item-wood').value;
-      let thick = parseFloat(document.getElementById('mi-item-thick').value.replace(',', '.')) || 0;
-      let vol = parseFloat(document.getElementById('mi-item-vol').value.replace(',', '.')) || 0;
-      let cubePrice = parseFloat(document.getElementById('mi-item-price').value.replace(',', '.')) || 0;
       let editIndex = parseInt(document.getElementById('mi-edit-index').value);
+      let itemObj = {};
 
-      if (thick <= 0 || vol <= 0 || cubePrice <= 0) {
-        alert("Будь ласка, заповніть усі поля коректно!");
-        return;
-      }
-
-      let itemObj = { wood: wood, thick: thick, vol: vol, cubePrice: cubePrice };
-
-      if (editIndex === -1) {
-        manualItems.push(itemObj);
+      if (manualItemMode === 'board') {
+        let wood = document.getElementById('mi-item-wood').value;
+        let thick = parseFloat(document.getElementById('mi-item-thick').value.replace(',', '.')) || 0;
+        let vol = parseFloat(document.getElementById('mi-item-vol').value.replace(',', '.')) || 0;
+        let cubePrice = parseFloat(document.getElementById('mi-item-price').value.replace(',', '.')) || 0;
+        
+        if (thick <= 0 || vol <= 0 || cubePrice <= 0) { alert("Заповніть усі поля для дошки!"); return; }
+        itemObj = { type: 'board', wood: wood, thick: thick, width: 0, qty: vol, price: cubePrice };
       } else {
-        manualItems[editIndex] = itemObj;
+        let name = document.getElementById('mi-lin-name').value.trim();
+        let thick = parseFloat(document.getElementById('mi-lin-thick').value.replace(',', '.')) || 0;
+        let width = parseFloat(document.getElementById('mi-lin-width').value.replace(',', '.')) || 0;
+        let price = parseFloat(document.getElementById('mi-lin-price').value.replace(',', '.')) || 0;
+        
+        if (name === "" || thick <= 0 || width <= 0 || price <= 0) { alert("Заповніть усі обов'язкові поля для хвої!"); return; }
+
+        let calcType = document.querySelector('input[name="lin-calc"]:checked').value;
+        let totalLen = 0;
+        if (calcType === 'pieces') {
+           let pLen = parseFloat(document.getElementById('mi-lin-piece-len').value.replace(',', '.')) || 0;
+           let pQty = parseInt(document.getElementById('mi-lin-pieces-qty').value) || 0;
+           if (pLen <= 0 || pQty <= 0) { alert("Введіть довжину 1 шт. та кількість!"); return; }
+           totalLen = pLen * pQty;
+        } else {
+           totalLen = parseFloat(document.getElementById('mi-lin-total-len').value.replace(',', '.')) || 0;
+           if (totalLen <= 0) { alert("Введіть загальну довжину!"); return; }
+        }
+        itemObj = { type: 'linear', wood: name, thick: thick, width: width, qty: totalLen, price: price };
       }
+
+      if (editIndex === -1) manualItems.push(itemObj);
+      else manualItems[editIndex] = itemObj;
 
       closeAddItemModal();
       renderManualItemsList();
     }
 
-    function deleteManualItem(index) {
-      manualItems.splice(index, 1);
-      renderManualItemsList();
-    }
+    function deleteManualItem(index) { manualItems.splice(index, 1); renderManualItemsList(); }
 
     function renderManualItemsList() {
       let listEl = document.getElementById('mi-items-list');
@@ -680,12 +771,15 @@
 
       let html = '';
       manualItems.forEach((item, idx) => {
-        let rowSum = item.vol * item.cubePrice;
+        let rowSum = item.qty * item.price;
+        let title = item.type === 'linear' ? `${item.wood} ${item.thick}х${item.width} мм` : `Дошка ${item.wood} ${item.thick} мм`;
+        let unit = item.type === 'linear' ? 'м.п.' : 'м³';
+
         html += `
           <div class="item-card">
             <div>
-              <div style="font-weight: bold; font-size: 15px;">${item.wood} ${item.thick} мм</div>
-              <div style="color: #aaa; font-size: 13px; margin-top: 3px;">${item.vol} м³ × ${item.cubePrice} грн = <strong style="color: #4CAF50;">${rowSum.toFixed(2)} грн</strong></div>
+              <div style="font-weight: bold; font-size: 15px;">${title}</div>
+              <div style="color: #aaa; font-size: 13px; margin-top: 3px;">${item.qty.toFixed(3)} ${unit} × ${item.price} грн = <strong style="color: #4CAF50;">${rowSum.toFixed(2)} грн</strong></div>
             </div>
             <div style="display: flex; gap: 8px;">
               <button onclick="openAddItemModal(${idx})" style="background: #2980b9; color: white; border: none; width: 36px; height: 36px; border-radius: 8px; cursor: pointer;">✏️</button>
@@ -708,9 +802,7 @@
 
     function updateManualSummary() {
       let totalWoodSum = 0;
-      manualItems.forEach(item => {
-        totalWoodSum += (item.vol * item.cubePrice);
-      });
+      manualItems.forEach(item => { totalWoodSum += (item.qty * item.price); });
       let hasDel = document.getElementById('mi-has-delivery').value;
       let deliveryVal = (hasDel === 'yes') ? (parseFloat(document.getElementById('mi-delivery-sum').value.replace(',', '.')) || 0) : 0;
       let grandTotal = totalWoodSum + deliveryVal;
@@ -718,51 +810,69 @@
     }
 
     function previewManualDocument() {
-      if (manualItems.length === 0) {
-        alert("Додайте хоча б одну позицію!");
-        return;
-      }
+      if (manualItems.length === 0) { alert("Додайте хоча б одну позицію!"); return; }
       let buyerName = document.getElementById('mi-buyer-name').value.trim();
-      if (buyerName === "") {
-        alert("Вкажіть назву компанії/Платника!");
-        return;
-      }
+      if (buyerName === "") { alert("Вкажіть назву компанії/Платника!"); return; }
 
       let hasDel = document.getElementById('mi-has-delivery').value === 'yes';
       let deliveryVal = hasDel ? (parseFloat(document.getElementById('mi-delivery-sum').value.replace(',', '.')) || 0) : 0;
 
-      let totalVol = 0;
-      manualItems.forEach(i => totalVol += i.vol);
+      let paymentType = document.getElementById('mi-payment-type').value;
+      let isKrok = (paymentType === 'Б/Г без ПДВ') && (manualDocType === 'invoice');
 
       let tableRows = '';
+      let totalBaseSumToDistribute = 0;
       let totalBaseSum = 0;
+      
+      let totalVolM3 = 0;
+      let totalLenMP = 0;
+
+      manualItems.forEach(item => {
+        let usedPrice = isKrok ? (item.price / 0.94) : item.price;
+        item.baseRowSum = Math.round(item.qty * usedPrice * 100) / 100;
+        totalBaseSumToDistribute += item.baseRowSum;
+        if (item.type === 'linear') totalLenMP += item.qty;
+        else totalVolM3 += item.qty;
+      });
+
+      let inflatedDel = isKrok ? (deliveryVal / 0.94) : deliveryVal;
+
+      manualItems.forEach((item, idx) => {
+        let propDel = (totalBaseSumToDistribute > 0 && inflatedDel > 0) ? (inflatedDel * (item.baseRowSum / totalBaseSumToDistribute)) : 0;
+        let finalRowSum = Math.round((item.baseRowSum + propDel) * 100) / 100;
+        totalBaseSum += finalRowSum;
+        let dispPrice = finalRowSum / item.qty;
+
+        let nameStr = item.type === 'linear' ? `${item.wood} ${item.thick}х${item.width} мм` : `Дошка ${item.wood} ${item.thick} мм`;
+        let unitStr = item.type === 'linear' ? `м.п.` : `м³`;
+
+        if (manualDocType === 'invoice') {
+           tableRows += `
+             <tr>
+               <td style="border: 1px solid #000; padding: 4px; text-align: center;">${idx + 1}</td>
+               <td style="border: 1px solid #000; padding: 4px;">${nameStr}</td>
+               <td style="border: 1px solid #000; padding: 4px; text-align: center;">${unitStr}</td>
+               <td style="border: 1px solid #000; padding: 4px; text-align: center;">${item.qty.toFixed(3).replace('.', ',')}</td>
+               <td style="border: 1px solid #000; padding: 4px; text-align: center;">${dispPrice.toFixed(2).replace('.', ',')}</td>
+               <td style="border: 1px solid #000; padding: 4px; text-align: center;">${finalRowSum.toFixed(2).replace('.', ',')}</td>
+             </tr>
+           `;
+        } else {
+           tableRows += `
+             <tr>
+               <td style="border-bottom: 1px solid #ddd; padding: 4px; text-align: center;">${idx + 1}</td>
+               <td style="border-bottom: 1px solid #ddd; padding: 4px; font-weight: bold;">${nameStr}</td>
+               <td style="border-bottom: 1px solid #ddd; padding: 4px; text-align: center;">${unitStr}</td>
+               <td style="border-bottom: 1px solid #ddd; padding: 4px; text-align: center;">${item.qty.toFixed(3).replace('.', ',')}</td>
+               <td style="border-bottom: 1px solid #ddd; padding: 4px; text-align: center;">${dispPrice.toFixed(2).replace('.', ',')}</td>
+               <td style="border-bottom: 1px solid #ddd; padding: 4px; text-align: right;">${finalRowSum.toFixed(2).replace('.', ',')}</td>
+             </tr>
+           `;
+        }
+      });
 
       if (manualDocType === 'invoice') {
         document.getElementById('preview-modal-header').innerText = "📄 Попередній перегляд рахунку";
-        let paymentType = document.getElementById('mi-payment-type').value;
-        let isKrok = (paymentType === 'Б/Г без ПДВ');
-
-        manualItems.forEach((item, idx) => {
-          let usedPrice = isKrok ? (item.cubePrice / 0.94) : item.cubePrice;
-          let baseRowSum = Math.round(item.vol * usedPrice * 100) / 100;
-          let inflatedDel = isKrok ? (deliveryVal / 0.94) : deliveryVal;
-          let propDel = (totalVol > 0 && inflatedDel > 0) ? (inflatedDel * (item.vol / totalVol)) : 0;
-          let finalRowSum = Math.round((baseRowSum + propDel) * 100) / 100;
-          totalBaseSum += finalRowSum;
-          let dispPrice = finalRowSum / item.vol;
-
-          tableRows += `
-            <tr>
-              <td style="border: 1px solid #000; padding: 4px; text-align: center;">${idx + 1}</td>
-              <td style="border: 1px solid #000; padding: 4px;">Дошка ${item.wood} ${item.thick} мм</td>
-              <td style="border: 1px solid #000; padding: 4px; text-align: center;">м3</td>
-              <td style="border: 1px solid #000; padding: 4px; text-align: center;">${item.vol.toFixed(3).replace('.', ',')}</td>
-              <td style="border: 1px solid #000; padding: 4px; text-align: center;">${dispPrice.toFixed(2).replace('.', ',')}</td>
-              <td style="border: 1px solid #000; padding: 4px; text-align: center;">${finalRowSum.toFixed(2).replace('.', ',')}</td>
-            </tr>
-          `;
-        });
-
         let totalsHtml = isKrok ? `
           <tr><td style="text-align: right; padding: 4px;" colspan="5"><b>Всього без ПДВ:</b></td><td style="border: 1px solid #000; text-align: center; padding: 4px;">${totalBaseSum.toFixed(2).replace('.', ',')}</td></tr>
           <tr><td style="text-align: right; padding: 4px;" colspan="5"><b>ПДВ:</b></td><td style="border: 1px solid #000; text-align: center; padding: 4px;">-</td></tr>
@@ -773,10 +883,16 @@
           <tr><td style="text-align: right; padding: 4px;" colspan="5"><b>ПІДСУМОК:</b></td><td style="border: 1px solid #000; text-align: center; padding: 4px;"><b>${(totalBaseSum * 1.2).toFixed(2).replace('.', ',')}</b></td></tr>
         `;
 
+        let summaryStr = "";
+        if (totalVolM3 > 0 && totalLenMP > 0) { summaryStr = `<b>Заг. об'єм:</b> ${totalVolM3.toFixed(3)} м³ | <b>Заг. довжина:</b> ${totalLenMP.toFixed(3)} м.п.`; }
+        else if (totalLenMP > 0) { summaryStr = `<b>Загальна довжина:</b> ${totalLenMP.toFixed(3)} м.п.`; }
+        else { summaryStr = `<b>Загальний об'єм:</b> ${totalVolM3.toFixed(3)} м³`; }
+
         document.getElementById('mi-preview-content').innerHTML = `
           <div style="font-size: 12px; color: #333;">
             <div style="font-weight: bold; margin-bottom: 5px;">Постачальник: ${isKrok ? 'ПП "Торговий дім "КРОК"' : 'ТОВ "Аполло"'}</div>
-            <div style="margin-bottom: 15px;"><b>Платник:</b> ${buyerName}</div>
+            <div style="margin-bottom: 5px;"><b>Платник:</b> ${buyerName}</div>
+            <div style="margin-bottom: 15px; color: #666;">${summaryStr}</div>
             <table style="width: 100%; border-collapse: collapse; margin-bottom: 10px;">
               <thead>
                 <tr style="background: #eee;">
@@ -797,24 +913,15 @@
       else {
         // НАКЛАДНА
         document.getElementById('preview-modal-header').innerText = "📝 Попередній перегляд накладної";
-        manualItems.forEach((item, idx) => {
-          let baseRowSum = Math.round(item.vol * item.cubePrice * 100) / 100;
-          let propDel = (totalVol > 0 && deliveryVal > 0) ? (deliveryVal * (item.vol / totalVol)) : 0;
-          let finalRowSum = Math.round((baseRowSum + propDel) * 100) / 100;
-          totalBaseSum += finalRowSum;
-          let dispPrice = finalRowSum / item.vol;
-
-          tableRows += `
-            <tr>
-              <td style="border-bottom: 1px solid #ddd; padding: 4px; text-align: center;">${idx + 1}</td>
-              <td style="border-bottom: 1px solid #ddd; padding: 4px; font-weight: bold;">Дошка ${item.wood} ${item.thick} мм</td>
-              <td style="border-bottom: 1px solid #ddd; padding: 4px; text-align: center;">м3</td>
-              <td style="border-bottom: 1px solid #ddd; padding: 4px; text-align: center;">${item.vol.toFixed(3).replace('.', ',')}</td>
-              <td style="border-bottom: 1px solid #ddd; padding: 4px; text-align: center;">${dispPrice.toFixed(2).replace('.', ',')}</td>
-              <td style="border-bottom: 1px solid #ddd; padding: 4px; text-align: right;">${finalRowSum.toFixed(2).replace('.', ',')}</td>
-            </tr>
-          `;
-        });
+        
+        let summaryStr = "";
+        if (totalVolM3 > 0 && totalLenMP > 0) { 
+           summaryStr = `<div style="display:flex; justify-content:space-between; margin-bottom:4px;"><span>Заг. об'єм дошки:</span><span>${totalVolM3.toFixed(3)} м³</span></div><div style="display:flex; justify-content:space-between; margin-bottom:8px;"><span>Заг. довжина хвої:</span><span>${totalLenMP.toFixed(3)} м.п.</span></div>`;
+        } else if (totalLenMP > 0) { 
+           summaryStr = `<div style="display:flex; justify-content:space-between; margin-bottom:8px;"><span>Загальна довжина:</span><span>${totalLenMP.toFixed(3)} м.п.</span></div>`; 
+        } else { 
+           summaryStr = `<div style="display:flex; justify-content:space-between; margin-bottom:8px;"><span>Загальний об'єм:</span><span>${totalVolM3.toFixed(3)} м³</span></div>`; 
+        }
 
         document.getElementById('mi-preview-content').innerHTML = `
           <div style="font-size: 12px; color: #15222E; background: #fff; padding: 10px;">
@@ -826,7 +933,7 @@
                <div>Постачальник: ТОВ "Аполло"</div>
                <div>Одержувач: ТОВ "Аполло"</div>
             </div>
-            <table style="width: 100%; border-collapse: collapse; margin-bottom: 10px;">
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px;">
               <thead>
                 <tr style="background: #15222E; color: white;">
                   <th style="padding: 4px;">№</th><th style="padding: 4px;">Найменування</th><th style="padding: 4px;">Од</th><th style="padding: 4px;">К-сть</th><th style="padding: 4px;">Ціна</th><th style="padding: 4px;">Сума</th>
@@ -834,7 +941,10 @@
               </thead>
               <tbody>${tableRows}</tbody>
             </table>
-            <div style="text-align: right; font-size: 14px; font-weight: bold; color: #A67C52;">
+            <div style="width: 250px; margin-left: auto; color: #555; border-bottom: 1px dashed #ccc; padding-bottom: 5px;">
+               ${summaryStr}
+            </div>
+            <div style="text-align: right; font-size: 15px; font-weight: bold; color: #A67C52; padding-top: 5px;">
               ПІДСУМОК: ${totalBaseSum.toFixed(2).replace('.', ',')} грн
             </div>
           </div>
@@ -843,9 +953,7 @@
       document.getElementById('mi-preview-modal').style.display = 'flex';
     }
 
-    function closePreviewModal() {
-      document.getElementById('mi-preview-modal').style.display = 'none';
-    }
+    function closePreviewModal() { document.getElementById('mi-preview-modal').style.display = 'none'; }
 
     async function confirmAndSendManual() {
       closePreviewModal();
@@ -856,11 +964,15 @@
       let deliveryCost = hasDel ? (parseFloat(document.getElementById('mi-delivery-sum').value.replace(',', '.')) || 0) : 0;
 
       let formattedHistory = manualItems.map(item => {
-        let rowSum = item.vol * item.cubePrice;
-        return { buyer: buyerName, wood: item.wood, thick: item.thick, width: 0, length: 1, vol: item.vol, cubePrice: item.cubePrice, price: rowSum };
+        let rowSum = item.qty * item.price;
+        if (item.type === 'linear') {
+           return { buyer: buyerName, wood: item.wood, thick: item.thick, width: item.width, length: 1, isLinear: true, vol: item.qty, cubePrice: item.price, price: rowSum };
+        } else {
+           return { buyer: buyerName, wood: item.wood, thick: item.thick, width: 0, length: 1, isLinear: false, vol: item.qty, cubePrice: item.price, price: rowSum };
+        }
       });
 
-      let woodNames = [...new Set(manualItems.map(i => `${i.wood} ${i.thick} мм`))].join(', ');
+      let woodNames = [...new Set(manualItems.map(i => i.type === 'linear' ? `Брус/Рейка` : `${i.wood} ${i.thick} мм`))].join(', ');
 
       let reqBody = {
         action: 'syncFileSync',
@@ -1035,13 +1147,15 @@
         boardPrice = -Math.abs(boardPrice);
       }
 
-      history.push({ buyer: buyer, wood: wood, width: widthCm, length: l, thick: getSafeNumber('thick'), vol: boardVol, cubePrice: cubePrice, price: boardPrice });
+      history.push({ buyer: buyer, wood: wood, width: widthCm, length: l, thick: getSafeNumber('thick'), vol: boardVol, cubePrice: cubePrice, price: boardPrice, isLinear: false });
       updateUI(); renderList(); saveStoredData(); playClickSound(); if(navigator.vibrate) navigator.vibrate(40);
     }
     function undo() { if (history.length === 0) return; history.pop(); updateUI(); renderList(); saveStoredData(); playClickSound(); }
     function deleteBoard(index) { if (confirm("Точно видалити цю дошку зі списку?")) { history.splice(index, 1); updateUI(); renderList(); saveStoredData(); } }
     
     function getTotals() {
+      let totalV = 0;
+      let totalS = 0;
       let groups = {};
       history.forEach(b => {
         let priceLabel = Math.round(Math.abs(b.cubePrice) || 0);
@@ -1049,8 +1163,6 @@
         if (!groups[key]) groups[key] = { vol: 0, price: Math.abs(b.cubePrice) };
         groups[key].vol += b.vol;
       });
-      let totalV = 0;
-      let totalS = 0;
       for (let k in groups) {
          let rVol = Number(groups[k].vol.toFixed(3));
          totalV += rVol;
@@ -1136,7 +1248,7 @@
       if (method === 'Б/Г з ПДВ' || method === 'Б/Г без ПДВ') {
         document.getElementById('invoice-ask-modal').style.display = 'flex';
       } else if (method === 'Готівка') {
-        document.getElementById('waybill-ask-modal').style.display = 'flex'; // ПИТАЄМО ПРО НАКЛАДНУ
+        document.getElementById('waybill-ask-modal').style.display = 'flex'; 
       } else {
         executeSend(method, "", false, 0, false);
       }
@@ -1249,7 +1361,7 @@
     function confirmQRPayment() {
        document.getElementById('qr-modal').style.display = 'none';
        pendingPaymentMethod = 'На картку (' + selectedQRBank + ')';
-       document.getElementById('waybill-ask-modal').style.display = 'flex'; // ПИТАЄМО ПРО НАКЛАДНУ
+       document.getElementById('waybill-ask-modal').style.display = 'flex'; 
     }
 
     function confirmWaybill(need) {
@@ -1292,7 +1404,7 @@
       const phoneEl = document.getElementById('buyer-phone'); let phone = phoneEl ? phoneEl.value.trim() : "Не вказано";
       const csvContent = formatCSVData();
       
-      const wood = [...new Set(history.map(b => `${b.wood} ${b.thick} мм`))].join(', ') || "Не вказана";
+      const wood = [...new Set(history.map(b => b.isLinear ? `Брус/Рейка` : `${b.wood} ${b.thick} мм`))].join(', ') || "Не вказана";
       
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 60000);
@@ -1370,8 +1482,12 @@
       const groupedData = {};
       
       sortedHistory.forEach(board => {
+        let isLin = board.isLinear === true;
         const priceLabel = Math.round(Math.abs(board.cubePrice) || 0);
-        const groupName = isIncome ? `${board.wood} ${board.thick} мм` : `${board.wood} ${board.thick} мм (ціна: ${priceLabel} грн/м3)`;
+        let groupName = isLin ? `${board.wood} ${board.thick}х${board.width} мм (ціна: ${priceLabel} грн/м.п.)` : `${board.wood} ${board.thick} мм (ціна: ${priceLabel} грн/м3)`;
+        if (isIncome) {
+           groupName = isLin ? `${board.wood} ${board.thick}х${board.width} мм` : `${board.wood} ${board.thick} мм`;
+        }
         if (!groupedData[groupName]) groupedData[groupName] = [];
         groupedData[groupName].push(board);
       });
@@ -1382,12 +1498,13 @@
         const boards = groupedData[groupName];
         let woodVolTotal = 0; 
         
-        const pureWoodName = `${boards[0].wood} ${boards[0].thick} мм`; 
+        let isLin = boards[0].isLinear === true;
+        const pureWoodName = isLin ? `${boards[0].wood} ${boards[0].thick}x${boards[0].width} мм` : `${boards[0].wood} ${boards[0].thick} мм`; 
         const groupPrice = Math.round(Math.abs(boards[0].cubePrice) || 0);
         
         csvContent += `Порода: ${groupName}${c}\n`;
-        if (isIncome) { csvContent += "Номер,Довжина (м),Товщина (мм),Ширина (см),Об'єм (м3)\n"; } 
-        else { csvContent += "Номер,Довжина (м),Товщина (мм),Ширина (см),Об'єм (м3),Ціна за куб,Сума\n"; }
+        if (isIncome) { csvContent += "Номер,Довжина (м),Товщина (мм),Ширина,К-сть (м3/м.п.)\n"; } 
+        else { csvContent += "Номер,Довжина (м),Товщина (мм),Ширина,К-сть (м3/м.п.),Ціна за од.,Сума\n"; }
         
         woodCount = 0;
         boards.forEach((b) => {
@@ -1396,9 +1513,10 @@
           let cubePriceString = groupPrice.toString(); 
           let roundedBoardPrice = Number(b.price.toFixed(2)); 
           let priceString = roundedBoardPrice.toFixed(2);
+          let wStr = b.isLinear ? b.width : "";
           
-          if (isIncome) { csvContent += `${woodCount},${b.length},${b.thick},${b.width},${volString}\n`; } 
-          else { csvContent += `${woodCount},${b.length},${b.thick},${b.width},${volString},${cubePriceString},${priceString}\n`; }
+          if (isIncome) { csvContent += `${woodCount},${b.length},${b.thick},${wStr},${volString}\n`; } 
+          else { csvContent += `${woodCount},${b.length},${b.thick},${wStr},${volString},${cubePriceString},${priceString}\n`; }
           woodVolTotal += b.vol; 
         });
         csvContent += `---${c}\n`;
