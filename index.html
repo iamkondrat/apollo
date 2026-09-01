@@ -540,7 +540,7 @@
           <option value="Берест">Берест</option>
         </select>
         <input type="text" inputmode="decimal" id="price" placeholder="Ціна за куб (грн)">
-        <input type="text inputmode="decimal" id="len" placeholder="Довжина (м)">
+        <input type="text" inputmode="decimal" id="len" placeholder="Довжина (м)">
         <input type="text" inputmode="decimal" id="thick" placeholder="Товщина (мм)">
       </div>
       <div class="btn-row">
@@ -1874,7 +1874,9 @@
           let cubePriceString = groupPrice.toString(); 
           let roundedBoardPrice = Number(b.price.toFixed(2)); 
           let priceString = roundedBoardPrice.toFixed(2);
-          let wStr = b.isLinear ? b.width : "";
+          
+          // ВАЖЛИВО: Завжди беремо ширину, якщо вона є
+          let wStr = b.width || "";
           
           if (isIncome) { csvContent += `${woodCount},${b.length},${b.thick},${wStr},${volString}\n`; } 
           else { csvContent += `${woodCount},${b.length},${b.thick},${wStr},${volString},${cubePriceString},${priceString}\n`; }
