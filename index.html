@@ -517,7 +517,7 @@
       </div>
     </div>
 
-    <div id="settings-menu">
+    <div id="settings-menu">      
       <div class="inputs">
         <input list="buyer-list" type="text" id="buyer-name" placeholder="Покупець">
         <datalist id="buyer-list"></datalist>
@@ -572,7 +572,7 @@
   </div> 
 
   <script>
-    const APP_VERSION = "2.60"; 
+    const APP_VERSION = "2.61"; 
     
     document.addEventListener("DOMContentLoaded", () => {
        const verEl = document.getElementById('version-display');
@@ -721,9 +721,12 @@
       const settings = document.getElementById('settings-menu');
       const addBoardBtn = document.getElementById('add-board-btn');
       const sendBtn = document.getElementById('send-btn');
+      
+      let metaTheme = document.querySelector('meta[name="theme-color"]');
 
       if (mode === 'income') {
         document.body.style.background = '#0a192f'; header.style.background = '#112240'; settings.style.background = '#0a192f';
+        if (metaTheme) metaTheme.setAttribute('content', '#112240');
         if (buyerInput) buyerInput.placeholder = "Ім'я постачальника";
         if (phoneInput) phoneInput.style.display = 'none';
         if (priceInput) priceInput.style.display = 'none';
@@ -731,6 +734,7 @@
         sendBtn.innerText = '📥 Надіслати';
       } else if (mode === 'return') {
         document.body.style.background = '#3e1a18'; header.style.background = '#2c1211'; settings.style.background = '#3e1a18';
+        if (metaTheme) metaTheme.setAttribute('content', '#2c1211');
         if (buyerInput) buyerInput.placeholder = "Клієнт (Повернення)";
         if (phoneInput) phoneInput.style.display = '';
         if (priceInput) priceInput.style.display = '';
@@ -738,6 +742,7 @@
         sendBtn.innerText = '📤 Зробити повернення';
       } else { 
         document.body.style.background = '#121212'; header.style.background = '#1e1e1e'; settings.style.background = '#222';
+        if (metaTheme) metaTheme.setAttribute('content', '#1e1e1e');
         if (buyerInput) buyerInput.placeholder = "Ім'я покупця";
         if (phoneInput) phoneInput.style.display = '';
         if (priceInput) priceInput.style.display = '';
@@ -1179,7 +1184,6 @@
         `;
       } 
       else {
-        // НАКЛАДНА
         document.getElementById('preview-modal-header').innerText = "📝 Попередній перегляд накладної";
         
         let summaryStr = "";
@@ -1336,6 +1340,20 @@
     }
 
     async function resetAll() {
+      let bName = document.getElementById('buyer-name') ? document.getElementById('buyer-name').value.trim() : "";
+      let bPhone = document.getElementById('buyer-phone') ? document.getElementById('buyer-phone').value.trim() : "";
+      let wType = document.getElementById('wood-type') ? document.getElementById('wood-type').value : "";
+      let pPrice = document.getElementById('price') ? document.getElementById('price').value.replace(/[^\d.,]/g, '').trim() : "";
+      let pLen = document.getElementById('len') ? document.getElementById('len').value.replace(/[^\d.,]/g, '').trim() : "";
+      let pThick = document.getElementById('thick') ? document.getElementById('thick').value.replace(/[^\d.,]/g, '').trim() : "";
+
+      let hasInput = (history.length > 0) || (bName !== "") || (bPhone !== "") || (wType !== "" && wType !== "Оберіть породу") || (pPrice !== "") || (pLen !== "") || (pThick !== "") || (currentWidthInput !== "");
+
+      if (!hasInput) {
+          resetAndGoHome();
+          return;
+      }
+
       let msg = "Ви впевнені, що хочете видалити всі заміри та вийти в Головне меню?";
       if (history.length > 0 && history.length !== lastSentCount) msg = "У вас є НЕВІДПРАВЛЕНІ дані!\nТочно хочете скасувати їх?";
       
@@ -1359,6 +1377,10 @@
       document.getElementById('wood-type').value = ""; document.getElementById('price').value = ""; 
       document.getElementById('len').value = ""; document.getElementById('thick').value = ""; 
       clearWidthInput(); document.getElementById('start-menu').style.display = 'flex'; document.getElementById('main-app').style.display = 'none'; fetchDrafts();
+      
+      document.body.style.background = '#121212';
+      let metaTheme = document.querySelector('meta[name="theme-color"]');
+      if (metaTheme) metaTheme.setAttribute('content', '#1e1e1e');
       
       if (isUpdateAvailable) {
          forceUpdateApp();
