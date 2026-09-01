@@ -72,7 +72,6 @@
     .list-btn { background: #f57c00; margin-top: 0; } .list-btn:active { background: #e65100; }
     .export-btn { background: #1976d2; margin-top: 0; flex: 2; } .export-btn:active { background: #1565c0; }
     .reset-btn { background: #555; margin-top: 10px; } .reset-btn:active { background: #444; }
-    .force-update-btn { background: #8e44ad; width: 100%; margin-bottom: 15px; } .force-update-btn:active { background: #6c3483; }
     
     .width-input-area { padding: 15px; background: rgba(0,0,0,0.2); border-bottom: 1px solid #333; display: flex; align-items: center; gap: 10px; box-sizing: border-box; }
     .width-display { flex: 1; padding: 15px; background: #2c2c2c; color: white; border: 1px solid #444; border-radius: 8px; font-size: 20px; font-weight: bold; outline: none; text-align: center; cursor: default; }
@@ -124,6 +123,9 @@
     /* СТИЛІ АРХІВУ */
     .archive-item { background: #2a2a2a; border-left: 4px solid #3498db; padding: 12px; border-radius: 8px; cursor: pointer; transition: background 0.2s; }
     .archive-item:active { background: #333; transform: scale(0.98); }
+
+    @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+    .mono-loading { animation: pulse 1.5s infinite; }
   </style>
 </head>
 <body>
@@ -255,10 +257,11 @@
   <div id="qr-modal" class="overlay-modal">
     <div class="modal-box" style="align-items: center; text-align: center;">
       <h3 id="qr-bank-title" style="margin-bottom: 5px;">Оплата на картку</h3>
-      <p style="color: #ccc; margin-top: 0; margin-bottom: 20px;">Сума: <strong id="qr-sum" style="color:#4CAF50; font-size:24px;">0</strong> грн</p>
+      <p style="color: #ccc; margin-top: 0; margin-bottom: 10px;">Сума: <strong id="qr-sum" style="color:#4CAF50; font-size:24px;">0</strong> грн</p>
+      <div id="mono-status" class="mono-loading" style="color: #f39c12; font-size: 14px; margin-bottom: 10px; display: none;">🔄 Очікуємо надходження платежу...</div>
       <div id="qr-container" style="background: white; padding: 15px; border-radius: 12px; display: inline-block; box-shadow: 0 4px 15px rgba(0,0,0,0.5);"></div>
       <div style="width: 100%; display: flex; flex-direction: column; gap: 10px; margin-top: 20px;">
-          <button class="pay-btn centered success" onclick="confirmQRPayment()">✅ Оплачено, завершити</button>
+          <button class="pay-btn centered success" onclick="confirmQRPayment()">✅ Підтвердити вручну</button>
           <button class="pay-btn centered" onclick="openBankSelection()">🔄 Змінити банк</button>
           <button class="pay-btn centered cancel" onclick="goBackToPaymentFromQR()">❌ Скасувати оплату</button>
       </div>
@@ -572,7 +575,7 @@
   </div> 
 
   <script>
-    const APP_VERSION = "2.61"; 
+    const APP_VERSION = "2.62"; 
     
     document.addEventListener("DOMContentLoaded", () => {
        const verEl = document.getElementById('version-display');
@@ -601,6 +604,7 @@
     let manualItemMode = 'board';
     
     let isUpdateAvailable = false;
+    let monoPollInterval = null;
 
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     let audioCtx;
@@ -678,7 +682,6 @@
         fetchDrafts();
       }
       
-      // Запускаємо перевірку оновлень кожні 5 хвилин
       setInterval(checkAutoUpdate, 5 * 60 * 1000);
       setTimeout(checkAutoUpdate, 2000);
     }
@@ -1628,16 +1631,19 @@
        document.getElementById('payment-modal').style.display = 'none';
        document.getElementById('qr-modal').style.display = 'none';
        document.getElementById('bank-modal').style.display = 'flex';
+       stopMonoPolling();
     }
 
     function goBackToPayment() {
        document.getElementById('bank-modal').style.display = 'none';
        document.getElementById('payment-modal').style.display = 'flex';
+       stopMonoPolling();
     }
 
     function goBackToPaymentFromQR() {
        document.getElementById('qr-modal').style.display = 'none';
        document.getElementById('payment-modal').style.display = 'flex';
+       stopMonoPolling();
     }
 
     function selectBank(bankName) {
@@ -1654,10 +1660,16 @@
 
        if (bankName === 'Monobank') {
            finalLink = "https://send.monobank.ua/4o577nB2ji?a=" + totalSum; 
+           document.getElementById('mono-status').style.display = 'block';
+           startMonoPolling(totalSum);
        } else if (bankName === 'PrivatBank') {
            finalLink = "https://www.privat24.ua/send/468tr"; 
+           document.getElementById('mono-status').style.display = 'none';
+           stopMonoPolling();
        } else if (bankName === 'ПУМБ') {
            finalLink = "https://mobile-app.pumb.ua/1Lrvk"; 
+           document.getElementById('mono-status').style.display = 'none';
+           stopMonoPolling();
        }
        
        document.getElementById('qr-container').innerHTML = ""; 
@@ -1673,7 +1685,28 @@
        document.getElementById('qr-modal').style.display = 'flex';
     }
 
+    function startMonoPolling(amount) {
+        stopMonoPolling();
+        monoPollInterval = setInterval(async () => {
+            try {
+                let res = await fetch(BACKEND_URL + "?action=checkMonoPayment&amount=" + amount + "&_t=" + new Date().getTime());
+                let data = await res.json();
+                if (data.status === 'paid') {
+                    stopMonoPolling();
+                    customAlert("Оплату " + amount + " грн отримано автоматично!", "✅ Успішно");
+                    confirmQRPayment(); 
+                }
+            } catch(e) {}
+        }, 3000);
+    }
+
+    function stopMonoPolling() {
+        if (monoPollInterval) clearInterval(monoPollInterval);
+        monoPollInterval = null;
+    }
+
     function confirmQRPayment() {
+       stopMonoPolling();
        document.getElementById('qr-modal').style.display = 'none';
        pendingPaymentMethod = 'На картку (' + selectedQRBank + ')';
        document.getElementById('waybill-ask-modal').style.display = 'flex'; 
