@@ -540,7 +540,7 @@
           <option value="Берест">Берест</option>
         </select>
         <input type="text" inputmode="decimal" id="price" placeholder="Ціна за куб (грн)">
-        <input type="text" inputmode="decimal" id="len" placeholder="Довжина (м)">
+        <input type="text inputmode="decimal" id="len" placeholder="Довжина (м)">
         <input type="text" inputmode="decimal" id="thick" placeholder="Товщина (мм)">
       </div>
       <div class="btn-row">
@@ -575,7 +575,7 @@
   </div> 
 
   <script>
-    const APP_VERSION = "2.62"; 
+    const APP_VERSION = "2.63"; 
     
     document.addEventListener("DOMContentLoaded", () => {
        const verEl = document.getElementById('version-display');
@@ -605,6 +605,7 @@
     
     let isUpdateAvailable = false;
     let monoPollInterval = null;
+    let isMonoPolling = false;
 
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     let audioCtx;
@@ -1187,6 +1188,7 @@
         `;
       } 
       else {
+        // НАКЛАДНА
         document.getElementById('preview-modal-header').innerText = "📝 Попередній перегляд накладної";
         
         let summaryStr = "";
@@ -1687,21 +1689,32 @@
 
     function startMonoPolling(amount) {
         stopMonoPolling();
-        monoPollInterval = setInterval(async () => {
+        isMonoPolling = true;
+        
+        const poll = async () => {
+            if (!isMonoPolling) return;
             try {
                 let res = await fetch(BACKEND_URL + "?action=checkMonoPayment&amount=" + amount + "&_t=" + new Date().getTime());
                 let data = await res.json();
-                if (data.status === 'paid') {
+                if (data.status === 'paid' && isMonoPolling) {
                     stopMonoPolling();
                     customAlert("Оплату " + amount + " грн отримано автоматично!", "✅ Успішно");
                     confirmQRPayment(); 
+                    return; 
                 }
             } catch(e) {}
-        }, 3000);
+            
+            if (isMonoPolling) {
+                monoPollInterval = setTimeout(poll, 1000); 
+            }
+        };
+        
+        monoPollInterval = setTimeout(poll, 1000);
     }
 
     function stopMonoPolling() {
-        if (monoPollInterval) clearInterval(monoPollInterval);
+        isMonoPolling = false;
+        if (monoPollInterval) clearTimeout(monoPollInterval);
         monoPollInterval = null;
     }
 
