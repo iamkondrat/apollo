@@ -64,8 +64,8 @@
     
     #settings-menu { background: #222; padding: 15px; border-bottom: 2px solid #333; display: block; transition: background 0.3s; }
     .inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
-    input, select { width: 100%; box-sizing: border-box; padding: 12px; background: #333; color: white; border: 1px solid #444; border-radius: 8px; font-size: 16px; outline: none; appearance: auto; -webkit-appearance: auto; }
-    input:focus, select:focus { border-color: #4CAF50; }
+    input, select, textarea { width: 100%; box-sizing: border-box; padding: 12px; background: #333; color: white; border: 1px solid #444; border-radius: 8px; font-size: 16px; outline: none; font-family: inherit; }
+    input:focus, select:focus, textarea:focus { border-color: #4CAF50; }
     
     .action-btn { width: 100%; padding: 12px; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; margin-top: 10px; cursor: pointer; transition: background 0.1s; }
     .btn-row { display: flex; gap: 10px; margin-top: 10px; }
@@ -94,7 +94,7 @@
     #loader-text { font-size: 22px; font-weight: bold; color: white; text-align: center; margin-top: 10px; }
 
     .overlay-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 99999990; display: none; justify-content: center; align-items: center; }
-    .modal-box { background: #1e1e1e; padding: 25px; border-radius: 16px; width: 90%; max-width: 350px; display: flex; flex-direction: column; gap: 12px; border: 1px solid #333; box-shadow: 0 10px 30px rgba(0,0,0,0.5); position: relative; z-index: 99999999; }
+    .modal-box { background: #1e1e1e; padding: 25px; border-radius: 16px; width: 90%; max-width: 350px; display: flex; flex-direction: column; gap: 12px; border: 1px solid #333; box-shadow: 0 10px 30px rgba(0,0,0,0.5); position: relative; z-index: 99999999; max-height: 90vh; overflow-y: auto;}
     .modal-box h3 { margin: 0 0 15px 0; text-align: center; color: #fff; font-size: 20px;}
     
     .pay-btn { padding: 12px 16px; font-size: 18px; font-weight: bold; border: 1px solid #444; border-radius: 12px; cursor: pointer; color: white; transition: 0.2s; background: #2c2c2c; display: flex; align-items: center; justify-content: flex-start; gap: 15px; }
@@ -123,6 +123,11 @@
     /* СТИЛІ АРХІВУ */
     .archive-item { background: #2a2a2a; border-left: 4px solid #3498db; padding: 12px; border-radius: 8px; cursor: pointer; transition: background 0.2s; }
     .archive-item:active { background: #333; transform: scale(0.98); }
+
+    /* СТИЛІ КНОПКИ КАМЕРИ */
+    .camera-btn { background: #34495e; padding: 10px; border-radius: 8px; color: #fff; text-align: center; cursor: pointer; font-size: 14px; border: 1px solid #444; margin-top: 5px; display: flex; justify-content: center; align-items: center; gap: 5px; }
+    .camera-btn:active { background: #2c3e50; }
+    .camera-btn input { display: none; }
 
     @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
     .mono-loading { animation: pulse 1.5s infinite; }
@@ -186,6 +191,57 @@
       <div style="width: 100%; display: flex; gap: 10px;">
           <button class="pay-btn centered success" style="flex: 1;" onclick="confirmWaybill(true)">Так</button>
           <button class="pay-btn centered cancel" style="flex: 1; margin-top: 0;" onclick="confirmWaybill(false)">Ні</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="ttn-ask-modal" class="overlay-modal">
+    <div class="modal-box" style="align-items: center; text-align: center;">
+      <h3 style="margin-bottom: 15px;">🚚 Виписати ТТН?</h3>
+      <div style="width: 100%; display: flex; gap: 10px;">
+          <button class="pay-btn centered success" style="flex: 1;" onclick="openTTNForm()">Так</button>
+          <button class="pay-btn centered cancel" style="flex: 1; margin-top: 0;" onclick="skipTTN()">Ні</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="ttn-form-modal" class="overlay-modal" style="background: rgba(0,0,0,0.95);">
+    <div class="modal-box" style="max-width: 450px;">
+      <h3 style="margin-bottom: 10px; text-align: center; color: #f39c12;">🚚 Дані для ТТН</h3>
+      
+      <label style="font-size: 12px; color: #aaa;">Замовник / Одержувач:</label>
+      <input type="text" id="ttn-buyer" placeholder="ТОВ 'Ромашка'" style="margin-bottom: 5px; padding: 10px;">
+      
+      <label style="font-size: 12px; color: #aaa;">Пункт розвантаження:</label>
+      <input type="text" id="ttn-address" placeholder="м. Київ, вул. Будівельна, 1" style="margin-bottom: 10px; padding: 10px;">
+      
+      <label style="font-size: 12px; color: #aaa;">Кількість пачок (місць):</label>
+      <input type="text" inputmode="numeric" id="ttn-packs" placeholder="Наприклад: 4" style="margin-bottom: 15px; padding: 10px;">
+
+      <div style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #444;">
+         <label style="font-size: 12px; color: #aaa;">Водій (ПІБ, Посвідчення):</label>
+         <textarea id="ttn-driver" rows="2" placeholder="Іванов І.І., ХХХ123456" style="margin-bottom: 5px; padding: 10px; font-size: 14px;" oninput="updateCarrier()"></textarea>
+         <label class="camera-btn">📸 Сфотографувати ПРАВА
+            <input type="file" accept="image/*" capture="environment" onchange="processOCR(this, 'ttn-driver')">
+         </label>
+      </div>
+
+      <div style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #444;">
+         <label style="font-size: 12px; color: #aaa;">Автомобіль (Марка, Номер):</label>
+         <textarea id="ttn-auto" rows="2" placeholder="DAF AA1234BB" style="margin-bottom: 5px; padding: 10px; font-size: 14px;"></textarea>
+         <label style="font-size: 12px; color: #aaa;">Причіп (якщо є):</label>
+         <input type="text" id="ttn-trailer" placeholder="АА5678ВВ" style="margin-bottom: 5px; padding: 10px;">
+         <label class="camera-btn">📸 Сфотографувати ТЕХПАСПОРТ
+            <input type="file" accept="image/*" capture="environment" onchange="processOCR(this, 'ttn-auto')">
+         </label>
+      </div>
+
+      <label style="font-size: 12px; color: #aaa;">Перевізник:</label>
+      <input type="text" id="ttn-carrier" placeholder="ФОП Іванов І.І." style="margin-bottom: 15px; padding: 10px;">
+
+      <div style="display: flex; gap: 10px;">
+        <button class="pay-btn centered success" style="flex: 1; padding: 12px;" onclick="confirmTTN()">Згенерувати ТТН</button>
+        <button class="pay-btn centered cancel" style="flex: 1; margin-top: 0; padding: 12px;" onclick="document.getElementById('ttn-form-modal').style.display='none'">Скасувати</button>
       </div>
     </div>
   </div>
@@ -575,7 +631,7 @@
   </div> 
 
   <script>
-    const APP_VERSION = "2.64"; 
+    const APP_VERSION = "2.65"; 
     
     document.addEventListener("DOMContentLoaded", () => {
        const verEl = document.getElementById('version-display');
@@ -597,6 +653,10 @@
     let selectedQRBank = ''; 
     let pendingPaymentMethod = ''; 
     let pendingInvoiceName = ''; 
+    let pendingNeedInvoice = false; 
+    let pendingDeliveryCost = 0; 
+    let pendingNeedWaybill = false;
+    let pendingNeedTTN = false;
 
     let manualDocType = 'invoice'; 
     let manualItems = [];
@@ -1555,9 +1615,9 @@
       if (currentMode === 'sale') {
          document.getElementById('payment-modal').style.display = 'flex';
       } else if (currentMode === 'return') {
-         executeSend('Немає (Повернення)', "", false, 0, false); 
+         executeSend('Немає (Повернення)', "", false, 0, false, false); 
       } else {
-         executeSend('Немає (Прихід)', "", false, 0, false);
+         executeSend('Немає (Прихід)', "", false, 0, false, false);
       }
     }
 
@@ -1570,17 +1630,19 @@
       } else if (method === 'Готівка') {
         document.getElementById('waybill-ask-modal').style.display = 'flex'; 
       } else {
-        executeSend(method, "", false, 0, false);
+        executeSend(method, "", false, 0, false, false);
       }
     }
 
     function skipInvoice() {
       document.getElementById('invoice-ask-modal').style.display = 'none';
-      executeSend(pendingPaymentMethod, "", false, 0, false);
+      pendingNeedInvoice = false;
+      document.getElementById('waybill-ask-modal').style.display = 'flex';
     }
 
     function openInvoiceNameModal() {
       document.getElementById('invoice-ask-modal').style.display = 'none';
+      pendingNeedInvoice = true;
       const buyerEl = document.getElementById('buyer-name');
       const defaultName = buyerEl ? buyerEl.value : "";
       const inputEl = document.getElementById('invoice-company-name');
@@ -1607,7 +1669,8 @@
 
     function skipDelivery() {
        document.getElementById('delivery-ask-modal').style.display = 'none';
-       executeSend(pendingPaymentMethod, pendingInvoiceName, true, 0, false);
+       pendingDeliveryCost = 0;
+       document.getElementById('waybill-ask-modal').style.display = 'flex';
     }
 
     function openDeliverySumModal() {
@@ -1619,14 +1682,88 @@
 
     function confirmDeliverySum() {
        let val = document.getElementById('delivery-sum-input').value.replace(/[^\d.,]/g, '').replace(',', '.');
-       let delSum = parseFloat(val) || 0;
+       pendingDeliveryCost = parseFloat(val) || 0;
        document.getElementById('delivery-sum-modal').style.display = 'none';
-       executeSend(pendingPaymentMethod, pendingInvoiceName, true, delSum, false);
+       document.getElementById('waybill-ask-modal').style.display = 'flex';
     }
 
     function cancelDeliverySum() {
        document.getElementById('delivery-sum-modal').style.display = 'none';
        document.getElementById('delivery-ask-modal').style.display = 'flex';
+    }
+
+    // --- ЛОГІКА ТТН ---
+    function confirmWaybill(need) {
+       document.getElementById('waybill-ask-modal').style.display = 'none';
+       pendingNeedWaybill = need;
+       document.getElementById('ttn-ask-modal').style.display = 'flex'; // ПИТАЄМО ЗА ТТН
+    }
+
+    function skipTTN() {
+       document.getElementById('ttn-ask-modal').style.display = 'none';
+       executeSend(pendingPaymentMethod, pendingInvoiceName, pendingNeedInvoice, pendingDeliveryCost, pendingNeedWaybill, false);
+    }
+
+    function openTTNForm() {
+       document.getElementById('ttn-ask-modal').style.display = 'none';
+       document.getElementById('ttn-buyer').value = document.getElementById('buyer-name').value;
+       document.getElementById('ttn-form-modal').style.display = 'flex';
+    }
+
+    function updateCarrier() {
+       let driverText = document.getElementById('ttn-driver').value;
+       if(driverText && driverText.length > 3 && !document.getElementById('ttn-carrier').value) {
+          let name = driverText.split(',')[0].split('\n')[0];
+          document.getElementById('ttn-carrier').value = "ФОП " + name;
+       }
+    }
+
+    // --- ШТУЧНИЙ ІНТЕЛЕКТ ДЛЯ ФОТО (OCR) ---
+    function processOCR(inputElement, targetFieldId) {
+       if (!inputElement.files || inputElement.files.length === 0) return;
+       const file = inputElement.files[0];
+       document.getElementById(targetFieldId).value = "📸 Зчитую фото... зачекайте...";
+       
+       const img = new Image();
+       const reader = new FileReader();
+       reader.onload = function(e) {
+          img.onload = async function() {
+             const canvas = document.createElement('canvas');
+             const MAX_WIDTH = 1200; // Стискаємо фото, щоб сервер Google не завис
+             const scaleSize = MAX_WIDTH / img.width;
+             canvas.width = MAX_WIDTH;
+             canvas.height = img.height * scaleSize;
+             const ctx = canvas.getContext('2d');
+             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+             const base64 = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
+
+             try {
+                let res = await fetch(BACKEND_URL, {
+                   method: 'POST',
+                   headers: {'Content-Type': 'text/plain;charset=utf-8'},
+                   body: JSON.stringify({action: 'ocr', image: base64})
+                });
+                let data = await res.json();
+                if(data.status === 'ok') {
+                   // Чистимо зайві пробіли та ентери
+                   let text = data.text.replace(/\n\s*\n/g, '\n').trim();
+                   document.getElementById(targetFieldId).value = text;
+                   updateCarrier(); // Пробуємо автозаповнити перевізника
+                } else {
+                   document.getElementById(targetFieldId).value = data.text; // текст помилки
+                }
+             } catch (err) {
+                document.getElementById(targetFieldId).value = "Помилка інтернету. Введіть вручну.";
+             }
+          }
+          img.src = e.target.result;
+       }
+       reader.readAsDataURL(file);
+    }
+
+    function confirmTTN() {
+       document.getElementById('ttn-form-modal').style.display = 'none';
+       executeSend(pendingPaymentMethod, pendingInvoiceName, pendingNeedInvoice, pendingDeliveryCost, pendingNeedWaybill, true);
     }
 
     function openBankSelection() {
@@ -1725,15 +1862,10 @@
        document.getElementById('waybill-ask-modal').style.display = 'flex'; 
     }
 
-    function confirmWaybill(need) {
-       document.getElementById('waybill-ask-modal').style.display = 'none';
-       executeSend(pendingPaymentMethod, "", false, 0, need);
-    }
-
-    async function executeSend(paymentMethod, invoiceName = "", needInvoice = false, deliveryCost = 0, needWaybill = false) {
+    async function executeSend(paymentMethod, invoiceName = "", needInvoice = false, deliveryCost = 0, needWaybill = false, needTTN = false) {
       try {
         showLoader("Відправлення...");
-        const result = await theoryAutoSend(false, false, paymentMethod, invoiceName, needInvoice, deliveryCost, needWaybill);
+        const result = await theoryAutoSend(false, false, paymentMethod, invoiceName, needInvoice, deliveryCost, needWaybill, needTTN);
 
         if (result === true) {
            document.getElementById('loader-content').innerHTML = '<div style="font-size: 50px; margin-bottom:10px;">✅</div><div id="loader-text" style="color: white; font-size: 22px; font-weight: bold;">Успішно!</div>';
@@ -1756,7 +1888,7 @@
        setTimeout(() => { resetAndGoHome(); }, 500);
     }
 
-    async function theoryAutoSend(isSilent = false, isTrash = false, paymentMethod = "Не вказано", invoiceName = "", needInvoice = false, deliveryCost = 0, needWaybill = false) {
+    async function theoryAutoSend(isSilent = false, isTrash = false, paymentMethod = "Не вказано", invoiceName = "", needInvoice = false, deliveryCost = 0, needWaybill = false, needTTN = false) {
       if (history.length === 0) return true;
       const buyerEl = document.getElementById('buyer-name'); let buyer = buyerEl ? buyerEl.value : "Невідомий";
       if (buyer === "") buyer = "Невідомий";
@@ -1767,6 +1899,19 @@
       
       const wood = [...new Set(history.map(b => b.isLinear ? `Брус/Рейка` : `${b.wood} ${b.thick} мм`))].join(', ') || "Не вказана";
       
+      let ttnDataObj = null;
+      if (needTTN) {
+         ttnDataObj = {
+            buyer: document.getElementById('ttn-buyer').value.replace(/\n/g, ' '),
+            address: document.getElementById('ttn-address').value.replace(/\n/g, ' '),
+            auto: document.getElementById('ttn-auto').value.replace(/\n/g, ' '),
+            trailer: document.getElementById('ttn-trailer').value.replace(/\n/g, ' '),
+            driver: document.getElementById('ttn-driver').value.replace(/\n/g, ' '),
+            carrier: document.getElementById('ttn-carrier').value.replace(/\n/g, ' '),
+            packs: document.getElementById('ttn-packs').value.replace(/\n/g, ' ') || "1"
+         };
+      }
+
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 60000);
 
@@ -1781,6 +1926,8 @@
             needInvoice: needInvoice,
             deliveryCost: deliveryCost,
             needWaybill: needWaybill,
+            needTTN: needTTN,
+            ttnData: ttnDataObj,
             history: history 
           }),
           signal: controller.signal 
