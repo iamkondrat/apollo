@@ -1022,6 +1022,7 @@
           weight: parseFloat(document.getElementById('mt-weight').value.replace(',', '.')) || 0,
           packs: document.getElementById('mt-packs').value || "1",
           driver: document.getElementById('mt-driver').value.replace(/\n/g, ' '),
+          license: document.getElementById('mt-license').value.replace(/\n/g, ' '),
           auto: document.getElementById('mt-auto').value.replace(/\n/g, ' '),
           trailer: document.getElementById('mt-trailer').value.replace(/\n/g, ' '),
           carrier: document.getElementById('mt-carrier').value.replace(/\n/g, ' '),
@@ -1820,17 +1821,81 @@
     }
 
     // --- ШТУЧНИЙ ІНТЕЛЕКТ ДЛЯ ФОТО (OCR) ---
+    // --- РОЗУМНИЙ ПАРСЕР ДЛЯ ВОДІЯ ТА АВТО ---
+    function parseDriverData(rawText) {
+      let text = rawText.toUpperCase().replace(/І/g, 'І').replace(/Ї/g, 'Ї'); 
+      let lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+      
+      let surname = ""; let name = ""; let patronymic = ""; let license = "";
+      
+      // Шукаємо номер прав (3 літери + 6 цифр, або просто 9 цифр)
+      let licenseRegex = /([А-ЯІЇЄҐA-Z]{3})\s*(\d{6})|\b(\d{9})\b/;
+      let match = text.replace(/\s/g, '').match(licenseRegex);
+      if (match) {
+         if (match[1] && match[2]) license = match[1] + " " + match[2];
+         else if (match[3]) license = match[3];
+      }
+      
+      let sIdx = lines.findIndex(l => l.includes('ПРІЗВИЩЕ') || l.includes('SURNAME'));
+      if (sIdx !== -1 && sIdx + 1 < lines.length) surname = lines[sIdx + 1].split('/')[0].trim().replace(/[^А-ЯІЇЄҐ\-\'\s]/g, '');
+      
+      let nIdx = lines.findIndex(l => l.includes("ІМ'Я") || l.includes("ІМʼЯ") || l.includes('NAME'));
+      if (nIdx !== -1 && nIdx + 1 < lines.length) name = lines[nIdx + 1].split('/')[0].trim().replace(/[^А-ЯІЇЄҐ\-\'\s]/g, '');
+
+      let pIdx = lines.findIndex(l => l.includes('ПО БАТЬКОВІ') || l.includes('PATRONYMIC'));
+      if (pIdx !== -1 && pIdx + 1 < lines.length) patronymic = lines[pIdx + 1].split('/')[0].trim().replace(/[^А-ЯІЇЄҐ\-\'\s]/g, '');
+
+      if (!surname && !name) {
+         let caps = lines.filter(l => /^[А-ЯІЇЄҐ\-\']{3,}$/.test(l));
+         if (caps.length >= 2) { surname = caps[0]; name = caps[1]; if (caps.length >= 3) patronymic = caps[2]; }
+      }
+
+      let formatName = (str) => {
+         if(!str) return "";
+         return str.split(/[\s\-]/).map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+      };
+      
+      let pib = [formatName(surname), formatName(name), formatName(patronymic)].filter(Boolean).join(' ');
+      return { pib: pib.length > 3 ? pib : "Не розпізнано", lic: license || "Не розпізнано" };
+    }
+
+    function parseAutoData(rawText) {
+      let text = rawText.toUpperCase().replace(/\s/g, '');
+      let plateMatch = text.match(/[A-ZА-ЯІЇЄ]{2}\d{4}[A-ZА-ЯІЇЄ]{2}/);
+      let plate = plateMatch ? plateMatch[0] : "";
+      if (plate) plate = plate.replace(/^(.{2})(\d{4})(.{2})$/, '$1 $2 $3');
+
+      let lines = rawText.toUpperCase().split('\n').map(l => l.trim()).filter(l => l.length > 1);
+      let make = "";
+      let makeIdx = lines.findIndex(l => l.includes('МАРКА') || l.includes('MAKE') || l.includes('МОДЕЛЬ'));
+      if (makeIdx !== -1 && makeIdx + 1 < lines.length) {
+         make = lines[makeIdx + 1].replace(/[^A-Z0-9\-\s]/g, '').trim();
+      } else {
+         let engMatch = rawText.toUpperCase().match(/\b(DAF|MAN|RENAULT|VOLVO|MERCEDES|SCANIA|IVECO|FORD|VW|VOLKSWAGEN|KAMAZ|MAZ|ZIL|ЗІЛ)\b/);
+         if (engMatch) make = engMatch[0];
+      }
+      let res = [make, plate].filter(Boolean).join(' ');
+      return res || "Не розпізнано";
+    }
+
+    // --- ОБРОБКА ФОТО (OCR) ---
     function processOCR(inputElement, targetFieldId) {
        if (!inputElement.files || inputElement.files.length === 0) return;
        const file = inputElement.files[0];
-       document.getElementById(targetFieldId).value = "📸 Зчитую фото... зачекайте...";
+       
+       if (targetFieldId.includes('driver')) {
+          document.getElementById(targetFieldId).value = "📸 Зчитую...";
+          document.getElementById(targetFieldId.replace('driver', 'license')).value = "📸 Зчитую...";
+       } else {
+          document.getElementById(targetFieldId).value = "📸 Зчитую фото...";
+       }
        
        const img = new Image();
        const reader = new FileReader();
        reader.onload = function(e) {
           img.onload = async function() {
              const canvas = document.createElement('canvas');
-             const MAX_WIDTH = 1200; // Стискаємо фото, щоб сервер Google не завис
+             const MAX_WIDTH = 1200; 
              const scaleSize = MAX_WIDTH / img.width;
              canvas.width = MAX_WIDTH;
              canvas.height = img.height * scaleSize;
@@ -1839,30 +1904,32 @@
              const base64 = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
 
              try {
-                let res = await fetch(BACKEND_URL, {
-                   method: 'POST',
-                   headers: {'Content-Type': 'text/plain;charset=utf-8'},
-                   body: JSON.stringify({action: 'ocr', image: base64})
-                });
+                let res = await fetch(BACKEND_URL, { method: 'POST', headers: {'Content-Type': 'text/plain;charset=utf-8'}, body: JSON.stringify({action: 'ocr', image: base64}) });
                 let data = await res.json();
                 if(data.status === 'ok') {
-                   // Чистимо зайві пробіли та ентери
-                   let text = data.text.replace(/\n\s*\n/g, '\n').trim();
-                   document.getElementById(targetFieldId).value = text;
-                   updateCarrier(); // Пробуємо автозаповнити перевізника
-                   if(targetFieldId === 'mt-driver') updateManualCarrier();
+                   let extractedText = data.text;
+                   if (targetFieldId === 'ttn-driver' || targetFieldId === 'mt-driver') {
+                       let parsed = parseDriverData(extractedText);
+                       document.getElementById(targetFieldId).value = parsed.pib;
+                       document.getElementById(targetFieldId.replace('driver', 'license')).value = parsed.lic;
+                       if (targetFieldId === 'ttn-driver') updateCarrier();
+                       if (targetFieldId === 'mt-driver') updateManualCarrier();
+                   } else if (targetFieldId === 'ttn-auto' || targetFieldId === 'mt-auto') {
+                       document.getElementById(targetFieldId).value = parseAutoData(extractedText);
+                   } else {
+                       document.getElementById(targetFieldId).value = extractedText.replace(/\n\s*\n/g, '\n').trim();
+                   }
                 } else {
-                   document.getElementById(targetFieldId).value = data.text; // текст помилки
+                   customAlert(data.text);
                 }
              } catch (err) {
-                document.getElementById(targetFieldId).value = "Помилка інтернету. Введіть вручну.";
+                customAlert("Помилка інтернету при розпізнаванні.");
              }
           }
           img.src = e.target.result;
        }
        reader.readAsDataURL(file);
     }
-
     function confirmTTN() {
        document.getElementById('ttn-form-modal').style.display = 'none';
        executeSend(pendingPaymentMethod, pendingInvoiceName, pendingNeedInvoice, pendingDeliveryCost, pendingNeedWaybill, true);
@@ -2009,6 +2076,7 @@
             auto: document.getElementById('ttn-auto').value.replace(/\n/g, ' '),
             trailer: document.getElementById('ttn-trailer').value.replace(/\n/g, ' '),
             driver: document.getElementById('ttn-driver').value.replace(/\n/g, ' '),
+            license: document.getElementById('ttn-license') ? document.getElementById('ttn-license').value.replace(/\n/g, ' ') : "",
             carrier: document.getElementById('ttn-carrier').value.replace(/\n/g, ' '),
             packs: document.getElementById('ttn-packs').value.replace(/\n/g, ' ') || "1"
          };
