@@ -201,25 +201,48 @@
       <input type="text" inputmode="numeric" id="ttn-packs" placeholder="Наприклад: 4" style="margin-bottom: 15px; padding: 10px;">
 
       <div style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #444;">
-         <label style="font-size: 12px; color: #aaa;">Водій (ПІБ, Посвідчення):</label>
-         <textarea id="ttn-driver" rows="2" placeholder="Іванов І.І., ХХХ123456" style="margin-bottom: 5px; padding: 10px; font-size: 14px;" oninput="updateCarrier()"></textarea>
-         <label class="camera-btn">📸 Сфотографувати ПРАВА
-            <input type="file" accept="image/*" capture="environment" onchange="processOCR(this, 'ttn-driver')">
-         </label>
+         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <label style="font-size: 13px; color: #fff; font-weight: bold;">Водій (Права):</label>
+            <label class="camera-btn" style="margin: 0; padding: 8px 12px; background: #27ae60;">📸 Фото прав (Лицьова)
+               <input type="file" accept="image/*" capture="environment" onchange="processOCR(this, 'driver_full', 'ttn-driver')">
+            </label>
+         </div>
+         <div style="display: flex; gap: 10px;">
+           <div style="flex: 1;">
+             <label style="font-size: 12px; color: #aaa;">ПІБ (без по батькові):</label>
+             <input type="text" id="ttn-driver-name" placeholder="Іванов Іван" style="margin-bottom: 5px; padding: 10px;" oninput="updateCarrierFromId('ttn-driver-name', 'ttn-carrier')">
+           </div>
+           <div style="flex: 1;">
+             <label style="font-size: 12px; color: #aaa;">Номер посвідчення:</label>
+             <input type="text" id="ttn-driver-lic" placeholder="ХХХ 123456" style="margin-bottom: 5px; padding: 10px;">
+           </div>
+         </div>
       </div>
 
       <div style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #444;">
-         <label style="font-size: 12px; color: #aaa;">Автомобіль (Марка, Номер):</label>
-         <textarea id="ttn-auto" rows="2" placeholder="DAF AA1234BB" style="margin-bottom: 5px; padding: 10px; font-size: 14px;"></textarea>
-         <label style="font-size: 12px; color: #aaa;">Причіп (якщо є):</label>
+         <label style="font-size: 13px; color: #fff; font-weight: bold; margin-bottom: 10px; display: block;">Транспортний засіб:</label>
+         <div style="display: flex; gap: 10px;">
+           <div style="flex: 1;">
+             <label style="font-size: 12px; color: #aaa;">Марка / Модель:</label>
+             <input type="text" id="ttn-auto-make" placeholder="DAF" style="margin-bottom: 5px; padding: 10px;">
+             <label class="camera-btn">📸 Марка (Зворот)
+                <input type="file" accept="image/*" capture="environment" onchange="processOCR(this, 'make', 'ttn-auto-make')">
+             </label>
+           </div>
+           <div style="flex: 1;">
+             <label style="font-size: 12px; color: #aaa;">Номер Авто:</label>
+             <input type="text" id="ttn-auto-plate" placeholder="AA1234BB" style="margin-bottom: 5px; padding: 10px;">
+             <label class="camera-btn">📸 Номер (Лицьова)
+                <input type="file" accept="image/*" capture="environment" onchange="processOCR(this, 'plate', 'ttn-auto-plate')">
+             </label>
+           </div>
+         </div>
+         <label style="font-size: 12px; color: #aaa; margin-top: 10px; display: block;">Причіп (якщо є):</label>
          <input type="text" id="ttn-trailer" placeholder="АА5678ВВ" style="margin-bottom: 5px; padding: 10px;">
-         <label class="camera-btn">📸 Сфотографувати ТЕХПАСПОРТ
-            <input type="file" accept="image/*" capture="environment" onchange="processOCR(this, 'ttn-auto')">
-         </label>
       </div>
 
       <label style="font-size: 12px; color: #aaa;">Перевізник:</label>
-      <input type="text" id="ttn-carrier" placeholder="ФОП Іванов І.І." style="margin-bottom: 15px; padding: 10px;">
+      <input type="text" id="ttn-carrier" placeholder="ФОП Іванов Іван" style="margin-bottom: 15px; padding: 10px;">
 
       <div style="display: flex; gap: 10px;">
         <button class="pay-btn centered success" style="flex: 1; padding: 12px;" onclick="confirmTTN()">Згенерувати ТТН</button>
@@ -270,27 +293,50 @@
       </div>
 
       <div style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #444;">
-         <label style="font-size: 12px; color: #aaa;">Водій (ПІБ, Посвідчення):</label>
-         <textarea id="mt-driver" rows="2" placeholder="Іванов І.І., ХХХ123456" style="margin-bottom: 5px; padding: 10px; font-size: 14px;" oninput="updateManualCarrier()"></textarea>
-         <label class="camera-btn">📸 Сфотографувати ПРАВА
-            <input type="file" accept="image/*" capture="environment" onchange="processOCR(this, 'mt-driver')">
-         </label>
+         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <label style="font-size: 13px; color: #fff; font-weight: bold;">Водій (Права):</label>
+            <label class="camera-btn" style="margin: 0; padding: 8px 12px; background: #27ae60;">📸 Фото прав (Лицьова)
+               <input type="file" accept="image/*" capture="environment" onchange="processOCR(this, 'driver_full', 'mt-driver')">
+            </label>
+         </div>
+         <div style="display: flex; gap: 10px;">
+           <div style="flex: 1;">
+             <label style="font-size: 12px; color: #aaa;">ПІБ (без по батькові):</label>
+             <input type="text" id="mt-driver-name" placeholder="Іванов Іван" style="margin-bottom: 5px; padding: 10px;" oninput="updateCarrierFromId('mt-driver-name', 'mt-carrier')">
+           </div>
+           <div style="flex: 1;">
+             <label style="font-size: 12px; color: #aaa;">Номер посвідчення:</label>
+             <input type="text" id="mt-driver-lic" placeholder="ХХХ 123456" style="margin-bottom: 5px; padding: 10px;">
+           </div>
+         </div>
       </div>
 
       <div style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #444;">
-         <label style="font-size: 12px; color: #aaa;">Автомобіль (Марка, Номер):</label>
-         <textarea id="mt-auto" rows="2" placeholder="DAF AA1234BB" style="margin-bottom: 5px; padding: 10px; font-size: 14px;"></textarea>
-         <label style="font-size: 12px; color: #aaa;">Причіп (якщо є):</label>
+         <label style="font-size: 13px; color: #fff; font-weight: bold; margin-bottom: 10px; display: block;">Транспортний засіб:</label>
+         <div style="display: flex; gap: 10px;">
+           <div style="flex: 1;">
+             <label style="font-size: 12px; color: #aaa;">Марка / Модель:</label>
+             <input type="text" id="mt-auto-make" placeholder="DAF" style="margin-bottom: 5px; padding: 10px;">
+             <label class="camera-btn">📸 Марка (Зворот)
+                <input type="file" accept="image/*" capture="environment" onchange="processOCR(this, 'make', 'mt-auto-make')">
+             </label>
+           </div>
+           <div style="flex: 1;">
+             <label style="font-size: 12px; color: #aaa;">Номер Авто:</label>
+             <input type="text" id="mt-auto-plate" placeholder="AA1234BB" style="margin-bottom: 5px; padding: 10px;">
+             <label class="camera-btn">📸 Номер (Лицьова)
+                <input type="file" accept="image/*" capture="environment" onchange="processOCR(this, 'plate', 'mt-auto-plate')">
+             </label>
+           </div>
+         </div>
+         <label style="font-size: 12px; color: #aaa; margin-top: 10px; display: block;">Причіп (якщо є):</label>
          <input type="text" id="mt-trailer" placeholder="АА5678ВВ" style="margin-bottom: 5px; padding: 10px;">
-         <label class="camera-btn">📸 Сфотографувати ТЕХПАСПОРТ
-            <input type="file" accept="image/*" capture="environment" onchange="processOCR(this, 'mt-auto')">
-         </label>
       </div>
 
       <div style="display: flex; gap: 10px; margin-bottom: 15px;">
         <div style="flex: 2;">
            <label style="font-size: 12px; color: #aaa;">Перевізник:</label>
-           <input type="text" id="mt-carrier" placeholder="ФОП Іванов І.І." style="padding: 10px;">
+           <input type="text" id="mt-carrier" placeholder="ФОП Іванов Іван" style="padding: 10px;">
         </div>
         <div style="flex: 1;">
            <label style="font-size: 12px; color: #aaa;">№ Накладної:</label>
@@ -686,7 +732,7 @@
   </div> 
 
   <script>
-    const APP_VERSION = "2.67"; 
+    const APP_VERSION = "2.68"; 
     
     document.addEventListener("DOMContentLoaded", () => {
        const verEl = document.getElementById('version-display');
@@ -1879,15 +1925,15 @@
     }
 
     // --- ОБРОБКА ФОТО (OCR) ---
-    function processOCR(inputElement, targetFieldId) {
+    function processOCR(inputElement, type, targetFieldId) {
        if (!inputElement.files || inputElement.files.length === 0) return;
        const file = inputElement.files[0];
        
-       if (targetFieldId.includes('driver')) {
-          document.getElementById(targetFieldId).value = "📸 Зчитую...";
-          document.getElementById(targetFieldId.replace('driver', 'license')).value = "📸 Зчитую...";
+       if (type === 'driver_full') {
+          document.getElementById(targetFieldId + '-name').value = "📸 Зчитую...";
+          document.getElementById(targetFieldId + '-lic').value = "📸 Зчитую...";
        } else {
-          document.getElementById(targetFieldId).value = "📸 Зчитую фото...";
+          document.getElementById(targetFieldId).value = "📸 Зчитую...";
        }
        
        const img = new Image();
@@ -1896,8 +1942,8 @@
           img.onload = async function() {
              const canvas = document.createElement('canvas');
              const MAX_WIDTH = 1200; 
-             const scaleSize = MAX_WIDTH / img.width;
-             canvas.width = MAX_WIDTH;
+             const scaleSize = Math.min(MAX_WIDTH / img.width, 1);
+             canvas.width = img.width * scaleSize;
              canvas.height = img.height * scaleSize;
              const ctx = canvas.getContext('2d');
              ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
@@ -1907,20 +1953,32 @@
                 let res = await fetch(BACKEND_URL, { method: 'POST', headers: {'Content-Type': 'text/plain;charset=utf-8'}, body: JSON.stringify({action: 'ocr', image: base64}) });
                 let data = await res.json();
                 if(data.status === 'ok') {
-                   let extractedText = data.text;
-                   if (targetFieldId === 'ttn-driver' || targetFieldId === 'mt-driver') {
-                       let parsed = parseDriverData(extractedText);
-                       document.getElementById(targetFieldId).value = parsed.pib;
-                       document.getElementById(targetFieldId.replace('driver', 'license')).value = parsed.lic;
-                       if (targetFieldId === 'ttn-driver') updateCarrier();
-                       if (targetFieldId === 'mt-driver') updateManualCarrier();
-                   } else if (targetFieldId === 'ttn-auto' || targetFieldId === 'mt-auto') {
-                       document.getElementById(targetFieldId).value = parseAutoData(extractedText);
-                   } else {
-                       document.getElementById(targetFieldId).value = extractedText.replace(/\n\s*\n/g, '\n').trim();
+                   let text = data.text;
+                   
+                   if (type === 'driver_full') {
+                       let parsed = parseDriverData(text);
+                       let nameId = targetFieldId + "-name";
+                       let licId = targetFieldId + "-lic";
+                       document.getElementById(nameId).value = parsed.pib;
+                       document.getElementById(licId).value = parsed.lic;
+                       
+                       let carrierId = targetFieldId.includes('ttn') ? 'ttn-carrier' : 'mt-carrier';
+                       updateCarrierFromId(nameId, carrierId);
+                   }
+                   else if (type === 'make') {
+                       document.getElementById(targetFieldId).value = parseAutoMake(text);
+                   }
+                   else if (type === 'plate') {
+                       document.getElementById(targetFieldId).value = parseAutoPlate(text);
                    }
                 } else {
-                   customAlert(data.text);
+                   customAlert("Помилка ШІ: " + data.text);
+                   if (type === 'driver_full') {
+                      document.getElementById(targetFieldId + '-name').value = "Помилка";
+                      document.getElementById(targetFieldId + '-lic').value = "Помилка";
+                   } else {
+                      document.getElementById(targetFieldId).value = "Помилка";
+                   }
                 }
              } catch (err) {
                 customAlert("Помилка інтернету при розпізнаванні.");
