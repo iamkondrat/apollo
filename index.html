@@ -34,14 +34,12 @@
     .mode-btn.manual-invoice { background: #8e44ad; } .mode-btn.manual-invoice:active { background: #6c3483; transform: scale(0.98); }
     .mode-btn.manual-waybill { background: #d35400; } .mode-btn.manual-waybill:active { background: #a04000; transform: scale(0.98); }
     .mode-btn.archive-btn { background: #34495e; margin-top: 5px; } .mode-btn.archive-btn:active { background: #2c3e50; transform: scale(0.98); }
+    .mode-btn.manual-ttn-btn { background: #e67e22; } .mode-btn.manual-ttn-btn:active { background: #d35400; transform: scale(0.98); }
     .mode-sub { font-size: 12px; font-weight: normal; opacity: 0.9; text-align: center; }
     
     .drafts-container { width: 100%; max-width: 400px; margin-top: 5px; background: #1e1e1e; padding: 15px; border-radius: 12px; border: 1px solid #333; box-sizing: border-box; }
     .drafts-header { font-size: 18px; font-weight: bold; margin-bottom: 15px; color: #f39c12; display: flex; justify-content: space-between; align-items: center;}
     .draft-card { background: #2a2a2a; border-left: 4px solid #555; padding: 12px; border-radius: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
-    .draft-card.draft-sale { border-left-color: #27ae60; }
-    .draft-card.draft-income { border-left-color: #2980b9; }
-    .draft-card.draft-return { border-left-color: #c0392b; }
     .draft-info { flex: 1; font-size: 14px; color: #ccc; }
     .draft-title { font-size: 16px; font-weight: bold; color: #fff; margin-bottom: 4px; }
     .draft-actions { display: flex; gap: 8px; margin-left: 10px; }
@@ -103,28 +101,20 @@
     .pay-btn.cancel { background: #d32f2f; border-color: #b71c1c; margin-top: 10px; }
     .pay-btn.success { background: #27ae60; border-color: #1e8449; }
     
-    .icon-box {  
-      width: 34px; height: 34px; border-radius: 8px; flex-shrink: 0;  
-      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-      display: flex; align-items: center; justify-content: center; font-size: 18px;  
-      overflow: hidden; padding: 0; background: transparent;
-    }
+    .icon-box { width: 34px; height: 34px; border-radius: 8px; flex-shrink: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; font-size: 18px; overflow: hidden; padding: 0; background: transparent; }
 
     #manual-invoice-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #121212; z-index: 9999990; display: none; flex-direction: column; box-sizing: border-box; overflow-y: auto; padding: 15px; }
     .manual-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 15px; }
     .manual-header h2 { margin: 0; font-size: 20px; color: #fff; }
     .item-card { background: #222; border: 1px solid #444; padding: 12px; border-radius: 10px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
 
-    /* СТИЛІ ПЕРЕМИКАЧА ДОШКА/ХВОЯ */
     .type-toggle { display: flex; border-radius: 8px; overflow: hidden; border: 1px solid #4CAF50; margin-bottom: 15px; }
     .type-toggle button { flex: 1; padding: 10px; border: none; font-size: 14px; font-weight: bold; cursor: pointer; color: white; background: #222; transition: 0.2s; }
     .type-toggle button.active { background: #4CAF50; color: black; }
     
-    /* СТИЛІ АРХІВУ */
     .archive-item { background: #2a2a2a; border-left: 4px solid #3498db; padding: 12px; border-radius: 8px; cursor: pointer; transition: background 0.2s; }
     .archive-item:active { background: #333; transform: scale(0.98); }
 
-    /* СТИЛІ КНОПКИ КАМЕРИ */
     .camera-btn { background: #34495e; padding: 10px; border-radius: 8px; color: #fff; text-align: center; cursor: pointer; font-size: 14px; border: 1px solid #444; margin-top: 5px; display: flex; justify-content: center; align-items: center; gap: 5px; }
     .camera-btn:active { background: #2c3e50; }
     .camera-btn input { display: none; }
@@ -159,18 +149,10 @@
   <div id="payment-modal" class="overlay-modal">
     <div class="modal-box">
       <h3>Оберіть вид оплати</h3>
-      <button class="pay-btn" onclick="selectPayment('Б/Г з ПДВ')">
-        <div class="icon-box" style="background: #2c3e50; color: #fff;">🏢</div> Б/Г з ПДВ
-      </button>
-      <button class="pay-btn" onclick="selectPayment('Б/Г без ПДВ')">
-        <div class="icon-box" style="background: #34495e; color: #fff;">📄</div> Б/Г без ПДВ
-      </button>
-      <button class="pay-btn" onclick="openBankSelection()">
-        <div class="icon-box" style="background: #e67e22; color: #fff;">💳</div> На картку (QR)
-      </button>
-      <button class="pay-btn" onclick="selectPayment('Готівка')">
-        <div class="icon-box" style="background: #27ae60; color: #fff;">💵</div> Готівка
-      </button>
+      <button class="pay-btn" onclick="selectPayment('Б/Г з ПДВ')"><div class="icon-box" style="background: #2c3e50; color: #fff;">🏢</div> Б/Г з ПДВ</button>
+      <button class="pay-btn" onclick="selectPayment('Б/Г без ПДВ')"><div class="icon-box" style="background: #34495e; color: #fff;">📄</div> Б/Г без ПДВ</button>
+      <button class="pay-btn" onclick="openBankSelection()"><div class="icon-box" style="background: #e67e22; color: #fff;">💳</div> На картку (QR)</button>
+      <button class="pay-btn" onclick="selectPayment('Готівка')"><div class="icon-box" style="background: #27ae60; color: #fff;">💵</div> Готівка</button>
       <button class="pay-btn centered cancel" onclick="document.getElementById('payment-modal').style.display='none'">Скасувати</button>
     </div>
   </div>
@@ -246,6 +228,83 @@
     </div>
   </div>
 
+  <div id="manual-ttn-only-modal" class="overlay-modal" style="background: rgba(0,0,0,0.95);">
+    <div class="modal-box" style="max-width: 450px;">
+      <h3 style="margin-bottom: 10px; text-align: center; color: #f39c12;">🚚 Створити ТТН (Вручну)</h3>
+      
+      <div style="display: flex; gap: 10px;">
+        <div style="flex: 1;">
+           <label style="font-size: 12px; color: #aaa;">Замовник / Одержувач:</label>
+           <input type="text" id="mt-buyer" placeholder="ТОВ 'Ромашка'" style="margin-bottom: 10px; padding: 10px;">
+        </div>
+        <div style="flex: 1;">
+           <label style="font-size: 12px; color: #aaa;">Пункт розвантаження:</label>
+           <input type="text" id="mt-address" placeholder="м. Київ..." style="margin-bottom: 10px; padding: 10px;">
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 10px;">
+        <div style="flex: 1;">
+           <label style="font-size: 12px; color: #aaa;">Вантаж:</label>
+           <input type="text" id="mt-cargoName" placeholder="Пиломатеріали" style="margin-bottom: 10px; padding: 10px;">
+        </div>
+        <div style="flex: 1;">
+           <label style="font-size: 12px; color: #aaa;">Сума (грн):</label>
+           <input type="text" inputmode="decimal" id="mt-sum" placeholder="Напр. 15000" style="margin-bottom: 10px; padding: 10px;">
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 10px;">
+        <div style="flex: 1;">
+           <label style="font-size: 12px; color: #aaa;">Об'єм (м3):</label>
+           <input type="text" inputmode="decimal" id="mt-vol" placeholder="Напр. 12.5" style="margin-bottom: 10px; padding: 10px;">
+        </div>
+        <div style="flex: 1;">
+           <label style="font-size: 12px; color: #aaa;">Маса брутто (т):</label>
+           <input type="text" inputmode="decimal" id="mt-weight" placeholder="Напр. 8.2" style="margin-bottom: 10px; padding: 10px;">
+        </div>
+        <div style="flex: 0.5;">
+           <label style="font-size: 12px; color: #aaa;">Місць:</label>
+           <input type="text" inputmode="numeric" id="mt-packs" placeholder="4" style="margin-bottom: 10px; padding: 10px;">
+        </div>
+      </div>
+
+      <div style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #444;">
+         <label style="font-size: 12px; color: #aaa;">Водій (ПІБ, Посвідчення):</label>
+         <textarea id="mt-driver" rows="2" placeholder="Іванов І.І., ХХХ123456" style="margin-bottom: 5px; padding: 10px; font-size: 14px;" oninput="updateManualCarrier()"></textarea>
+         <label class="camera-btn">📸 Сфотографувати ПРАВА
+            <input type="file" accept="image/*" capture="environment" onchange="processOCR(this, 'mt-driver')">
+         </label>
+      </div>
+
+      <div style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #444;">
+         <label style="font-size: 12px; color: #aaa;">Автомобіль (Марка, Номер):</label>
+         <textarea id="mt-auto" rows="2" placeholder="DAF AA1234BB" style="margin-bottom: 5px; padding: 10px; font-size: 14px;"></textarea>
+         <label style="font-size: 12px; color: #aaa;">Причіп (якщо є):</label>
+         <input type="text" id="mt-trailer" placeholder="АА5678ВВ" style="margin-bottom: 5px; padding: 10px;">
+         <label class="camera-btn">📸 Сфотографувати ТЕХПАСПОРТ
+            <input type="file" accept="image/*" capture="environment" onchange="processOCR(this, 'mt-auto')">
+         </label>
+      </div>
+
+      <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+        <div style="flex: 2;">
+           <label style="font-size: 12px; color: #aaa;">Перевізник:</label>
+           <input type="text" id="mt-carrier" placeholder="ФОП Іванов І.І." style="padding: 10px;">
+        </div>
+        <div style="flex: 1;">
+           <label style="font-size: 12px; color: #aaa;">№ Накладної:</label>
+           <input type="text" id="mt-invoiceNum" placeholder="Б/Н" style="padding: 10px;">
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 10px;">
+        <button class="pay-btn centered success" style="flex: 1; padding: 12px;" onclick="sendManualTTNOnly()">✅ Згенерувати ТТН</button>
+        <button class="pay-btn centered cancel" style="flex: 1; margin-top: 0; padding: 12px;" onclick="document.getElementById('manual-ttn-only-modal').style.display='none'">Скасувати</button>
+      </div>
+    </div>
+  </div>
+
   <div id="invoice-name-modal" class="overlay-modal">
     <div class="modal-box">
       <h3 style="text-align: center; margin-bottom: 10px;" id="name-modal-title">На кого виписати рахунок?</h3>
@@ -283,27 +342,17 @@
       <h3>На який банк?</h3>
       <button class="pay-btn" style="border-color: #555;" onclick="selectBank('Monobank')">
         <div class="icon-box">
-          <svg viewBox="0 0 100 100" style="width: 100%; height: 100%; display: block;">
-            <rect width="100" height="100" fill="#111111" />
-            <text x="50" y="62" fill="#ffffff" font-family="Arial, sans-serif" font-weight="bold" font-size="34" letter-spacing="-1" text-anchor="middle">mono</text>
-          </svg>
+          <svg viewBox="0 0 100 100" style="width: 100%; height: 100%; display: block;"><rect width="100" height="100" fill="#111111" /><text x="50" y="62" fill="#ffffff" font-family="Arial, sans-serif" font-weight="bold" font-size="34" letter-spacing="-1" text-anchor="middle">mono</text></svg>
         </div> Monobank
       </button>
       <button class="pay-btn" style="border-color: #4CAF50;" onclick="selectBank('PrivatBank')">
         <div class="icon-box" style="background: #fff; display: flex; align-items: center; justify-content: center;">
-          <svg viewBox="0 0 100 100" style="width: 100%; height: 100%; display: block;">
-            <rect width="100" height="100" fill="#ffffff" rx="18" />
-            <path fill="#71B436" fill-rule="evenodd" d="M 15,15 L 85,15 L 85,85 L 52,85 A 37 37 0 0 0 15,48 L 15,15 Z M 32,32 L 32,48 A 20 20 0 0 1 52,68 L 68,68 L 68,32 Z"/>
-            <rect x="15" y="60" width="23" height="23" fill="#111111" />
-          </svg>
+          <svg viewBox="0 0 100 100" style="width: 100%; height: 100%; display: block;"><rect width="100" height="100" fill="#ffffff" rx="18" /><path fill="#71B436" fill-rule="evenodd" d="M 15,15 L 85,15 L 85,85 L 52,85 A 37 37 0 0 0 15,48 L 15,15 Z M 32,32 L 32,48 A 20 20 0 0 1 52,68 L 68,68 L 68,32 Z"/><rect x="15" y="60" width="23" height="23" fill="#111111" /></svg>
         </div> ПриватБанк
       </button>
       <button class="pay-btn" style="border-color: #ff5252;" onclick="selectBank('ПУМБ')">
         <div class="icon-box">
-          <svg viewBox="0 0 100 100" style="width: 100%; height: 100%; display: block;">
-            <rect width="100" height="100" fill="#E3000F" />
-            <text x="50" y="62" fill="#ffffff" font-family="Arial, sans-serif" font-weight="900" font-size="28" text-anchor="middle">ПУМБ</text>
-          </svg>
+          <svg viewBox="0 0 100 100" style="width: 100%; height: 100%; display: block;"><rect width="100" height="100" fill="#E3000F" /><text x="50" y="62" fill="#ffffff" font-family="Arial, sans-serif" font-weight="900" font-size="28" text-anchor="middle">ПУМБ</text></svg>
         </div> ПУМБ
       </button>
       <button class="pay-btn centered cancel" onclick="goBackToPayment()">⬅ Назад</button>
@@ -382,6 +431,12 @@
         <span class="mode-sub">(Наперед)</span>
       </button>
     </div>
+
+    <!-- НОВА КНОПКА: ТТН ВРУЧНУ -->
+    <button class="mode-btn manual-ttn-btn" style="width: 100%; max-width: 400px;" onclick="openManualTTNScreen()">
+      🚚 СТВОРИТИ ТТН
+      <span class="mode-sub">(Окремо від замірів)</span>
+    </button>
 
     <button class="mode-btn archive-btn" style="width: 100%; max-width: 400px;" onclick="openArchiveModal()">
       🕒 ІСТОРІЯ ЗАМІРІВ
@@ -631,7 +686,7 @@
   </div> 
 
   <script>
-    const APP_VERSION = "2.65"; 
+    const APP_VERSION = "2.66"; 
     
     document.addEventListener("DOMContentLoaded", () => {
        const verEl = document.getElementById('version-display');
@@ -684,7 +739,6 @@
       window.location.href = window.location.pathname + '?t=' + new Date().getTime();
     }
     
-    // --- ФОНОВА ПЕРЕВІРКА ОНОВЛЕНЬ ---
     async function checkAutoUpdate() {
         try {
             let res = await fetch(window.location.pathname + "?_t=" + new Date().getTime(), {cache: "no-store"});
@@ -701,7 +755,6 @@
         } catch (e) {}
     }
 
-    // КАСТОМНІ АЛЕРТИ ТА КОНФІРМИ
     function customAlert(message, title = "⚠️ Увага") {
       document.getElementById('custom-alert-title').innerHTML = title;
       document.getElementById('custom-alert-message').innerText = message;
@@ -817,7 +870,6 @@
       updateUI(); 
     }
 
-    // --- ЛОГІКА ІСТОРІЇ (АРХІВУ) ---
     let loadedArchive = [];
     
     async function openArchiveModal() {
@@ -935,6 +987,55 @@
        let rawName = arch.buyer || '';
        if(rawName.startsWith("СКАСОВАНО_")) rawName = rawName.replace("СКАСОВАНО_", "");
        document.getElementById('mi-buyer-name').value = rawName;
+    }
+
+    // --- РУЧНИЙ ВВІД ТТН БЕЗ ЗАМІРІВ ---
+    function openManualTTNScreen() {
+       document.getElementById('manual-ttn-only-modal').style.display = 'flex';
+       ['mt-buyer','mt-address','mt-cargoName','mt-sum','mt-vol','mt-weight','mt-packs','mt-driver','mt-auto','mt-trailer','mt-carrier','mt-invoiceNum'].forEach(id => {
+          document.getElementById(id).value = "";
+       });
+    }
+
+    function updateManualCarrier() {
+       let driverText = document.getElementById('mt-driver').value;
+       if(driverText && driverText.length > 3 && !document.getElementById('mt-carrier').value) {
+          let name = driverText.split(',')[0].split('\n')[0];
+          document.getElementById('mt-carrier').value = "ФОП " + name;
+       }
+    }
+
+    function sendManualTTNOnly() {
+       let buyer = document.getElementById('mt-buyer').value.trim();
+       let addr = document.getElementById('mt-address').value.trim();
+       if (!buyer || !addr) { customAlert("Заповніть Замовника та Адресу!"); return; }
+
+       document.getElementById('manual-ttn-only-modal').style.display = 'none';
+       showLoader("Генерація ТТН...");
+
+       let ttnDataObj = {
+          buyer: buyer,
+          address: addr,
+          cargoName: document.getElementById('mt-cargoName').value || "Пиломатеріали",
+          sum: parseFloat(document.getElementById('mt-sum').value.replace(',', '.')) || 0,
+          vol: parseFloat(document.getElementById('mt-vol').value.replace(',', '.')) || 0,
+          weight: parseFloat(document.getElementById('mt-weight').value.replace(',', '.')) || 0,
+          packs: document.getElementById('mt-packs').value || "1",
+          driver: document.getElementById('mt-driver').value.replace(/\n/g, ' '),
+          auto: document.getElementById('mt-auto').value.replace(/\n/g, ' '),
+          trailer: document.getElementById('mt-trailer').value.replace(/\n/g, ' '),
+          carrier: document.getElementById('mt-carrier').value.replace(/\n/g, ' '),
+          invoiceNum: document.getElementById('mt-invoiceNum').value || "Б/Н"
+       };
+
+       fetch(BACKEND_URL, {
+          method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: 'manualTTNOnly', ttnData: ttnDataObj })
+       }).then(() => {
+          hideLoader(); customAlert("✅ ТТН успішно згенеровано і відправлено в Telegram!");
+       }).catch(err => {
+          hideLoader(); customAlert("Помилка відправки: " + err.message);
+       });
     }
 
     // --- ЛОГІКА РУЧНИХ ДОКУМЕНТІВ ---
@@ -1696,7 +1797,7 @@
     function confirmWaybill(need) {
        document.getElementById('waybill-ask-modal').style.display = 'none';
        pendingNeedWaybill = need;
-       document.getElementById('ttn-ask-modal').style.display = 'flex'; // ПИТАЄМО ЗА ТТН
+       document.getElementById('ttn-ask-modal').style.display = 'flex'; 
     }
 
     function skipTTN() {
@@ -1749,6 +1850,7 @@
                    let text = data.text.replace(/\n\s*\n/g, '\n').trim();
                    document.getElementById(targetFieldId).value = text;
                    updateCarrier(); // Пробуємо автозаповнити перевізника
+                   if(targetFieldId === 'mt-driver') updateManualCarrier();
                 } else {
                    document.getElementById(targetFieldId).value = data.text; // текст помилки
                 }
@@ -2022,7 +2124,6 @@
           let roundedBoardPrice = Number(b.price.toFixed(2)); 
           let priceString = roundedBoardPrice.toFixed(2);
           
-          // ВАЖЛИВО: Завжди беремо ширину, якщо вона є
           let wStr = b.width || "";
           
           if (isIncome) { csvContent += `${woodCount},${b.length},${b.thick},${wStr},${volString}\n`; } 
