@@ -732,7 +732,7 @@
   </div> 
 
   <script>
-    const APP_VERSION = "2.81"; 
+    const APP_VERSION = "2.82"; 
     
     document.addEventListener("DOMContentLoaded", () => {
        const verEl = document.getElementById('version-display');
@@ -2152,14 +2152,15 @@
       let ttnDataObj = null;
       if (needTTN) {
          ttnDataObj = {
-            buyer: document.getElementById('ttn-buyer').value.replace(/\n/g, ' '),
-            address: document.getElementById('ttn-address').value.replace(/\n/g, ' '),
-            auto: document.getElementById('ttn-auto').value.replace(/\n/g, ' '),
-            trailer: document.getElementById('ttn-trailer').value.replace(/\n/g, ' '),
-            driver: document.getElementById('ttn-driver').value.replace(/\n/g, ' '),
-            license: document.getElementById('ttn-license') ? document.getElementById('ttn-license').value.replace(/\n/g, ' ') : "",
-            carrier: document.getElementById('ttn-carrier').value.replace(/\n/g, ' '),
-            packs: document.getElementById('ttn-packs').value.replace(/\n/g, ' ') || "1"
+            buyer: (document.getElementById('ttn-buyer')?.value || "").replace(/\n/g, ' '),
+            address: (document.getElementById('ttn-address')?.value || "").replace(/\n/g, ' '),
+            auto: (document.getElementById('ttn-auto-plate')?.value || document.getElementById('ttn-auto')?.value || "").replace(/\n/g, ' '),
+            trailer: (document.getElementById('ttn-trailer')?.value || "").replace(/\n/g, ' '),
+            // Безпечно збираємо ПІБ та номер посвідчення з нових розділених полів форми
+            driver: (document.getElementById('ttn-driver-name')?.value || document.getElementById('ttn-driver')?.value || "").replace(/\n/g, ' '),
+            license: (document.getElementById('ttn-driver-lic')?.value || document.getElementById('ttn-license')?.value || "").replace(/\n/g, ' '),
+            carrier: (document.getElementById('ttn-carrier')?.value || "").replace(/\n/g, ' '),
+            packs: (document.getElementById('ttn-packs')?.value || "").replace(/\n/g, ' ') || "1"
          };
       }
 
