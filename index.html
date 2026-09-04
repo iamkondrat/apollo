@@ -280,7 +280,7 @@
          <div style="display: flex; gap: 10px; margin-top: 15px; border-top: 1px dashed #555; padding-top: 10px;">
            <div style="flex: 1;">
               <label style="font-size: 12px; color: #aaa;">Загальна маса брутто (т):</label>
-              <input type="text" inputmode="decimal" id="mt-weight" placeholder="Напр. 8.2" style="margin-bottom: 0; padding: 10px;">
+              <input type="text" id="mt-weight" placeholder="0.000" readonly style="margin-bottom: 0; padding: 10px; background: #222; color: #4CAF50; font-weight: bold; cursor: not-allowed; border: 1px solid #444;">
            </div>
            <div style="flex: 0.5;">
               <label style="font-size: 12px; color: #aaa;">Місць:</label>
@@ -730,7 +730,7 @@
   </div> 
 
   <script>
-    const APP_VERSION = "2.84"; 
+    const APP_VERSION = "2.85"; 
     
     document.addEventListener("DOMContentLoaded", () => {
        const verEl = document.getElementById('version-display');
@@ -1043,32 +1043,69 @@
        }
     }
 
-    // --- ДИНАМІЧНІ РЯДКИ ДЛЯ РУЧНОЇ ТТН ---
+    // --- ДИНАМІЧНІ РЯДКИ ДЛЯ РУЧНОЇ ТТН (З АВТО-ВАГОЮ) ---
     let mtItemCount = 0;
+    
     function addMtItemRow() {
        mtItemCount++;
        let div = document.createElement('div');
        div.id = `mt-row-${mtItemCount}`;
        div.style.cssText = "display:flex; gap:5px; align-items:center;";
        div.innerHTML = `
-          <input type="text" id="mt-cargo-${mtItemCount}" placeholder="Вантаж (Дошка 50)" style="flex: 1.5; padding: 10px; font-size: 13px;">
-          <input type="text" inputmode="decimal" id="mt-vol-${mtItemCount}" placeholder="м³" style="flex: 1; padding: 10px; font-size: 13px;">
+          <select id="mt-wood-${mtItemCount}" style="flex: 1.5; padding: 10px; font-size: 13px; background: #333; color: white; border: 1px solid #444; border-radius: 8px;" onchange="calcMtTotalWeight()">
+             <option value="Сосна">Сосна</option>
+             <option value="Вільха">Вільха</option>
+             <option value="Липа">Липа</option>
+             <option value="Дуб">Дуб</option>
+             <option value="Ясен">Ясен</option>
+             <option value="Бук">Бук</option>
+             <option value="Клен">Клен</option>
+             <option value="Черешня">Черешня</option>
+             <option value="Горіх">Горіх</option>
+             <option value="Берест">Берест</option>
+             <option value="Брус/Рейка">Брус/Рейка</option>
+             <option value="Пиломатеріали">Інше</option>
+          </select>
+          <input type="text" inputmode="decimal" id="mt-vol-${mtItemCount}" placeholder="м³" style="flex: 1; padding: 10px; font-size: 13px;" oninput="calcMtTotalWeight()">
           <input type="text" inputmode="decimal" id="mt-sum-${mtItemCount}" placeholder="Сума" style="flex: 1; padding: 10px; font-size: 13px;">
-          <button type="button" onclick="document.getElementById('mt-row-${mtItemCount}').remove()" style="background: #d32f2f; color: white; border: none; padding: 10px; border-radius: 8px; font-size: 16px; cursor: pointer;">🗑</button>
+          <button type="button" onclick="removeMtItemRow('mt-row-${mtItemCount}')" style="background: #d32f2f; color: white; border: none; padding: 10px; border-radius: 8px; font-size: 16px; cursor: pointer;">🗑</button>
        `;
        document.getElementById('mt-items-container').appendChild(div);
+       calcMtTotalWeight();
+    }
+
+    function removeMtItemRow(rowId) {
+       document.getElementById(rowId).remove();
+       calcMtTotalWeight();
+    }
+
+    // 🧠 Формула розрахунку ваги (0.75 для твердих, 0.5 для інших)
+    function calcMtTotalWeight() {
+       let totalWeight = 0;
+       const container = document.getElementById('mt-items-container');
+       if (container) {
+           const rows = container.children;
+           for(let i = 0; i < rows.length; i++) {
+               let idNum = rows[i].id.split('-')[2];
+               let wood = document.getElementById(`mt-wood-${idNum}`).value;
+               let vol = parseFloat(document.getElementById(`mt-vol-${idNum}`).value.replace(',','.')) || 0;
+               
+               let k_weight = 0.5; 
+               if (['Дуб', 'Ясен', 'Бук', 'Клен', 'Черешня', 'Горіх', 'Берест'].includes(wood)) k_weight = 0.75;
+               
+               totalWeight += (vol * k_weight);
+           }
+       }
+       let weightInput = document.getElementById('mt-weight');
+       if (weightInput) weightInput.value = totalWeight.toFixed(3);
     }
 
     function openManualTTNScreen() {
        document.getElementById('manual-ttn-only-modal').style.display = 'flex';
-       
-       // Очищаємо всі поля
        ['mt-buyer','mt-address','mt-weight','mt-packs','mt-driver','mt-auto','mt-trailer','mt-carrier','mt-invoiceNum', 'mt-driver-name', 'mt-driver-lic', 'mt-auto-make', 'mt-auto-plate'].forEach(id => {
           let el = document.getElementById(id);
           if (el) el.value = "";
        });
-
-       // Очищаємо список позицій і додаємо одну порожню за замовчуванням
        document.getElementById('mt-items-container').innerHTML = '';
        mtItemCount = 0;
        addMtItemRow();
@@ -1082,30 +1119,36 @@
        document.getElementById('manual-ttn-only-modal').style.display = 'none';
        showLoader("Генерація ТТН...");
 
-       // Збираємо масив позицій
        let cargoItems = [];
        const container = document.getElementById('mt-items-container');
        if (container) {
            const rows = container.children;
            for(let i = 0; i < rows.length; i++) {
                let idNum = rows[i].id.split('-')[2];
-               let name = (document.getElementById(`mt-cargo-${idNum}`)?.value || "Пиломатеріали").trim();
+               let woodVal = document.getElementById(`mt-wood-${idNum}`).value;
+               
+               // Автоматично додаємо слово "Дошка", якщо це не брус і не інше
+               let name = woodVal;
+               if (woodVal !== "Брус/Рейка" && woodVal !== "Пиломатеріали") name = "Дошка " + woodVal;
+               
                let vol = parseFloat(document.getElementById(`mt-vol-${idNum}`)?.value.replace(',','.')) || 0;
                let sum = parseFloat(document.getElementById(`mt-sum-${idNum}`)?.value.replace(',','.')) || 0;
+               
+               let k_weight = 0.5;
+               if (['Дуб', 'Ясен', 'Бук', 'Клен', 'Черешня', 'Горіх', 'Берест'].includes(woodVal)) k_weight = 0.75;
+               let weight = vol * k_weight;
+
                if (vol > 0 || sum > 0) {
-                   cargoItems.push({ name: name, unit: "м3", vol: vol, sum: sum });
+                   cargoItems.push({ name: name, unit: "м3", vol: vol, sum: sum, weight: weight });
                }
            }
        }
-       // Якщо нічого не ввели, робимо хоча б порожній рядок
-       if (cargoItems.length === 0) {
-           cargoItems.push({ name: "Пиломатеріали", unit: "м3", vol: 0, sum: 0 });
-       }
+       if (cargoItems.length === 0) cargoItems.push({ name: "Пиломатеріали", unit: "м3", vol: 0, sum: 0, weight: 0 });
 
        let ttnDataObj = {
           buyer: buyer,
           address: addr,
-          cargoItems: cargoItems, // 👈 ТЕПЕР ПЕРЕДАЄМО МАСИВ ПОЗИЦІЙ
+          cargoItems: cargoItems,
           weight: parseFloat((document.getElementById('mt-weight')?.value || "0").replace(',', '.')) || 0,
           packs: document.getElementById('mt-packs')?.value || "1",
           driver: (document.getElementById('mt-driver-name')?.value || document.getElementById('mt-driver')?.value || "").replace(/\n/g, ' '),
@@ -1117,9 +1160,7 @@
        };
 
        fetch(BACKEND_URL, {
-          method: 'POST', 
-          redirect: 'follow', 
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          method: 'POST', redirect: 'follow', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify({ action: 'manualTTNOnly', ttnData: ttnDataObj })
        }).then(response => response.text()).then(result => {
           hideLoader(); customAlert("✅ ТТН успішно згенеровано і відправлено в Telegram!");
