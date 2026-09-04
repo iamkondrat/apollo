@@ -732,7 +732,7 @@
   </div> 
 
   <script>
-    const APP_VERSION = "2.76"; 
+    const APP_VERSION = "2.77"; 
     
     document.addEventListener("DOMContentLoaded", () => {
        const verEl = document.getElementById('version-display');
@@ -1052,8 +1052,8 @@
     }
 
     function sendManualTTNOnly() {
-       let buyer = document.getElementById('mt-buyer').value.trim();
-       let addr = document.getElementById('mt-address').value.trim();
+       let buyer = (document.getElementById('mt-buyer')?.value || "").trim();
+       let addr = (document.getElementById('mt-address')?.value || "").trim();
        if (!buyer || !addr) { customAlert("Заповніть Замовника та Адресу!"); return; }
 
        document.getElementById('manual-ttn-only-modal').style.display = 'none';
@@ -1062,17 +1062,18 @@
        let ttnDataObj = {
           buyer: buyer,
           address: addr,
-          cargoName: document.getElementById('mt-cargoName').value || "Пиломатеріали",
-          sum: parseFloat(document.getElementById('mt-sum').value.replace(',', '.')) || 0,
-          vol: parseFloat(document.getElementById('mt-vol').value.replace(',', '.')) || 0,
-          weight: parseFloat(document.getElementById('mt-weight').value.replace(',', '.')) || 0,
-          packs: document.getElementById('mt-packs').value || "1",
-          driver: document.getElementById('mt-driver').value.replace(/\n/g, ' '),
-          license: document.getElementById('mt-license').value.replace(/\n/g, ' '),
-          auto: document.getElementById('mt-auto').value.replace(/\n/g, ' '),
-          trailer: document.getElementById('mt-trailer').value.replace(/\n/g, ' '),
-          carrier: document.getElementById('mt-carrier').value.replace(/\n/g, ' '),
-          invoiceNum: document.getElementById('mt-invoiceNum').value || "Б/Н"
+          cargoName: document.getElementById('mt-cargoName')?.value || "Пиломатеріали",
+          sum: parseFloat((document.getElementById('mt-sum')?.value || "0").replace(',', '.')) || 0,
+          vol: parseFloat((document.getElementById('mt-vol')?.value || "0").replace(',', '.')) || 0,
+          weight: parseFloat((document.getElementById('mt-weight')?.value || "0").replace(',', '.')) || 0,
+          packs: document.getElementById('mt-packs')?.value || "1",
+          // Беремо дані з нових розділених полів
+          driver: (document.getElementById('mt-driver-name')?.value || document.getElementById('mt-driver')?.value || "").replace(/\n/g, ' '),
+          license: (document.getElementById('mt-driver-lic')?.value || document.getElementById('mt-license')?.value || "").replace(/\n/g, ' '),
+          auto: (document.getElementById('mt-auto')?.value || "").replace(/\n/g, ' '),
+          trailer: (document.getElementById('mt-trailer')?.value || "").replace(/\n/g, ' '),
+          carrier: (document.getElementById('mt-carrier')?.value || "").replace(/\n/g, ' '),
+          invoiceNum: document.getElementById('mt-invoiceNum')?.value || "Б/Н"
        };
 
        fetch(BACKEND_URL, {
@@ -1084,7 +1085,6 @@
           hideLoader(); customAlert("Помилка відправки: " + err.message);
        });
     }
-
     // --- ЛОГІКА РУЧНИХ ДОКУМЕНТІВ ---
     function openManualScreen(type) {
       manualDocType = type;
