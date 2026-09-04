@@ -202,14 +202,14 @@
 
       <div style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #444;">
          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-            <label style="font-size: 13px; color: #fff; font-weight: bold;">Водій (Права):</label>
-            <label class="camera-btn" style="margin: 0; padding: 8px 12px; background: #27ae60;">📸 Фото прав (Лицьова)
+            <label style="font-size: 13px; color: #fff; font-weight: bold;">Посвідчення водія:</label>
+            <label class="camera-btn" style="margin: 0; padding: 8px 12px; background: #27ae60;">📸 Фото прав
                <input type="file" accept="image/*" onchange="processOCR(this, 'driver_full', 'ttn-driver')">
             </label>
          </div>
          <div style="display: flex; gap: 10px;">
            <div style="flex: 1;">
-             <label style="font-size: 12px; color: #aaa;">ПІБ (без по батькові):</label>
+             <label style="font-size: 12px; color: #aaa;">ПІБ:</label>
              <input type="text" id="ttn-driver-name" placeholder="Іванов Іван" style="margin-bottom: 5px; padding: 10px;" oninput="updateCarrierFromId('ttn-driver-name', 'ttn-carrier')">
            </div>
            <div style="flex: 1;">
@@ -220,19 +220,19 @@
       </div>
 
       <div style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #444;">
-         <label style="font-size: 13px; color: #fff; font-weight: bold; margin-bottom: 10px; display: block;">Транспортний засіб:</label>
+         <label style="font-size: 13px; color: #fff; font-weight: bold; margin-bottom: 10px; display: block;">Техпаспорт:</label>
          <div style="display: flex; gap: 10px;">
            <div style="flex: 1;">
              <label style="font-size: 12px; color: #aaa;">Марка / Модель:</label>
              <input type="text" id="ttn-auto-make" placeholder="DAF" style="margin-bottom: 5px; padding: 10px;">
-             <label class="camera-btn">📸 Марка (Зворот)
+             <label class="camera-btn">📸 Зворотня сторона
                 <input type="file" accept="image/*" onchange="processOCR(this, 'make', 'ttn-auto-make')">
              </label>
            </div>
            <div style="flex: 1;">
              <label style="font-size: 12px; color: #aaa;">Номер Авто:</label>
              <input type="text" id="ttn-auto-plate" placeholder="AA1234BB" style="margin-bottom: 5px; padding: 10px;">
-             <label class="camera-btn">📸 Номер (Лицьова)
+             <label class="camera-btn">📸 Лицьова сторона
                 <input type="file" accept="image/*" onchange="processOCR(this, 'plate', 'ttn-auto-plate')">
              </label>
            </div>
@@ -732,7 +732,7 @@
   </div> 
 
   <script>
-    const APP_VERSION = "2.80"; 
+    const APP_VERSION = "2.81"; 
     
     document.addEventListener("DOMContentLoaded", () => {
        const verEl = document.getElementById('version-display');
@@ -1602,7 +1602,7 @@
       const confirmed = await customConfirm(msg);
       if (confirmed) { 
           if (history.length > 0 && history.length !== lastSentCount) { 
-              showLoader("Відправка в скасоване..."); 
+              showLoader("Скасування..."); 
               await theoryAutoSend(true, true); 
           } 
           resetAndGoHome(); 
