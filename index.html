@@ -732,7 +732,7 @@
   </div> 
 
   <script>
-    const APP_VERSION = "2.69"; 
+    const APP_VERSION = "2.70"; 
     
     document.addEventListener("DOMContentLoaded", () => {
        const verEl = document.getElementById('version-display');
@@ -1882,10 +1882,10 @@
        const file = inputElement.files[0];
        
        if (type === 'driver_full') {
-          document.getElementById(targetFieldId + '-name').value = "✨ ШІ думає...";
-          document.getElementById(targetFieldId + '-lic').value = "✨ ШІ думає...";
+          document.getElementById(targetFieldId + '-name').value = "⚡ Швидке зчитування...";
+          document.getElementById(targetFieldId + '-lic').value = "⚡ Швидке зчитування...";
        } else {
-          document.getElementById(targetFieldId).value = "✨ ШІ думає...";
+          document.getElementById(targetFieldId).value = "⚡ Швидке зчитування...";
        }
        
        const img = new Image();
@@ -1893,14 +1893,17 @@
        reader.onload = function(e) {
           img.onload = async function() {
              const canvas = document.createElement('canvas');
-             // Зменшуємо фото до 1000px, щоб воно відправлялося на сервер за секунду
-             const MAX_WIDTH = 1000; 
+             
+             // 🚀 ОПТИМІЗАЦІЯ 1: Зменшуємо розмір фото (цього з головою вистачить для ШІ)
+             const MAX_WIDTH = 800; 
              const scaleSize = Math.min(MAX_WIDTH / img.width, 1);
              canvas.width = img.width * scaleSize;
              canvas.height = img.height * scaleSize;
              const ctx = canvas.getContext('2d');
              ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-             const base64 = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
+             
+             // 🚀 ОПТИМІЗАЦІЯ 2: Сильне стиснення JPEG (до 40% якості). Розмір файлу падає в рази!
+             const base64 = canvas.toDataURL('image/jpeg', 0.4).split(',')[1];
 
              try {
                 let res = await fetch(BACKEND_URL, { 
@@ -1912,7 +1915,7 @@
                 let data = await res.json();
                 
                 if(data.status === 'ok') {
-                   let aiData = data.data; // Тут лежить ідеальний JSON від Gemini
+                   let aiData = data.data; 
                    
                    if (type === 'driver_full') {
                        let nameId = targetFieldId + "-name";
@@ -1921,7 +1924,7 @@
                        document.getElementById(licId).value = aiData.lic || "Не знайдено";
                        
                        let carrierId = targetFieldId.includes('ttn') ? 'ttn-carrier' : 'mt-carrier';
-                       updateCarrierFromId(nameId, carrierId); // Автоматично вписуємо ФОП
+                       updateCarrierFromId(nameId, carrierId); 
                    }
                    else if (type === 'make') {
                        document.getElementById(targetFieldId).value = aiData.make || "Не знайдено";
