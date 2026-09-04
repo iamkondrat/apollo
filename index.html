@@ -732,7 +732,7 @@
   </div> 
 
   <script>
-    const APP_VERSION = "2.79"; 
+    const APP_VERSION = "2.80"; 
     
     document.addEventListener("DOMContentLoaded", () => {
        const verEl = document.getElementById('version-display');
@@ -1059,7 +1059,23 @@
        document.getElementById('manual-ttn-only-modal').style.display = 'none';
        showLoader("Генерація ТТН...");
 
-       let ttnDataObj = {
+      let ttnDataObj = {
+          buyer: buyer,
+          address: addr,
+          cargoName: document.getElementById('mt-cargoName')?.value || "Пиломатеріали",
+          sum: parseFloat((document.getElementById('mt-sum')?.value || "0").replace(',', '.')) || 0,
+          vol: parseFloat((document.getElementById('mt-vol')?.value || "0").replace(',', '.')) || 0,
+          weight: parseFloat((document.getElementById('mt-weight')?.value || "0").replace(',', '.')) || 0,
+          packs: document.getElementById('mt-packs')?.value || "1",
+          driver: (document.getElementById('mt-driver-name')?.value || document.getElementById('mt-driver')?.value || "").replace(/\n/g, ' '),
+          license: (document.getElementById('mt-driver-lic')?.value || document.getElementById('mt-license')?.value || "").replace(/\n/g, ' '),
+          auto: (document.getElementById('ttn-auto')?.value || document.getElementById('mt-auto')?.value || "").replace(/\n/g, ' '),
+          trailer: (document.getElementById('mt-trailer')?.value || "").replace(/\n/g, ' '),
+          carrier: (document.getElementById('mt-carrier')?.value || "").replace(/\n/g, ' '),
+          invoiceNum: document.getElementById('mt-invoiceNum')?.value || "Б/Н"
+       };
+
+       /*let ttnDataObj = {
           buyer: buyer,
           address: addr,
           cargoName: document.getElementById('mt-cargoName')?.value || "Пиломатеріали",
@@ -1074,7 +1090,8 @@
           trailer: (document.getElementById('mt-trailer')?.value || "").replace(/\n/g, ' '),
           carrier: (document.getElementById('mt-carrier')?.value || "").replace(/\n/g, ' '),
           invoiceNum: document.getElementById('mt-invoiceNum')?.value || "Б/Н"
-       };
+       }; */
+      
 // ... (верхня частина залишається такою ж: збір даних у ttnDataObj) ...
 
        // 🚀 Надійний запит, який не блокується на техніці Apple
