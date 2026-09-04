@@ -732,7 +732,7 @@
   </div> 
 
   <script>
-    const APP_VERSION = "2.82"; 
+    const APP_VERSION = "2.83"; 
     
     document.addEventListener("DOMContentLoaded", () => {
        const verEl = document.getElementById('version-display');
@@ -1069,7 +1069,7 @@
           packs: document.getElementById('mt-packs')?.value || "1",
           driver: (document.getElementById('mt-driver-name')?.value || document.getElementById('mt-driver')?.value || "").replace(/\n/g, ' '),
           license: (document.getElementById('mt-driver-lic')?.value || document.getElementById('mt-license')?.value || "").replace(/\n/g, ' '),
-          auto: (document.getElementById('ttn-auto')?.value || document.getElementById('mt-auto')?.value || "").replace(/\n/g, ' '),
+          auto: ((document.getElementById('mt-auto-make')?.value || "") + " " + (document.getElementById('mt-auto-plate')?.value || "")).trim().replace(/\n/g, ' '),
           trailer: (document.getElementById('mt-trailer')?.value || "").replace(/\n/g, ' '),
           carrier: (document.getElementById('mt-carrier')?.value || "").replace(/\n/g, ' '),
           invoiceNum: document.getElementById('mt-invoiceNum')?.value || "Б/Н"
@@ -2154,7 +2154,7 @@
          ttnDataObj = {
             buyer: (document.getElementById('ttn-buyer')?.value || "").replace(/\n/g, ' '),
             address: (document.getElementById('ttn-address')?.value || "").replace(/\n/g, ' '),
-            auto: (document.getElementById('ttn-auto-plate')?.value || document.getElementById('ttn-auto')?.value || "").replace(/\n/g, ' '),
+            auto: ((document.getElementById('ttn-auto-make')?.value || "") + " " + (document.getElementById('ttn-auto-plate')?.value || "")).trim().replace(/\n/g, ' '),
             trailer: (document.getElementById('ttn-trailer')?.value || "").replace(/\n/g, ' '),
             // Безпечно збираємо ПІБ та номер посвідчення з нових розділених полів форми
             driver: (document.getElementById('ttn-driver-name')?.value || document.getElementById('ttn-driver')?.value || "").replace(/\n/g, ' '),
