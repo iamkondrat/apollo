@@ -732,7 +732,7 @@
   </div> 
 
   <script>
-    const APP_VERSION = "2.70"; 
+    const APP_VERSION = "2.71"; 
     
     document.addEventListener("DOMContentLoaded", () => {
        const verEl = document.getElementById('version-display');
@@ -1876,16 +1876,19 @@
        }
     }
 
-    // --- ОБРОБКА ФОТО (GEMINI AI) ---
+    // Твій ключ API тепер живе прямо на планшеті для максимальної швидкості
+    const GEMINI_API_KEY_FRONTEND = "AQ.Ab8RN6Jj3cbBlNKOuNY51oocjttlC4syd8zK0tTtDXatJUB-FA";
+
+    // --- ОБРОБКА ФОТО (ПРЯМИЙ ЗАПИТ ДО GEMINI = БЕЗ ПОСЕРЕДНИКІВ) ---
     function processOCR(inputElement, type, targetFieldId) {
        if (!inputElement.files || inputElement.files.length === 0) return;
        const file = inputElement.files[0];
        
        if (type === 'driver_full') {
-          document.getElementById(targetFieldId + '-name').value = "⚡ Швидке зчитування...";
-          document.getElementById(targetFieldId + '-lic').value = "⚡ Швидке зчитування...";
+          document.getElementById(targetFieldId + '-name').value = "⚡ Зчитую...";
+          document.getElementById(targetFieldId + '-lic').value = "⚡ Зчитую...";
        } else {
-          document.getElementById(targetFieldId).value = "⚡ Швидке зчитування...";
+          document.getElementById(targetFieldId).value = "⚡ Зчитую...";
        }
        
        const img = new Image();
@@ -1894,7 +1897,7 @@
           img.onload = async function() {
              const canvas = document.createElement('canvas');
              
-             // 🚀 ОПТИМІЗАЦІЯ 1: Зменшуємо розмір фото (цього з головою вистачить для ШІ)
+             // Робимо фото дуже легким (800 пікселів з головою вистачає для ШІ)
              const MAX_WIDTH = 800; 
              const scaleSize = Math.min(MAX_WIDTH / img.width, 1);
              canvas.width = img.width * scaleSize;
@@ -1902,45 +1905,57 @@
              const ctx = canvas.getContext('2d');
              ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
              
-             // 🚀 ОПТИМІЗАЦІЯ 2: Сильне стиснення JPEG (до 40% якості). Розмір файлу падає в рази!
-             const base64 = canvas.toDataURL('image/jpeg', 0.4).split(',')[1];
+             // Отримуємо чистий base64 код стиснутої картинки
+             const base64 = canvas.toDataURL('image/jpeg', 0.5).split(',')[1];
+
+             let prompt = "";
+             if (type === 'driver_full') {
+                 prompt = `Ти - система розпізнавання документів. Це українське посвідчення водія. Знайди дані і поверни їх СУВОРО у форматі JSON без жодних інших слів і маркдауну: {"pib": "Прізвище та Ім'я водія", "lic": "Номер посвідчення"}`;
+             } else if (type === 'make') {
+                 prompt = `Ти - система розпізнавання документів. Це український техпаспорт. Знайди марку/модель і поверни СУВОРО у форматі JSON: {"make": "Марка та модель авто"}`;
+             } else if (type === 'plate') {
+                 prompt = `Ти - система розпізнавання документів. Це український техпаспорт. Знайди номер авто і поверни СУВОРО у форматі JSON: {"plate": "Державний номерний знак"}`;
+             }
+
+             const payload = {
+               "contents": [{"parts": [{"text": prompt}, {"inline_data": {"mime_type": "image/jpeg", "data": base64}}]}],
+               "generationConfig": {"temperature": 0.1}
+             };
 
              try {
-                let res = await fetch(BACKEND_URL, { 
+                // 🚀 ВІДПРАВЛЯЄМО НАПРЯМУ В GOOGLE (Обминаємо наш сервер Apps Script!)
+                let res = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + GEMINI_API_KEY_FRONTEND, { 
                    method: 'POST', 
-                   headers: {'Content-Type': 'text/plain;charset=utf-8'}, 
-                   body: JSON.stringify({action: 'ocr', image: base64, type: type}) 
+                   headers: {'Content-Type': 'application/json'}, 
+                   body: JSON.stringify(payload) 
                 });
                 
                 let data = await res.json();
                 
-                if(data.status === 'ok') {
-                   let aiData = data.data; 
-                   
-                   if (type === 'driver_full') {
-                       let nameId = targetFieldId + "-name";
-                       let licId = targetFieldId + "-lic";
-                       document.getElementById(nameId).value = aiData.pib || "Не знайдено";
-                       document.getElementById(licId).value = aiData.lic || "Не знайдено";
-                       
-                       let carrierId = targetFieldId.includes('ttn') ? 'ttn-carrier' : 'mt-carrier';
-                       updateCarrierFromId(nameId, carrierId); 
-                   }
-                   else if (type === 'make') {
-                       document.getElementById(targetFieldId).value = aiData.make || "Не знайдено";
-                   }
-                   else if (type === 'plate') {
-                       document.getElementById(targetFieldId).value = aiData.plate || "Не знайдено";
-                   }
-                } else {
-                   customAlert("Помилка Gemini: " + data.text);
-                   if (type === 'driver_full') {
-                      document.getElementById(targetFieldId + '-name').value = "";
-                      document.getElementById(targetFieldId + '-lic').value = "";
-                   } else document.getElementById(targetFieldId).value = "";
+                if (data.error) {
+                   throw new Error(data.error.message);
+                }
+
+                let aiText = data.candidates[0].content.parts[0].text;
+                // Очищаємо від маркдауну, якщо ШІ його додав
+                aiText = aiText.replace(/```json/gi, '').replace(/```/g, '').trim();
+                let aiData = JSON.parse(aiText);
+                
+                if (type === 'driver_full') {
+                    let nameId = targetFieldId + "-name";
+                    let licId = targetFieldId + "-lic";
+                    document.getElementById(nameId).value = aiData.pib || "Не знайдено";
+                    document.getElementById(licId).value = aiData.lic || "Не знайдено";
+                    
+                    let carrierId = targetFieldId.includes('ttn') ? 'ttn-carrier' : 'mt-carrier';
+                    updateCarrierFromId(nameId, carrierId); 
+                } else if (type === 'make') {
+                    document.getElementById(targetFieldId).value = aiData.make || "Не знайдено";
+                } else if (type === 'plate') {
+                    document.getElementById(targetFieldId).value = aiData.plate || "Не знайдено";
                 }
              } catch (err) {
-                customAlert("Помилка інтернету. Перевірте з'єднання.");
+                customAlert("Помилка розпізнавання: " + err.message);
                 if (type === 'driver_full') {
                     document.getElementById(targetFieldId + '-name').value = "";
                     document.getElementById(targetFieldId + '-lic').value = "";
