@@ -732,7 +732,7 @@
   </div> 
 
   <script>
-    const APP_VERSION = "2.71"; 
+    const APP_VERSION = "2.72"; 
     
     document.addEventListener("DOMContentLoaded", () => {
        const verEl = document.getElementById('version-display');
@@ -1876,10 +1876,11 @@
        }
     }
 
-    // Твій ключ API тепер живе прямо на планшеті для максимальної швидкості
+
+    // Твій ключ API
     const GEMINI_API_KEY_FRONTEND = "AQ.Ab8RN6Jj3cbBlNKOuNY51oocjttlC4syd8zK0tTtDXatJUB-FA";
 
-    // --- ОБРОБКА ФОТО (ПРЯМИЙ ЗАПИТ ДО GEMINI = БЕЗ ПОСЕРЕДНИКІВ) ---
+    // --- ОБРОБКА ФОТО (ПРЯМИЙ ЗАПИТ БЕЗ ПОСЕРЕДНИКІВ) ---
     function processOCR(inputElement, type, targetFieldId) {
        if (!inputElement.files || inputElement.files.length === 0) return;
        const file = inputElement.files[0];
@@ -1896,8 +1897,6 @@
        reader.onload = function(e) {
           img.onload = async function() {
              const canvas = document.createElement('canvas');
-             
-             // Робимо фото дуже легким (800 пікселів з головою вистачає для ШІ)
              const MAX_WIDTH = 800; 
              const scaleSize = Math.min(MAX_WIDTH / img.width, 1);
              canvas.width = img.width * scaleSize;
@@ -1905,7 +1904,6 @@
              const ctx = canvas.getContext('2d');
              ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
              
-             // Отримуємо чистий base64 код стиснутої картинки
              const base64 = canvas.toDataURL('image/jpeg', 0.5).split(',')[1];
 
              let prompt = "";
@@ -1923,10 +1921,13 @@
              };
 
              try {
-                // 🚀 ВІДПРАВЛЯЄМО НАПРЯМУ В GOOGLE (Обминаємо наш сервер Apps Script!)
-                let res = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + GEMINI_API_KEY_FRONTEND, { 
+                // 🚀 ВІДПРАВЛЯЄМО НАПРЯМУ В GOOGLE (Правильна модель 3.6-flash і безпечна передача ключа)
+                let res = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent", { 
                    method: 'POST', 
-                   headers: {'Content-Type': 'application/json'}, 
+                   headers: {
+                       'Content-Type': 'application/json',
+                       'x-goog-api-key': GEMINI_API_KEY_FRONTEND.trim() // <-- Ключ передається тут, надійно!
+                   }, 
                    body: JSON.stringify(payload) 
                 });
                 
@@ -1937,7 +1938,6 @@
                 }
 
                 let aiText = data.candidates[0].content.parts[0].text;
-                // Очищаємо від маркдауну, якщо ШІ його додав
                 aiText = aiText.replace(/```json/gi, '').replace(/```/g, '').trim();
                 let aiData = JSON.parse(aiText);
                 
@@ -1966,6 +1966,7 @@
        }
        reader.readAsDataURL(file);
     }
+    
     function confirmTTN() {
        document.getElementById('ttn-form-modal').style.display = 'none';
        executeSend(pendingPaymentMethod, pendingInvoiceName, pendingNeedInvoice, pendingDeliveryCost, pendingNeedWaybill, true);
