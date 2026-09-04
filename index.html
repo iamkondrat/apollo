@@ -266,36 +266,34 @@
         </div>
       </div>
 
-      <div style="display: flex; gap: 10px;">
-        <div style="flex: 1;">
-           <label style="font-size: 12px; color: #aaa;">Вантаж:</label>
-           <input type="text" id="mt-cargoName" placeholder="Пиломатеріали" style="margin-bottom: 10px; padding: 10px;">
-        </div>
-        <div style="flex: 1;">
-           <label style="font-size: 12px; color: #aaa;">Сума (грн):</label>
-           <input type="text" inputmode="decimal" id="mt-sum" placeholder="Напр. 15000" style="margin-bottom: 10px; padding: 10px;">
-        </div>
+      <!-- НОВИЙ ДИНАМІЧНИЙ БЛОК ДЛЯ БАГАТЬОХ ПОЗИЦІЙ ВАНТАЖУ -->
+      <div style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #444;">
+         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <label style="font-size: 13px; color: #fff; font-weight: bold;">Позиції вантажу:</label>
+            <button type="button" style="background: #27ae60; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-weight: bold; cursor: pointer;" onclick="addMtItemRow()">➕ Додати</button>
+         </div>
+         
+         <div id="mt-items-container" style="display: flex; flex-direction: column; gap: 8px;">
+            <!-- Сюди будуть додаватись рядки через JavaScript -->
+         </div>
+         
+         <div style="display: flex; gap: 10px; margin-top: 15px; border-top: 1px dashed #555; padding-top: 10px;">
+           <div style="flex: 1;">
+              <label style="font-size: 12px; color: #aaa;">Загальна маса брутто (т):</label>
+              <input type="text" inputmode="decimal" id="mt-weight" placeholder="Напр. 8.2" style="margin-bottom: 0; padding: 10px;">
+           </div>
+           <div style="flex: 0.5;">
+              <label style="font-size: 12px; color: #aaa;">Місць:</label>
+              <input type="text" inputmode="numeric" id="mt-packs" placeholder="1" style="margin-bottom: 0; padding: 10px;">
+           </div>
+         </div>
       </div>
-
-      <div style="display: flex; gap: 10px;">
-        <div style="flex: 1;">
-           <label style="font-size: 12px; color: #aaa;">Об'єм (м3):</label>
-           <input type="text" inputmode="decimal" id="mt-vol" placeholder="Напр. 12.5" style="margin-bottom: 10px; padding: 10px;">
-        </div>
-        <div style="flex: 1;">
-           <label style="font-size: 12px; color: #aaa;">Маса брутто (т):</label>
-           <input type="text" inputmode="decimal" id="mt-weight" placeholder="Напр. 8.2" style="margin-bottom: 10px; padding: 10px;">
-        </div>
-        <div style="flex: 0.5;">
-           <label style="font-size: 12px; color: #aaa;">Місць:</label>
-           <input type="text" inputmode="numeric" id="mt-packs" placeholder="4" style="margin-bottom: 10px; padding: 10px;">
-        </div>
-      </div>
+      <!-- КІНЕЦЬ НОВОГО БЛОКУ -->
 
       <div style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #444;">
          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
             <label style="font-size: 13px; color: #fff; font-weight: bold;">Водій (Права):</label>
-            <label class="camera-btn" style="margin: 0; padding: 8px 12px; background: #27ae60;">📸 Фото прав (Лицьова)
+            <label class="camera-btn" style="margin: 0; padding: 8px 12px; background: #27ae60;">📸 Фото прав
                <input type="file" accept="image/*" onchange="processOCR(this, 'driver_full', 'mt-driver')">
             </label>
          </div>
@@ -317,14 +315,14 @@
            <div style="flex: 1;">
              <label style="font-size: 12px; color: #aaa;">Марка / Модель:</label>
              <input type="text" id="mt-auto-make" placeholder="DAF" style="margin-bottom: 5px; padding: 10px;">
-             <label class="camera-btn">📸 Марка (Зворот)
+             <label class="camera-btn">📸 Зворотня сторона
                 <input type="file" accept="image/*" onchange="processOCR(this, 'make', 'mt-auto-make')">
              </label>
            </div>
            <div style="flex: 1;">
              <label style="font-size: 12px; color: #aaa;">Номер Авто:</label>
              <input type="text" id="mt-auto-plate" placeholder="AA1234BB" style="margin-bottom: 5px; padding: 10px;">
-             <label class="camera-btn">📸 Номер (Лицьова)
+             <label class="camera-btn">📸 Лицьова сторона
                 <input type="file" accept="image/*" onchange="processOCR(this, 'plate', 'mt-auto-plate')">
              </label>
            </div>
@@ -732,7 +730,7 @@
   </div> 
 
   <script>
-    const APP_VERSION = "2.83"; 
+    const APP_VERSION = "2.84"; 
     
     document.addEventListener("DOMContentLoaded", () => {
        const verEl = document.getElementById('version-display');
@@ -1035,13 +1033,7 @@
        document.getElementById('mi-buyer-name').value = rawName;
     }
 
-    // --- РУЧНИЙ ВВІД ТТН БЕЗ ЗАМІРІВ ---
-    function openManualTTNScreen() {
-       document.getElementById('manual-ttn-only-modal').style.display = 'flex';
-       ['mt-buyer','mt-address','mt-cargoName','mt-sum','mt-vol','mt-weight','mt-packs','mt-driver','mt-auto','mt-trailer','mt-carrier','mt-invoiceNum'].forEach(id => {
-          document.getElementById(id).value = "";
-       });
-    }
+    
 
     function updateManualCarrier() {
        let driverText = document.getElementById('mt-driver').value;
@@ -1049,6 +1041,37 @@
           let name = driverText.split(',')[0].split('\n')[0];
           document.getElementById('mt-carrier').value = "ФОП " + name;
        }
+    }
+
+    // --- ДИНАМІЧНІ РЯДКИ ДЛЯ РУЧНОЇ ТТН ---
+    let mtItemCount = 0;
+    function addMtItemRow() {
+       mtItemCount++;
+       let div = document.createElement('div');
+       div.id = `mt-row-${mtItemCount}`;
+       div.style.cssText = "display:flex; gap:5px; align-items:center;";
+       div.innerHTML = `
+          <input type="text" id="mt-cargo-${mtItemCount}" placeholder="Вантаж (Дошка 50)" style="flex: 1.5; padding: 10px; font-size: 13px;">
+          <input type="text" inputmode="decimal" id="mt-vol-${mtItemCount}" placeholder="м³" style="flex: 1; padding: 10px; font-size: 13px;">
+          <input type="text" inputmode="decimal" id="mt-sum-${mtItemCount}" placeholder="Сума" style="flex: 1; padding: 10px; font-size: 13px;">
+          <button type="button" onclick="document.getElementById('mt-row-${mtItemCount}').remove()" style="background: #d32f2f; color: white; border: none; padding: 10px; border-radius: 8px; font-size: 16px; cursor: pointer;">🗑</button>
+       `;
+       document.getElementById('mt-items-container').appendChild(div);
+    }
+
+    function openManualTTNScreen() {
+       document.getElementById('manual-ttn-only-modal').style.display = 'flex';
+       
+       // Очищаємо всі поля
+       ['mt-buyer','mt-address','mt-weight','mt-packs','mt-driver','mt-auto','mt-trailer','mt-carrier','mt-invoiceNum', 'mt-driver-name', 'mt-driver-lic', 'mt-auto-make', 'mt-auto-plate'].forEach(id => {
+          let el = document.getElementById(id);
+          if (el) el.value = "";
+       });
+
+       // Очищаємо список позицій і додаємо одну порожню за замовчуванням
+       document.getElementById('mt-items-container').innerHTML = '';
+       mtItemCount = 0;
+       addMtItemRow();
     }
 
     function sendManualTTNOnly() {
@@ -1059,12 +1082,30 @@
        document.getElementById('manual-ttn-only-modal').style.display = 'none';
        showLoader("Генерація ТТН...");
 
-      let ttnDataObj = {
+       // Збираємо масив позицій
+       let cargoItems = [];
+       const container = document.getElementById('mt-items-container');
+       if (container) {
+           const rows = container.children;
+           for(let i = 0; i < rows.length; i++) {
+               let idNum = rows[i].id.split('-')[2];
+               let name = (document.getElementById(`mt-cargo-${idNum}`)?.value || "Пиломатеріали").trim();
+               let vol = parseFloat(document.getElementById(`mt-vol-${idNum}`)?.value.replace(',','.')) || 0;
+               let sum = parseFloat(document.getElementById(`mt-sum-${idNum}`)?.value.replace(',','.')) || 0;
+               if (vol > 0 || sum > 0) {
+                   cargoItems.push({ name: name, unit: "м3", vol: vol, sum: sum });
+               }
+           }
+       }
+       // Якщо нічого не ввели, робимо хоча б порожній рядок
+       if (cargoItems.length === 0) {
+           cargoItems.push({ name: "Пиломатеріали", unit: "м3", vol: 0, sum: 0 });
+       }
+
+       let ttnDataObj = {
           buyer: buyer,
           address: addr,
-          cargoName: document.getElementById('mt-cargoName')?.value || "Пиломатеріали",
-          sum: parseFloat((document.getElementById('mt-sum')?.value || "0").replace(',', '.')) || 0,
-          vol: parseFloat((document.getElementById('mt-vol')?.value || "0").replace(',', '.')) || 0,
+          cargoItems: cargoItems, // 👈 ТЕПЕР ПЕРЕДАЄМО МАСИВ ПОЗИЦІЙ
           weight: parseFloat((document.getElementById('mt-weight')?.value || "0").replace(',', '.')) || 0,
           packs: document.getElementById('mt-packs')?.value || "1",
           driver: (document.getElementById('mt-driver-name')?.value || document.getElementById('mt-driver')?.value || "").replace(/\n/g, ' '),
@@ -1075,42 +1116,15 @@
           invoiceNum: document.getElementById('mt-invoiceNum')?.value || "Б/Н"
        };
 
-       /*let ttnDataObj = {
-          buyer: buyer,
-          address: addr,
-          cargoName: document.getElementById('mt-cargoName')?.value || "Пиломатеріали",
-          sum: parseFloat((document.getElementById('mt-sum')?.value || "0").replace(',', '.')) || 0,
-          vol: parseFloat((document.getElementById('mt-vol')?.value || "0").replace(',', '.')) || 0,
-          weight: parseFloat((document.getElementById('mt-weight')?.value || "0").replace(',', '.')) || 0,
-          packs: document.getElementById('mt-packs')?.value || "1",
-          // Беремо дані з нових розділених полів
-          driver: (document.getElementById('mt-driver-name')?.value || document.getElementById('mt-driver')?.value || "").replace(/\n/g, ' '),
-          license: (document.getElementById('mt-driver-lic')?.value || document.getElementById('mt-license')?.value || "").replace(/\n/g, ' '),
-          auto: (document.getElementById('mt-auto')?.value || "").replace(/\n/g, ' '),
-          trailer: (document.getElementById('mt-trailer')?.value || "").replace(/\n/g, ' '),
-          carrier: (document.getElementById('mt-carrier')?.value || "").replace(/\n/g, ' '),
-          invoiceNum: document.getElementById('mt-invoiceNum')?.value || "Б/Н"
-       }; */
-      
-// ... (верхня частина залишається такою ж: збір даних у ttnDataObj) ...
-
-       // 🚀 Надійний запит, який не блокується на техніці Apple
        fetch(BACKEND_URL, {
           method: 'POST', 
-          redirect: 'follow', // 👈 Ключова команда: дозволяємо йти за перенаправленнями Google
-          headers: { 
-              'Content-Type': 'text/plain;charset=utf-8' 
-          },
+          redirect: 'follow', 
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify({ action: 'manualTTNOnly', ttnData: ttnDataObj })
-       })
-       .then(response => response.text()) // Читаємо відповідь сервера
-       .then(result => {
-          hideLoader(); 
-          customAlert("✅ ТТН успішно згенеровано і відправлено в Telegram!");
-       })
-       .catch(err => {
-          hideLoader(); 
-          customAlert("Помилка відправки: " + err.message);
+       }).then(response => response.text()).then(result => {
+          hideLoader(); customAlert("✅ ТТН успішно згенеровано і відправлено в Telegram!");
+       }).catch(err => {
+          hideLoader(); customAlert("Помилка відправки: " + err.message);
        });
     }
     
