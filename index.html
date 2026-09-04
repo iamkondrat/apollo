@@ -732,7 +732,7 @@
   </div> 
 
   <script>
-    const APP_VERSION = "2.73"; 
+    const APP_VERSION = "2.74"; 
     
     document.addEventListener("DOMContentLoaded", () => {
        const verEl = document.getElementById('version-display');
@@ -1883,7 +1883,7 @@
     const KEY_P2 = "NSRLChFFPd4Agelf9I69GoO5HScw";
     const GEMINI_API_KEY_FRONTEND = KEY_P1 + KEY_P2;
 
-    // --- ОБРОБКА ФОТО (ПРЯМИЙ ЗАПИТ ДО GEMINI) ---
+    // --- ОБРОБКА ФОТО (ТУРБО-ШВИДКІСТЬ) ---
     function processOCR(inputElement, type, targetFieldId) {
        if (!inputElement.files || inputElement.files.length === 0) return;
        const file = inputElement.files[0];
@@ -1900,14 +1900,17 @@
        reader.onload = function(e) {
           img.onload = async function() {
              const canvas = document.createElement('canvas');
-             const MAX_WIDTH = 800; 
+             
+             // 🚀 ЕКСТРЕМАЛЬНА ОПТИМІЗАЦІЯ: Зменшуємо ширину до 600 пікселів 
+             const MAX_WIDTH = 600; 
              const scaleSize = Math.min(MAX_WIDTH / img.width, 1);
              canvas.width = img.width * scaleSize;
              canvas.height = img.height * scaleSize;
              const ctx = canvas.getContext('2d');
              ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
              
-             const base64 = canvas.toDataURL('image/jpeg', 0.5).split(',')[1];
+             // 🚀 ЕКСТРЕМАЛЬНА ОПТИМІЗАЦІЯ: Стискаємо якість до 30%. Розмір фото буде ~20-30 КБ!
+             const base64 = canvas.toDataURL('image/jpeg', 0.3).split(',')[1];
 
              let prompt = "";
              if (type === 'driver_full') {
@@ -1920,11 +1923,10 @@
 
              const payload = {
                "contents": [{"parts": [{"text": prompt}, {"inline_data": {"mime_type": "image/jpeg", "data": base64}}]}],
-               "generationConfig": {"temperature": 0.1}
+               "generationConfig": {"temperature": 0.0} // Нульова температура для максимальної швидкості
              };
 
              try {
-                // Відправляємо ключ у посиланні, щоб уникнути блокування CORS у мобільних браузерах
                 let url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=" + GEMINI_API_KEY_FRONTEND;
                 
                 let res = await fetch(url, { 
@@ -1936,6 +1938,10 @@
                 let data = await res.json();
                 
                 if (data.error) {
+                   // Якщо зловили ліміт запитів - перекладаємо людською мовою
+                   if (data.error.message.toLowerCase().includes("quota") || data.error.message.toLowerCase().includes("exceeded")) {
+                       throw new Error("⏳ Вичерпано безкоштовний ліміт (20 запитів на хв). Зачекайте 1 хвилину і повторіть.");
+                   }
                    throw new Error(data.error.message);
                 }
 
@@ -1957,7 +1963,8 @@
                     document.getElementById(targetFieldId).value = aiData.plate || "Не знайдено";
                 }
              } catch (err) {
-                customAlert("Помилка розпізнавання: " + err.message);
+                customAlert(err.message.includes("⏳") ? err.message : "Помилка розпізнавання: " + err.message);
+                
                 if (type === 'driver_full') {
                     document.getElementById(targetFieldId + '-name').value = "";
                     document.getElementById(targetFieldId + '-lic').value = "";
