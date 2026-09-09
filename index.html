@@ -749,7 +749,7 @@
   </div> 
 
   <script>
-    const APP_VERSION = "2.88"; 
+    const APP_VERSION = "2.89"; 
     
     document.addEventListener("DOMContentLoaded", () => {
        const verEl = document.getElementById('version-display');
@@ -1822,7 +1822,6 @@
       history.forEach(b => {
         const priceLabel = Math.round(Math.abs(b.cubePrice) || 0);
         const key = (currentMode === 'income') ? `${b.wood} ${b.thick} мм` : `${b.wood} ${b.thick} мм (${priceLabel} грн/м³)`;
-        // ОНОВЛЕНО: Запам'ятовуємо породу і товщину для олівця
         if (!groups[key]) groups[key] = { vol: 0, price: Math.abs(b.cubePrice), count: 0, wood: b.wood, thick: b.thick };
         groups[key].vol += b.vol;
         groups[key].count++;
@@ -1833,15 +1832,24 @@
         let rVol = Number(data.vol.toFixed(3));
         let gSum = Math.round(rVol * (data.price || 0) * 100) / 100;
         
-        // ОНОВЛЕНО: Іконка редагування ціни (тільки для продажу та повернення)
+        // Квадратна кнопка редагування (з'являється тільки при продажах)
         let editBtn = '';
         if (currentMode !== 'income') {
-            editBtn = `<button onclick="openEditPriceModal('${data.wood}', '${data.thick}', '${data.price}')" style="background: none; border: none; font-size: 16px; cursor: pointer; padding: 0 0 0 8px; margin: 0; color: #f39c12; outline: none;" title="Змінити ціну">✏️</button>`;
+            editBtn = `<button onclick="openEditPriceModal('${data.wood}', '${data.thick}', '${data.price}')" style="background: #2c3e50; border: 1px solid #444; border-radius: 6px; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; box-shadow: 0 2px 4px rgba(0,0,0,0.3); transition: 0.1s;" title="Змінити ціну">✏️</button>`;
         }
         
-        const sumHtml = (currentMode === 'income') ? '' : `<div style="display:flex; align-items:center;"><span style="${gSum < 0 ? 'color:#e74c3c;' : ''}">${gSum.toLocaleString('uk-UA', {minimumFractionDigits: 0, maximumFractionDigits: 2})}</span> грн${editBtn}</div>`;
+        const sumHtml = (currentMode === 'income') ? '' : `<div><span style="${gSum < 0 ? 'color:#e74c3c;' : ''}">${gSum.toLocaleString('uk-UA', {minimumFractionDigits: 0, maximumFractionDigits: 2})}</span> грн</div>`;
         
-        subHtml += `<div class="sub-stat-row"><div>${name}:</div><div><span style="${rVol < 0 ? 'color:#e74c3c;' : ''}">${rVol.toFixed(3)}</span> м³</div>${sumHtml}<div><span>${data.count}</span> шт</div></div>`;
+        // Розміщуємо кнопку праворуч від кількості штук, використовуючи flexbox
+        subHtml += `<div class="sub-stat-row" style="align-items: center;">
+            <div>${name}:</div>
+            <div><span style="${rVol < 0 ? 'color:#e74c3c;' : ''}">${rVol.toFixed(3)}</span> м³</div>
+            ${sumHtml}
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span><span>${data.count}</span> шт</span>
+                ${editBtn}
+            </div>
+        </div>`;
       }
       subStatsContainer.innerHTML = subHtml;
     }
