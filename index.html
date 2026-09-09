@@ -145,6 +145,25 @@
     </div>
   </div>
 
+  <!-- ВІКНО ЗМІНИ ЦІНИ -->
+  <div id="edit-price-modal" class="overlay-modal" style="z-index: 999999999;">
+    <div class="modal-box" style="align-items: center; text-align: center; max-width: 320px;">
+      <h3 style="margin-bottom: 5px; color: #f39c12;">🏷 Змінити ціну</h3>
+      <p id="edit-price-subtitle" style="color: #ccc; margin-top: 0; margin-bottom: 15px; font-size: 15px;"></p>
+      
+      <input type="hidden" id="edit-price-wood">
+      <input type="hidden" id="edit-price-thick">
+      
+      <label style="font-size: 13px; color: #aaa; text-align: left; width: 100%; display: block;">Нова ціна за 1 м³ (грн):</label>
+      <input type="text" inputmode="decimal" id="edit-price-input" style="width: 100%; box-sizing: border-box; padding: 12px; background: #333; color: white; border: 1px solid #444; border-radius: 8px; font-size: 24px; font-weight: bold; text-align: center; outline: none; margin-bottom: 20px;">
+      
+      <div style="width: 100%; display: flex; gap: 10px;">
+          <button class="pay-btn centered success" style="flex: 1;" onclick="saveNewCategoryPrice()">✅ Зберегти</button>
+          <button class="pay-btn centered cancel" style="flex: 1; margin-top: 0;" onclick="closeEditPriceModal()">Скасувати</button>
+      </div>
+    </div>
+  </div>
+  
   <!-- МЕНЮ ВИБОРУ ОПЛАТИ -->
   <div id="payment-modal" class="overlay-modal">
     <div class="modal-box">
@@ -730,7 +749,7 @@
   </div> 
 
   <script>
-    const APP_VERSION = "2.87"; 
+    const APP_VERSION = "2.88"; 
     
     document.addEventListener("DOMContentLoaded", () => {
        const verEl = document.getElementById('version-display');
@@ -1803,7 +1822,8 @@
       history.forEach(b => {
         const priceLabel = Math.round(Math.abs(b.cubePrice) || 0);
         const key = (currentMode === 'income') ? `${b.wood} ${b.thick} мм` : `${b.wood} ${b.thick} мм (${priceLabel} грн/м³)`;
-        if (!groups[key]) groups[key] = { vol: 0, price: Math.abs(b.cubePrice), count: 0 };
+        // ОНОВЛЕНО: Запам'ятовуємо породу і товщину для олівця
+        if (!groups[key]) groups[key] = { vol: 0, price: Math.abs(b.cubePrice), count: 0, wood: b.wood, thick: b.thick };
         groups[key].vol += b.vol;
         groups[key].count++;
       });
@@ -1812,10 +1832,64 @@
       for (const [name, data] of Object.entries(groups)) {
         let rVol = Number(data.vol.toFixed(3));
         let gSum = Math.round(rVol * (data.price || 0) * 100) / 100;
-        const sumHtml = (currentMode === 'income') ? '' : `<div><span style="${gSum < 0 ? 'color:#e74c3c;' : ''}">${gSum.toLocaleString('uk-UA', {minimumFractionDigits: 0, maximumFractionDigits: 2})}</span> грн</div>`;
+        
+        // ОНОВЛЕНО: Іконка редагування ціни (тільки для продажу та повернення)
+        let editBtn = '';
+        if (currentMode !== 'income') {
+            editBtn = `<button onclick="openEditPriceModal('${data.wood}', '${data.thick}', '${data.price}')" style="background: none; border: none; font-size: 16px; cursor: pointer; padding: 0 0 0 8px; margin: 0; color: #f39c12; outline: none;" title="Змінити ціну">✏️</button>`;
+        }
+        
+        const sumHtml = (currentMode === 'income') ? '' : `<div style="display:flex; align-items:center;"><span style="${gSum < 0 ? 'color:#e74c3c;' : ''}">${gSum.toLocaleString('uk-UA', {minimumFractionDigits: 0, maximumFractionDigits: 2})}</span> грн${editBtn}</div>`;
+        
         subHtml += `<div class="sub-stat-row"><div>${name}:</div><div><span style="${rVol < 0 ? 'color:#e74c3c;' : ''}">${rVol.toFixed(3)}</span> м³</div>${sumHtml}<div><span>${data.count}</span> шт</div></div>`;
       }
       subStatsContainer.innerHTML = subHtml;
+    }
+
+    // --- ЗМІНА ЦІНИ ДЛЯ ГРУПИ ДОШОК ---
+    function openEditPriceModal(wood, thick, currentPrice) {
+        document.getElementById('edit-price-wood').value = wood;
+        document.getElementById('edit-price-thick').value = thick;
+        document.getElementById('edit-price-subtitle').innerText = `${wood} ${thick} мм`;
+        document.getElementById('edit-price-input').value = currentPrice;
+        document.getElementById('edit-price-modal').style.display = 'flex';
+        // Даємо невеличку затримку, щоб клавіатура могла вискочити автоматично
+        setTimeout(() => document.getElementById('edit-price-input').focus(), 100);
+    }
+
+    function closeEditPriceModal() {
+        document.getElementById('edit-price-modal').style.display = 'none';
+    }
+
+    function saveNewCategoryPrice() {
+        let wood = document.getElementById('edit-price-wood').value;
+        let thick = document.getElementById('edit-price-thick').value;
+        let newPrice = parseFloat(document.getElementById('edit-price-input').value.replace(',', '.'));
+
+        if (isNaN(newPrice) || newPrice <= 0) {
+            customAlert("Введіть коректну ціну!");
+            return;
+        }
+
+        let changed = false;
+        // Пробігаємось по всій історії і шукаємо дошки потрібної породи/товщини
+        history.forEach(b => {
+            if (b.wood === wood && String(b.thick) === thick) {
+                b.cubePrice = newPrice;
+                // Якщо це повернення - об'єм від'ємний, тому і ціна стане правильно від'ємною
+                b.price = b.vol * newPrice; 
+                changed = true;
+            }
+        });
+
+        closeEditPriceModal();
+
+        if (changed) {
+            updateUI(); // Миттєво перемальовуємо верхнє табло і загальну суму
+            renderList(); // Оновлюємо список дошок в меню
+            saveStoredData(); // Зберігаємо нові ціни в кеш планшета
+            if (typeof playClickSound === 'function') playClickSound();
+        }
     }
 
     function toggleList() { const modal = document.getElementById('list-modal'); if(modal) modal.style.display = modal.style.display === 'block' ? 'none' : 'block'; }
