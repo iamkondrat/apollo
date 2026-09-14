@@ -750,7 +750,7 @@
   </div> 
 
   <script>
-    const APP_VERSION = "2.90"; 
+    const APP_VERSION = "2.91"; 
     
     document.addEventListener("DOMContentLoaded", () => {
        const verEl = document.getElementById('version-display');
@@ -1739,7 +1739,7 @@
     }
     document.querySelectorAll('#settings-menu input, #settings-menu select').forEach(el => { el.addEventListener('input', saveStoredData); el.addEventListener('change', saveStoredData); });
     function updateWidthDisplay() { const el = document.getElementById('width-display'); if (el) el.value = currentWidthInput; }
-    function pressKey(key) { if (currentWidthInput.length < 2) { currentWidthInput += key; updateWidthDisplay(); saveStoredData(); playClickSound(); } }
+    function pressKey(key) { if (currentWidthInput.length < 3) { currentWidthInput += key; updateWidthDisplay(); saveStoredData(); playClickSound(); } }
     function clearWidthInput() { currentWidthInput = ""; updateWidthDisplay(); saveStoredData(); playClickSound(); }
     function pressBackspace() { currentWidthInput = currentWidthInput.slice(0, -1); updateWidthDisplay(); saveStoredData(); playClickSound(); }
     function toggleMenu() {
