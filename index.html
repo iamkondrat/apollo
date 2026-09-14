@@ -750,7 +750,7 @@
   </div> 
 
   <script>
-    const APP_VERSION = "2.91"; 
+    const APP_VERSION = "2.92"; 
     
     document.addEventListener("DOMContentLoaded", () => {
        const verEl = document.getElementById('version-display');
@@ -1750,7 +1750,7 @@
       const buyerEl = document.getElementById('buyer-name'); const buyer = buyerEl ? buyerEl.value : "";
       if (buyer === "") { customAlert("Будь ласка, вкажіть ім'я!"); if(document.getElementById('settings-menu').style.display === 'none') toggleMenu(); return; }
       if (currentWidthInput === "") { customAlert("Будь ласка, введіть ширину!"); return; }
-      const width = parseInt(currentWidthInput); if (isNaN(width) || width < 1 || width > 99) { customAlert("Будь ласка, введіть правильну ширину (1-99 см)!"); clearWidthInput(); return; }
+      const width = parseInt(currentWidthInput); if (isNaN(width) || width < 1 || width > 999) { customAlert("Будь ласка, введіть правильну ширину (1-99 см)!"); clearWidthInput(); return; }
       addBoardFromWidth(width); clearWidthInput();
     }
     function getSafeNumber(id) { let el = document.getElementById(id); if (!el || !el.value) return 0; let val = el.value.replace(/[^\d.,]/g, '').replace(',', '.'); return parseFloat(val) || 0; }
