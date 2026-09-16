@@ -820,7 +820,7 @@
   </div> 
 
   <script>
-    const APP_VERSION = "2.99"; 
+    const APP_VERSION = "3.00"; 
     
     document.addEventListener("DOMContentLoaded", () => {
        const verEl = document.getElementById('version-display');
@@ -1112,9 +1112,101 @@
         btn.innerHTML = originalText;
     }
 
+    // ТУТ МИ ЗАПАМ'ЯТОВУЄМО, ЯКИЙ ФАЙЛ РЕДАГУЄМО
+    let editingFileId = null;
+
     function editDocument() {
-        customAlert("Магія редагування буде підключена на наступному кроці! 🪄");
+        let doc = loadedDocsArchive[selectedDocIndex];
         closeDocActionModal();
+
+        if (!doc.jsonData) {
+            customAlert("Цей документ був створений до оновлення. Редагувати можна лише нові документи!");
+            return;
+        }
+
+        try {
+            let savedData = JSON.parse(doc.jsonData);
+
+            if (savedData.docType === 'ttn') {
+                openManualTTNScreen(); // Спочатку відкриваємо чисту форму
+                editingFileId = doc.id; // Запам'ятовуємо старий ID для видалення
+                
+                let t = savedData.ttnData;
+                document.getElementById('mt-buyer').value = t.buyer || "";
+                document.getElementById('mt-address').value = t.address || "";
+                document.getElementById('mt-packs').value = t.packs || "1";
+                document.getElementById('mt-driver-name').value = t.driver || "";
+                document.getElementById('mt-driver-lic').value = t.license || "";
+                document.getElementById('mt-trailer').value = t.trailer || "";
+                document.getElementById('mt-carrier').value = t.carrier || "";
+                document.getElementById('mt-invoiceNum').value = t.invoiceNum || "Б/Н";
+                document.getElementById('mt-weight').value = t.weight || "0";
+
+                // Розбираємо Авто (бо ми його зберігали склеєним)
+                let autoParts = (t.auto || "").split(" ");
+                document.getElementById('mt-auto-make').value = autoParts[0] || "";
+                document.getElementById('mt-auto-plate').value = autoParts.slice(1).join(" ") || "";
+
+                // Відновлюємо список позицій вантажу
+                document.getElementById('mt-items-container').innerHTML = '';
+                mtItemCount = 0;
+                if (t.cargoItems && t.cargoItems.length > 0) {
+                    t.cargoItems.forEach(item => {
+                        addMtItemRow();
+                        let woodVal = item.name.replace("Дошка ", "");
+                        let sel = document.getElementById(`mt-wood-${mtItemCount}`);
+                        if (sel) {
+                            Array.from(sel.options).forEach(opt => {
+                                if (opt.value === woodVal) sel.value = woodVal;
+                            });
+                        }
+                        document.getElementById(`mt-vol-${mtItemCount}`).value = item.vol;
+                        document.getElementById(`mt-sum-${mtItemCount}`).value = item.sum;
+                    });
+                } else {
+                    addMtItemRow();
+                }
+
+            } else if (savedData.docType === 'invoice' || savedData.docType === 'waybill') {
+                let d = savedData.data;
+                openManualScreen(savedData.docType); // Відкриваємо форму
+                editingFileId = doc.id; // Запам'ятовуємо ID
+                
+                document.getElementById('mi-buyer-name').value = d.buyerName || "";
+
+                if (savedData.docType === 'invoice') {
+                    document.getElementById('mi-payment-type').value = d.paymentMethod || "Б/Г з ПДВ";
+                }
+
+                if (d.deliveryCost > 0) {
+                    document.getElementById('mi-has-delivery').value = "yes";
+                    document.getElementById('mi-delivery-sum').style.display = "block";
+                    document.getElementById('mi-delivery-sum').value = d.deliveryCost;
+                } else {
+                    document.getElementById('mi-has-delivery').value = "no";
+                    document.getElementById('mi-delivery-sum').style.display = "none";
+                    document.getElementById('mi-delivery-sum').value = "";
+                }
+
+                // Відновлюємо список дошок/хвої
+                manualItems = [];
+                if (d.history && d.history.length > 0) {
+                    d.history.forEach(h => {
+                        manualItems.push({
+                            type: h.isLinear ? 'linear' : 'board',
+                            wood: h.wood,
+                            thick: h.thick,
+                            width: h.width || 0,
+                            qty: h.vol,
+                            price: Math.abs(h.cubePrice)
+                        });
+                    });
+                }
+                renderManualItemsList();
+            }
+        } catch (e) {
+            customAlert("Помилка читання файлу.");
+        }
     }
 
     async function initApp() {
@@ -1393,6 +1485,7 @@
     }
 
     function openManualTTNScreen() {
+      editingFileId = null;
        document.getElementById('manual-ttn-only-modal').style.display = 'flex';
        ['mt-buyer','mt-address','mt-weight','mt-packs','mt-driver','mt-auto','mt-trailer','mt-carrier','mt-invoiceNum', 'mt-driver-name', 'mt-driver-lic', 'mt-auto-make', 'mt-auto-plate'].forEach(id => {
           let el = document.getElementById(id);
@@ -1453,7 +1546,7 @@
 
        fetch(BACKEND_URL, {
           method: 'POST', redirect: 'follow', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify({ action: 'manualTTNOnly', ttnData: ttnDataObj })
+          body: JSON.stringify({ action: 'manualTTNOnly', ttnData: ttnDataObj, oldFileId: editingFileId })
        }).then(response => response.text()).then(result => {
           hideLoader(); customAlert("✅ ТТН успішно згенеровано і відправлено в Telegram!");
        }).catch(err => {
@@ -1463,6 +1556,7 @@
     
     // --- ЛОГІКА РУЧНИХ ДОКУМЕНТІВ ---
     function openManualScreen(type) {
+      editingFileId = null;
       manualDocType = type;
       if (manualItems.length === 0) { 
          document.getElementById('mi-buyer-name').value = "";
@@ -1837,6 +1931,7 @@
 
       let reqBody = {
         action: 'syncFileSync',
+        oldFileId: editingFileId,
         isTrash: false,
         buyerName: buyerName,
         phone: "Не вказано",
