@@ -483,8 +483,8 @@
         
         <!-- Блок кнопок управління -->
         <div style="display: flex; gap: 8px;">
-            <button onclick="downloadPdf()" style="background: #2980b9; border: none; color: white; padding: 8px 12px; border-radius: 6px; font-size: 16px; cursor: pointer;">⬇️</button>
-            <button onclick="sharePdf()" style="background: #27ae60; border: none; color: white; padding: 8px 12px; border-radius: 6px; font-size: 16px; cursor: pointer;">📤</button>
+            <button onclick="downloadPdf(event)" style="background: #2980b9; border: none; color: white; padding: 8px 12px; border-radius: 6px; font-size: 16px; cursor: pointer;">⬇️</button>
+            <button onclick="sharePdf(event)" style="background: #27ae60; border: none; color: white; padding: 8px 12px; border-radius: 6px; font-size: 16px; cursor: pointer;">📤</button>
             <button onclick="closePdfViewer()" style="background: #e74c3c; border: none; color: white; padding: 8px 12px; border-radius: 6px; font-weight: bold; cursor: pointer;">✕ Закрити</button>
         </div>
       </div>
@@ -820,7 +820,7 @@
   </div> 
 
   <script>
-    const APP_VERSION = "2.98"; 
+    const APP_VERSION = "2.99"; 
     
     document.addEventListener("DOMContentLoaded", () => {
        const verEl = document.getElementById('version-display');
@@ -1035,31 +1035,81 @@
         document.getElementById('pdf-iframe').src = ""; // Очищаємо, щоб не вантажило у фоні і не їло пам'ять
     }
 
-    function downloadPdf() {
-        let doc = loadedDocsArchive[selectedDocIndex];
-        if (doc && doc.id) {
-            // Генеруємо пряме посилання на завантаження файлу в обхід Гугл Диску
-            let downloadUrl = `https://drive.google.com/uc?export=download&id=${doc.id}`;
-            window.open(downloadUrl, '_blank');
+    // 🛠 Секретний конвертер, який збирає файл із коду
+    function base64ToBlob(base64, mimeType) {
+        const byteCharacters = atob(base64);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+            byteNumbers[i] = byteCharacters.charCodeAt(i);
         }
+        const byteArray = new Uint8Array(byteNumbers);
+        return new Blob([byteArray], {type: mimeType});
     }
 
-    function sharePdf() {
+    // ⬇️ ФУНКЦІЯ ПРЯМОГО ЗАВАНТАЖЕННЯ
+    async function downloadPdf(event) {
         let doc = loadedDocsArchive[selectedDocIndex];
-        if (doc && doc.fileUrl) {
-            // Викликаємо рідне меню Apple / Android (Telegram, Viber, AirDrop)
-            if (navigator.share) {
-                navigator.share({
-                    title: doc.buyer,
-                    text: 'Документ: ' + doc.buyer,
-                    url: doc.fileUrl
-                }).catch((error) => console.log('Користувач скасував відправку'));
-            } else {
-                // Якщо браузер дуже старий і не має такого меню - просто копіюємо посилання
-                navigator.clipboard.writeText(doc.fileUrl);
-                customAlert("Посилання скопійовано! Тепер ви можете вставити його в Telegram.");
+        if (!doc || !doc.id) return;
+
+        let btn = event.currentTarget;
+        let originalText = btn.innerHTML;
+        btn.innerHTML = "⏳"; // Показуємо, що йде загрузка
+
+        try {
+            let res = await fetch(BACKEND_URL + "?action=downloadPdfBase64&fileId=" + doc.id);
+            let data = await res.json();
+            
+            if (data.status === 'ok') {
+                let blob = base64ToBlob(data.base64, 'application/pdf');
+                let blobUrl = URL.createObjectURL(blob);
+                
+                // Імітуємо клік для скачування реального файлу
+                let a = document.createElement('a');
+                a.href = blobUrl;
+                a.download = data.fileName;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(blobUrl);
             }
+        } catch (e) {
+             customAlert("Помилка завантаження файлу");
         }
+        btn.innerHTML = originalText;
+    }
+
+    // 📤 ФУНКЦІЯ ПРЯМОЇ ВІДПРАВКИ ФАЙЛУ
+    async function sharePdf(event) {
+        let doc = loadedDocsArchive[selectedDocIndex];
+        if (!doc || !doc.id) return;
+        
+        let btn = event.currentTarget;
+        let originalText = btn.innerHTML;
+        btn.innerHTML = "⏳"; 
+        
+        try {
+            let res = await fetch(BACKEND_URL + "?action=downloadPdfBase64&fileId=" + doc.id);
+            let data = await res.json();
+            
+            if (data.status === 'ok') {
+                let blob = base64ToBlob(data.base64, 'application/pdf');
+                // Створюємо реальний об'єкт "Файл"
+                let file = new File([blob], data.fileName, { type: 'application/pdf' });
+                
+                // Перевіряємо, чи дозволяє телефон відправку фізичних файлів
+                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                    await navigator.share({
+                        files: [file],
+                        title: data.fileName
+                    });
+                } else {
+                    customAlert("Ваш пристрій (або браузер) не підтримує пряму відправку файлів. Будь ласка, використайте кнопку 'Завантажити' (⬇️).");
+                }
+            }
+        } catch (e) {
+            customAlert("Помилка підготовки файлу");
+        }
+        btn.innerHTML = originalText;
     }
 
     function editDocument() {
