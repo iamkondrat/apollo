@@ -473,6 +473,28 @@
     </div>
   </div>
 
+  <!-- ВІКНО ПЕРЕГЛЯДУ PDF ВСЕРЕДИНІ ДОДАТКУ -->
+  <div id="pdf-viewer-modal" class="overlay-modal" style="z-index: 9999999999; padding: 0;">
+    <div style="width: 100%; height: 100%; background: #222; display: flex; flex-direction: column;">
+      
+      <!-- Оновлена Шапка з новими кнопками -->
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; background: #111; color: white; gap: 10px;">
+        <h3 id="pdf-viewer-title" style="margin: 0; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1;">Документ</h3>
+        
+        <!-- Блок кнопок управління -->
+        <div style="display: flex; gap: 8px;">
+            <button onclick="downloadPdf()" style="background: #2980b9; border: none; color: white; padding: 8px 12px; border-radius: 6px; font-size: 16px; cursor: pointer;">⬇️</button>
+            <button onclick="sharePdf()" style="background: #27ae60; border: none; color: white; padding: 8px 12px; border-radius: 6px; font-size: 16px; cursor: pointer;">📤</button>
+            <button onclick="closePdfViewer()" style="background: #e74c3c; border: none; color: white; padding: 8px 12px; border-radius: 6px; font-weight: bold; cursor: pointer;">✕ Закрити</button>
+        </div>
+      </div>
+      
+      <!-- Сам документ -->
+      <iframe id="pdf-iframe" src="" style="width: 100%; flex: 1; border: none; background: #fff;"></iframe>
+      
+    </div>
+  </div>
+
   <div id="doc-action-modal" class="overlay-modal" style="z-index: 999999999;">
     <div class="modal-box" style="align-items: center; text-align: center;">
       <h3 style="margin-bottom: 5px; color: #f39c12;">Дії з документом</h3>
@@ -798,7 +820,7 @@
   </div> 
 
   <script>
-    const APP_VERSION = "2.97"; 
+    const APP_VERSION = "2.98"; 
     
     document.addEventListener("DOMContentLoaded", () => {
        const verEl = document.getElementById('version-display');
@@ -996,11 +1018,48 @@
     function viewDocument() {
         let doc = loadedDocsArchive[selectedDocIndex];
         if (doc && doc.fileUrl) {
-            window.open(doc.fileUrl, '_blank'); // Відкриває PDF у новій вкладці
+            // Магія: міняємо посилання так, щоб Гугл дозволив вбудувати його в наш сайт
+            let embedUrl = doc.fileUrl.replace(/\/view.*/, '/preview');
+            
+            document.getElementById('pdf-viewer-title').innerText = doc.buyer; // Пишемо ім'я в шапці
+            document.getElementById('pdf-iframe').src = embedUrl; // Завантажуємо PDF
+            document.getElementById('pdf-viewer-modal').style.display = 'flex';
         } else {
             customAlert("Посилання на файл відсутнє!");
         }
-        closeDocActionModal();
+        closeDocActionModal(); // Закриваємо маленьке меню дій
+    }
+
+    function closePdfViewer() {
+        document.getElementById('pdf-viewer-modal').style.display = 'none';
+        document.getElementById('pdf-iframe').src = ""; // Очищаємо, щоб не вантажило у фоні і не їло пам'ять
+    }
+
+    function downloadPdf() {
+        let doc = loadedDocsArchive[selectedDocIndex];
+        if (doc && doc.id) {
+            // Генеруємо пряме посилання на завантаження файлу в обхід Гугл Диску
+            let downloadUrl = `https://drive.google.com/uc?export=download&id=${doc.id}`;
+            window.open(downloadUrl, '_blank');
+        }
+    }
+
+    function sharePdf() {
+        let doc = loadedDocsArchive[selectedDocIndex];
+        if (doc && doc.fileUrl) {
+            // Викликаємо рідне меню Apple / Android (Telegram, Viber, AirDrop)
+            if (navigator.share) {
+                navigator.share({
+                    title: doc.buyer,
+                    text: 'Документ: ' + doc.buyer,
+                    url: doc.fileUrl
+                }).catch((error) => console.log('Користувач скасував відправку'));
+            } else {
+                // Якщо браузер дуже старий і не має такого меню - просто копіюємо посилання
+                navigator.clipboard.writeText(doc.fileUrl);
+                customAlert("Посилання скопійовано! Тепер ви можете вставити його в Telegram.");
+            }
+        }
     }
 
     function editDocument() {
