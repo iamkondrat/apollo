@@ -820,7 +820,7 @@
   </div> 
 
   <script>
-    const APP_VERSION = "3.00"; 
+    const APP_VERSION = "3.01"; 
     
     document.addEventListener("DOMContentLoaded", () => {
        const verEl = document.getElementById('version-display');
@@ -1118,6 +1118,10 @@
     function editDocument() {
         let doc = loadedDocsArchive[selectedDocIndex];
         closeDocActionModal();
+
+      // 🪄 ХОВАЄМО ВІКНА АРХІВУ, ЩОБ ВОНИ НЕ ВИСІЛИ НА ФОНІ
+        document.getElementById('docs-list-modal').style.display = 'none';
+        document.getElementById('docs-archive-type-modal').style.display = 'none';
 
         if (!doc.jsonData) {
             customAlert("Цей документ був створений до оновлення. Редагувати можна лише нові документи!");
