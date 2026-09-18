@@ -515,9 +515,10 @@
       <div id="archive-detail-content" style="background: #222; padding: 15px; border-radius: 8px; font-size: 14px; margin-bottom: 15px; max-height: 40vh; overflow-y: auto;">
       </div>
       <div style="display: flex; gap: 10px; flex-direction: column;">
-        <div style="display: flex; gap: 10px;">
-          <button class="pay-btn centered" style="flex:1; background: #1976d2; border-color: #1565c0; font-size:14px; padding: 10px;" onclick="convertArchive('invoice')">📄 Виписати Рахунок</button>
-          <button class="pay-btn centered" style="flex:1; background: #d35400; border-color: #a04000; font-size:14px; padding: 10px;" onclick="convertArchive('waybill')">📝 Виписати Накладну</button>
+        <div style="display: flex; gap: 8px;">
+          <button class="pay-btn centered" style="flex:1; background: #1976d2; border-color: #1565c0; font-size:13px; padding: 10px;" onclick="convertArchive('invoice')">📄 Рахунок</button>
+          <button class="pay-btn centered" style="flex:1; background: #d35400; border-color: #a04000; font-size:13px; padding: 10px;" onclick="convertArchive('waybill')">📝 Накладна</button>
+          <button class="pay-btn centered" style="flex:1; background: #e67e22; border-color: #d35400; font-size:13px; padding: 10px;" onclick="convertArchive('ttn')">🚚 ТТН</button>
         </div>
         <button class="pay-btn centered cancel" style="padding: 10px; margin-top: 0;" onclick="closeArchiveDetail()">Назад</button>
       </div>
@@ -816,7 +817,7 @@
   </div> 
 
   <script>
-    const APP_VERSION = "3.02"; 
+    const APP_VERSION = "3.03"; 
     
     document.addEventListener("DOMContentLoaded", () => {
        const verEl = document.getElementById('version-display');
