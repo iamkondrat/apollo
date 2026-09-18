@@ -817,7 +817,7 @@
   </div> 
 
   <script>
-    const APP_VERSION = "3.03"; 
+    const APP_VERSION = "3.04"; 
     
     document.addEventListener("DOMContentLoaded", () => {
        const verEl = document.getElementById('version-display');
@@ -1382,6 +1382,7 @@
        let hData = [];
        try { hData = JSON.parse(arch.historyData); } catch(e){}
 
+       // Збираємо дошки до купи
        let groups = {};
        hData.forEach(b => {
          let isLin = b.isLinear === true;
@@ -1401,21 +1402,62 @@
          groups[key].qty += parseFloat(b.vol || 0);
        });
 
-       manualItems = [];
-       for(let k in groups) {
-         if(groups[k].qty > 0) {
-           manualItems.push(groups[k]);
-         }
-       }
-
        closeArchiveDetail();
        closeArchiveModal();
        
-       openManualScreen(type);
-       
        let rawName = arch.buyer || '';
        if(rawName.startsWith("СКАСОВАНО_")) rawName = rawName.replace("СКАСОВАНО_", "");
-       document.getElementById('mi-buyer-name').value = rawName;
+
+       // ЯКЩО НАТИСНУЛИ ТТН:
+       if (type === 'ttn') {
+           openManualTTNScreen(); // Відкриваємо форму ТТН
+           document.getElementById('mt-buyer').value = rawName; // Вписуємо ім'я
+           
+           // Очищаємо стандартні порожні рядки
+           document.getElementById('mt-items-container').innerHTML = '';
+           mtItemCount = 0;
+           
+           let addedAny = false;
+           // Додаємо згруповані позиції як вантаж
+           for(let k in groups) {
+               if(groups[k].qty > 0) {
+                   addedAny = true;
+                   addMtItemRow(); // Створюємо новий рядок
+                   
+                   let woodVal = groups[k].type === 'linear' ? 'Брус/Рейка' : groups[k].wood;
+                   let sel = document.getElementById(`mt-wood-${mtItemCount}`);
+                   let foundOption = false;
+                   if (sel) {
+                       // Шукаємо породу у випадаючому списку
+                       Array.from(sel.options).forEach(opt => {
+                           if (opt.value === woodVal) { sel.value = woodVal; foundOption = true; }
+                       });
+                       if (!foundOption) sel.value = "Пиломатеріали"; // Якщо щось специфічне
+                   }
+                   
+                   let roundedVol = Number(groups[k].qty.toFixed(3));
+                   let rowSum = Math.round(roundedVol * groups[k].price * 100) / 100;
+                   
+                   // Вписуємо об'єм і суму
+                   document.getElementById(`mt-vol-${mtItemCount}`).value = roundedVol.toFixed(3).replace('.', ',');
+                   document.getElementById(`mt-sum-${mtItemCount}`).value = rowSum.toFixed(2).replace('.', ',');
+               }
+           }
+           if (!addedAny) addMtItemRow(); // Щоб форма не була пустою, якщо щось пішло не так
+           
+           calcMtTotalWeight(); // Автоматично перераховуємо масу брутто (в тоннах)!
+           
+       } else {
+           // ЯКЩО НАТИСНУЛИ РАХУНОК АБО НАКЛАДНУ (стара логіка):
+           manualItems = [];
+           for(let k in groups) {
+             if(groups[k].qty > 0) {
+               manualItems.push(groups[k]);
+             }
+           }
+           openManualScreen(type);
+           document.getElementById('mi-buyer-name').value = rawName;
+       }
     }
 
     
