@@ -817,7 +817,7 @@
   </div> 
 
   <script>
-    const APP_VERSION = "3.04"; 
+    const APP_VERSION = "3.05"; 
     
     document.addEventListener("DOMContentLoaded", () => {
        const verEl = document.getElementById('version-display');
@@ -1448,10 +1448,12 @@
            calcMtTotalWeight(); // Автоматично перераховуємо масу брутто (в тоннах)!
            
        } else {
-           // ЯКЩО НАТИСНУЛИ РАХУНОК АБО НАКЛАДНУ (стара логіка):
+           // ЯКЩО НАТИСНУЛИ РАХУНОК АБО НАКЛАДНУ:
            manualItems = [];
            for(let k in groups) {
              if(groups[k].qty > 0) {
+               // МАГІЯ ТУТ: Жорстко фіксуємо 3 цифри після коми перед збереженням!
+               groups[k].qty = Number(groups[k].qty.toFixed(3));
                manualItems.push(groups[k]);
              }
            }
@@ -1716,6 +1718,10 @@
         let wood = document.getElementById('mi-item-wood').value;
         let thick = parseFloat(document.getElementById('mi-item-thick').value.replace(',', '.')) || 0;
         let vol = parseFloat(document.getElementById('mi-item-vol').value.replace(',', '.')) || 0;
+        
+        // Жорстке округлення
+        vol = Number(vol.toFixed(3));
+        
         let cubePrice = parseFloat(document.getElementById('mi-item-price').value.replace(',', '.')) || 0;
         
         if (thick <= 0 || vol <= 0 || cubePrice <= 0) { customAlert("Заповніть усі поля для дошки!"); return; }
@@ -1739,6 +1745,10 @@
            totalLen = parseFloat(document.getElementById('mi-lin-total-len').value.replace(',', '.')) || 0;
            if (totalLen <= 0) { customAlert("Введіть загальну довжину!"); return; }
         }
+        
+        // Жорстке округлення
+        totalLen = Number(totalLen.toFixed(3));
+
         itemObj = { type: 'linear', wood: name, thick: thick, width: width, qty: totalLen, price: price };
       }
 
@@ -1761,17 +1771,18 @@
 
       let html = '';
       manualItems.forEach((item, idx) => {
-        let rowSum = item.qty * item.price;
+        let rowSum = item.qty * item.price; // Тепер множиться ідеально рівно!
         let title = item.type === 'linear' ? `${item.wood} ${item.thick}х${item.width} мм` : `Дошка ${item.wood} ${item.thick} мм`;
         let unit = item.type === 'linear' ? 'м.п.' : 'м³';
         
         let warningIcon = item.price === 0 ? '<span style="color:#e74c3c; font-size:16px; margin-right:5px;" title="Ціна не вказана!">⚠️</span>' : '';
 
+        // Додали красиві коми у вивід
         html += `
           <div class="item-card">
             <div>
               <div style="font-weight: bold; font-size: 15px; display:flex; align-items:center;">${warningIcon}${title}</div>
-              <div style="color: #aaa; font-size: 13px; margin-top: 3px;">${item.qty.toFixed(3)} ${unit} × ${item.price} грн = <strong style="color: #4CAF50;">${rowSum.toFixed(2)} грн</strong></div>
+              <div style="color: #aaa; font-size: 13px; margin-top: 3px;">${item.qty.toFixed(3).replace('.', ',')} ${unit} × ${item.price} грн = <strong style="color: #4CAF50;">${rowSum.toFixed(2).replace('.', ',')} грн</strong></div>
             </div>
             <div style="display: flex; gap: 8px;">
               <button onclick="openAddItemModal(${idx})" style="background: #2980b9; color: white; border: none; width: 36px; height: 36px; border-radius: 8px; cursor: pointer;">✏️</button>
